@@ -1,6 +1,14 @@
-export const VERSION = '1.9.0'
+export const VERSION = '1.9.1'
 
 export const CHANGELOG = [
+  {
+    version: '1.9.1',
+    date: '2026-11-09',
+    items: [
+      'Rebuilt the drill animations. Round first: a smooth banana turn outside the cone, then the runner finds the ball in left field and gets back. Pickle: a close-up of two bases where you can see the ball, the "now!" call, one throw, one tag and the rotation. Tee work: the coach steps in to re-tee and give one cue between swings, then stands off to the side; the hitter walks behind the line; and all four swing positions show under the picture, with the current one highlighted.',
+      'Redrew the swing and fielding positions: hands by the back shoulder in the stance, a firm front leg at contact, and the bat wrapped behind the head at the finish.',
+    ],
+  },
   {
     version: '1.9.0',
     date: '2026-11-09',

@@ -15,6 +15,23 @@ export function sample(track, t) {
   return track[track.length - 1].slice(1)
 }
 
+// Same as sample, but inside the actor's `curve` window [from, to] the path is a smooth curve
+// (Catmull-Rom) through the points, matching the trail drawn by smoothPath.
+export function samplePos(actor, t) {
+  const c = actor.curve
+  if (!c || t < c[0] || t > c[1]) return sample(actor.track, t)
+  const pts = actor.track.filter((p) => p[0] >= c[0] && p[0] <= c[1])
+  let i = 1
+  while (i < pts.length - 1 && t > pts[i][0]) i++
+  const p0 = pts[i - 2] ?? pts[i - 1]
+  const p1 = pts[i - 1]
+  const p2 = pts[i]
+  const p3 = pts[i + 1] ?? p2
+  const u = (t - p1[0]) / (p2[0] - p1[0] || 1)
+  const cr = (a, b, c2, d) => 0.5 * (2 * b + (-a + c2) * u + (2 * a - 5 * b + 4 * c2 - d) * u * u + (-a + 3 * b - 3 * c2 + d) * u * u * u)
+  return [cr(p0[1], p1[1], p2[1], p3[1]), cr(p0[2], p1[2], p2[2], p3[2])]
+}
+
 // A smooth SVG path through points (Catmull-Rom turned into curves).
 export function smoothPath(pts) {
   if (pts.length < 3) return 'M' + pts.map((p) => p.join(' ')).join(' L')

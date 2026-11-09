@@ -2,15 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { DIAGRAMS } from '../data/diagrams.js'
 import { BG } from '../data/diagramBg.js'
 import { POSE_SETS, POSES_FOR } from '../data/poses.js'
-import { sample, smoothPath, stepAt, poseAt, trailPoints } from '../lib/diagram.js'
+import { sample, samplePos, smoothPath, stepAt, poseAt, trailPoints } from '../lib/diagram.js'
 import { videoUrl } from '../data/video.js'
-
-const reduced = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
 function Actor({ a, t }) {
   if (a.vis && (t < a.vis[0] || t > a.vis[1])) return null
   if (a.kind === 'bat') return null
-  const [x, y] = sample(a.track, t)
+  const [x, y] = samplePos(a, t)
   if (a.kind === 'ball') return <circle cx={x} cy={y} r="4" className="dg-ball" />
   return (
     <g transform={`translate(${x} ${y})`}>
@@ -29,7 +27,6 @@ export function DrillDiagram({ drill, spec }) {
   const [playing, setPlaying] = useState(false)
   const [slow, setSlow] = useState(false)
   const ref = useRef(null)
-  const still = reduced()
   const first = spec.actors.find((a) => a.kind === 'kid')
 
   useEffect(() => {
@@ -57,30 +54,34 @@ export function DrillDiagram({ drill, spec }) {
 
   const bat = spec.actors.find((a) => a.kind === 'bat')
   const batPos = bat && first && t >= bat.vis[0] && t <= bat.vis[1] ? { p: sample(first.track, t), ang: sample(bat.track, t)[0] } : null
-  const trail = spec.trail ? trailPoints(spec.actors[spec.trail.actor], spec.trail.from, spec.trail.to) : null
+  const tr = spec.trail
+  const trail = tr ? trailPoints(spec.actors[tr.actor], tr.from, tr.to) : null
+  const done = tr && t > tr.from ? trailPoints(spec.actors[tr.actor], tr.from, Math.min(t, tr.to)) : null
+  if (done && t < tr.to) done.push(samplePos(spec.actors[tr.actor], t))
   const cur = stepAt(spec.at, t)
-  const pose = spec.poses ? POSE_SETS[spec.poses][poseAt(spec.poseAt, t)] : null
+  const pose = spec.poses && t > 0 ? poseAt(spec.poseAt, t) : null
 
   return (
     <div className="dg" ref={ref}>
       <svg viewBox="0 0 300 300" role="img" aria-label={`Diagram of ${drill.name} from above`} className="dg-svg">
         <g dangerouslySetInnerHTML={{ __html: BG[spec.bg] + (spec.extras ?? '') }} />
         {trail && <path d={smoothPath(trail)} className="dg-trail" />}
-        {spec.actors.map((a, i) => (
-          <Actor key={i} a={a} t={t} />
-        ))}
+        {done && done.length > 1 && <path d={smoothPath(done)} className="dg-trail dg-done" />}
+        {/* players first, then the bat and balls on top so a held ball is never hidden */}
+        {spec.actors.map((a, i) => (a.kind === 'ball' ? null : <Actor key={i} a={a} t={t} />))}
         {batPos && <line x1={batPos.p[0]} y1={batPos.p[1]} x2={batPos.p[0] + 22 * Math.cos((batPos.ang * Math.PI) / 180)} y2={batPos.p[1] + 22 * Math.sin((batPos.ang * Math.PI) / 180)} className="dg-bat" />}
+        {spec.actors.map((a, i) => (a.kind === 'ball' ? <Actor key={i} a={a} t={t} /> : null))}
         {(spec.labels ?? []).filter((l) => t >= l.t0 && t <= l.t1).map((l) => (
           <text key={l.text} x={l.x} y={l.y} className="dg-lab dg-big">
             {l.text}
           </text>
         ))}
         {(spec.pops ?? []).filter((p) => t >= p.t0 && t <= p.t1).map((p) => {
-          const [x, y] = sample(spec.actors[p.at].track, t)
+          const [x, y] = samplePos(spec.actors[p.at], t)
           const w = p.text.length * 5.6 + 12
           const px = Math.min(Math.max(x, w / 2 + 2), 298 - w / 2)
           return (
-            <g key={p.text} transform={`translate(${px} ${y - 24})`}>
+            <g key={p.text} transform={`translate(${px} ${p.below ? y + 25 : y - 24})`}>
               <rect x={-w / 2} y="-9" width={w} height="16" rx="8" className="dg-pop" />
               <text y="3" textAnchor="middle" className="dg-poptext">
                 {p.text}
@@ -89,12 +90,7 @@ export function DrillDiagram({ drill, spec }) {
           )
         })}
       </svg>
-      {pose && (
-        <div className="dg-pose" aria-hidden="true">
-          <PoseFigure pose={pose} />
-          <span>{pose.n}</span>
-        </div>
-      )}
+      {spec.poses && <PoseStrip set={spec.poses} active={pose} />}
       <div className="dg-controls no-print">
         <button type="button" className="btn small" onClick={() => setPlaying((p) => !p)} aria-label={playing ? 'Pause' : 'Play'}>
           {playing ? 'Pause' : 'Play'}
@@ -104,7 +100,6 @@ export function DrillDiagram({ drill, spec }) {
           ½×
         </button>
       </div>
-      {still && <p className="small muted no-print">Motion is off on this device. Drag the slider to step through.</p>}
       <p className="small muted dg-now">{cur >= 0 ? `Step ${cur + 1}: ${drill.steps[cur]}` : 'Press Play to watch the drill.'}</p>
       <p className="small muted">Drawn from above, not to scale.</p>
     </div>
@@ -115,26 +110,34 @@ function PoseFigure({ pose }) {
   const j = pose.j
   const L = (a, b) => <line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} />
   return (
-    <svg viewBox="0 0 80 92" className="dg-fig" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none">
-      <circle cx={j.head[0]} cy={j.head[1]} r="6" />
+    <svg viewBox="-2 -8 84 102" className="dg-fig" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none">
+      {j.tip && <line x1={j.hand[0]} y1={j.hand[1]} x2={j.tip[0]} y2={j.tip[1]} strokeWidth="4.5" className="dg-fig-bat" />}
+      <circle cx={j.head[0]} cy={j.head[1]} r="6" className="dg-head" />
       {L(j.neck, j.hip)}
       {L(j.hip, j.k1)}
       {L(j.k1, j.f1)}
       {L(j.hip, j.k2)}
       {L(j.k2, j.f2)}
-      {L(j.neck, j.hand)}
-      {j.tip && L(j.hand, j.tip)}
-      {j.glove && <circle cx={j.glove[0]} cy={j.glove[1]} r="5" />}
+      {j.elbow ? (
+        <>
+          {L(j.neck, j.elbow)}
+          {L(j.elbow, j.hand)}
+        </>
+      ) : (
+        L(j.neck, j.hand)
+      )}
+      {j.glove && <path d={`M${j.glove[0] - 6} ${j.glove[1] - 4} q6 10 12 0`} strokeWidth="3.5" />}
+      {j.ball && <circle cx={j.ball[0]} cy={j.ball[1]} r="3" fill="#fff" stroke="#c33" strokeWidth="1.2" />}
     </svg>
   )
 }
 
 // A strip of key body positions for drills with no moving diagram.
-export function PoseStrip({ set }) {
+export function PoseStrip({ set, active = null }) {
   return (
     <div className="dg-strip" aria-hidden="true">
-      {POSE_SETS[set].map((p) => (
-        <div key={p.n} className="dg-pose">
+      {POSE_SETS[set].map((p, i) => (
+        <div key={p.n} className={`dg-pose${active === i ? ' on' : ''}`}>
           <PoseFigure pose={p} />
           <span>{p.n}</span>
         </div>

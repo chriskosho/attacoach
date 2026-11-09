@@ -11,7 +11,7 @@ describe('drill diagrams', () => {
   it.each(Object.entries(DIAGRAMS))('%s is well formed', (id, spec) => {
     const d = drillById(id)
     expect(d).toBeTruthy()
-    expect(spec.at.length).toBeLessThanOrEqual(d.steps.length + 1)
+    expect(spec.at.length).toBe(d.steps.length)
     spec.at.forEach((s) => expect(s).toBeLessThan(spec.len))
     spec.actors.forEach((a) => {
       for (let i = 1; i < a.track.length; i++) expect(a.track[i][0]).toBeGreaterThanOrEqual(a.track[i - 1][0])
@@ -41,6 +41,11 @@ describe('drill diagrams', () => {
     expect(simple).toBeGreaterThan(0)
     const plain = render(<DrillText drill={drillById('soft-toss')} />)
     expect(plain.container.querySelector('.dg')).toBeNull()
+  })
+  it('the tee work diagram shows the swing positions under it', () => {
+    const { container } = render(<DrillText drill={drillById('tee-work')} />)
+    expect(container.querySelectorAll('.dg-strip .dg-pose')).toHaveLength(4)
+    expect(container.textContent).not.toMatch(/undefined/)
   })
   it('shows pose cards for funnel grounders', () => {
     const { container } = render(<DrillText drill={drillById('funnel-grounders')} />)

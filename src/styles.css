@@ -581,7 +581,9 @@ a.btn { text-decoration: none; }
 .dg-bat { stroke: #e9c98a; stroke-width: 4; stroke-linecap: round; }
 .dg-body { stroke: #13221a; stroke-width: 1.5; }
 .dg-who { font-size: 10px; font-weight: 700; fill: #13221a; font-family: var(--font); }
-.dg-trail { fill: none; stroke: var(--pole); stroke-width: 3; stroke-dasharray: 2 6; stroke-linecap: round; opacity: 0.9; }
+.dg-trail { fill: none; stroke: #fff; stroke-width: 2.5; stroke-dasharray: 2 6; stroke-linecap: round; opacity: 0.45; }
+.dg-trail.dg-done { stroke: var(--pole); stroke-width: 3; opacity: 1; }
+.dg-spot { fill: none; stroke: #ff8a3d; stroke-width: 2; stroke-dasharray: 3 3; }
 .dg-pop { fill: #fff; stroke: #13221a; stroke-width: 1; }
 .dg-poptext { font-size: 9px; font-weight: 700; fill: #13221a; font-family: var(--font); }
 .dg-controls { display: flex; align-items: center; gap: 8px; }
@@ -590,5 +592,11 @@ a.btn { text-decoration: none; }
 .dg-strip { display: flex; gap: 8px; }
 .dg-pose { display: grid; justify-items: center; gap: 2px; font-size: 0.75rem; color: var(--ink-2); flex: 1; }
 .dg-fig { width: 100%; max-width: 72px; color: var(--ink); }
-.dg > .dg-pose { justify-self: start; }
+.dg-pose.on { color: var(--ink); font-weight: 700; }
+.dg-pose.on .dg-fig { color: var(--accent); }
+.dg-fig-bat { stroke: #b08446; }
+.dg-head { fill: var(--card); }
+.dg-pose.on .dg-head { fill: var(--accent-soft); }
+.dg-strip .dg-pose { border-radius: 10px; padding: 4px 0; }
+.dg-pose.on { background: var(--accent-soft); }
 @media print { .dg-controls { display: none; } }

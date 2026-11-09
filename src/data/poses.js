@@ -1,20 +1,28 @@
-// Key body positions, drawn as stick figures in an 80 x 92 box (facing right). Used where a wrong
-// picture in a coach's head leads to a bad habit: a stance, a swing, a ready position.
-// j = joints: head, neck, hip, k1/f1 (back knee and foot), k2/f2 (front), hand, and a bat tip or glove.
+// Key body positions, drawn as stick figures from the side in an 80 x 92 box, facing right (toward
+// the pitcher or the ball). Used where a wrong picture in a coach's head leads to a bad habit.
+// Joints: head, neck, hip, k1/f1 (back knee and foot), k2/f2 (front), elbow, hand, then a bat tip,
+// a glove or a ball.
 
 export const POSE_SETS = {
   swing: [
-    { n: 'Stance', j: { head: [34, 12], neck: [34, 21], hip: [34, 46], k1: [30, 64], f1: [27, 86], k2: [38, 64], f2: [42, 86], hand: [42, 32], tip: [52, 10] } },
-    { n: 'Load', j: { head: [30, 13], neck: [31, 22], hip: [30, 47], k1: [26, 65], f1: [23, 86], k2: [36, 63], f2: [41, 83], hand: [24, 30], tip: [34, 6] } },
-    { n: 'Contact', j: { head: [38, 14], neck: [38, 23], hip: [34, 47], k1: [27, 66], f1: [24, 86], k2: [42, 65], f2: [50, 86], hand: [54, 32], tip: [76, 30] } },
-    { n: 'Finish', j: { head: [36, 13], neck: [37, 22], hip: [32, 47], k1: [27, 66], f1: [24, 86], k2: [42, 66], f2: [50, 86], hand: [26, 18], tip: [8, 26] } },
+    // Feet wider than shoulders, knees soft, hands by the back shoulder, bat up.
+    { n: 'Stance', j: { head: [36, 12], neck: [36, 21], hip: [36, 48], k1: [30, 66], f1: [25, 86], k2: [43, 66], f2: [49, 86], elbow: [26, 32], hand: [30, 21], tip: [24, 1] } },
+    // Weight back, hands go back a little, small soft step.
+    { n: 'Load', j: { head: [34, 13], neck: [34, 22], hip: [33, 48], k1: [28, 66], f1: [25, 86], k2: [43, 64], f2: [51, 84], elbow: [22, 32], hand: [25, 22], tip: [14, 4] } },
+    // Front leg firm, back knee drives, head still and behind the ball, hands out front.
+    { n: 'Contact', j: { head: [37, 14], neck: [38, 23], hip: [38, 48], k1: [33, 67], f1: [26, 84], k2: [46, 66], f2: [53, 86], elbow: [44, 38], hand: [50, 44], tip: [72, 42], ball: [75, 42] } },
+    // Chest to the pitcher, back foot on its toe, hands finish high over the front shoulder.
+    { n: 'Finish', j: { head: [38, 12], neck: [39, 21], hip: [40, 48], k1: [38, 68], f1: [32, 84], k2: [47, 66], f2: [53, 86], elbow: [54, 24], hand: [50, 9], tip: [24, 18] } },
   ],
   ready: [
-    { n: 'Ready', j: { head: [40, 26], neck: [38, 34], hip: [26, 56], k1: [38, 68], f1: [34, 86], k2: [46, 68], f2: [52, 86], hand: [56, 52], glove: [60, 56] } },
-    { n: 'Field it out front', j: { head: [46, 30], neck: [44, 38], hip: [28, 58], k1: [42, 70], f1: [38, 86], k2: [50, 70], f2: [56, 86], hand: [64, 66], glove: [68, 72] } },
-    { n: 'Funnel to belly', j: { head: [44, 32], neck: [42, 40], hip: [28, 60], k1: [40, 70], f1: [36, 86], k2: [48, 70], f2: [54, 86], hand: [46, 56], glove: [48, 58] } },
+    // Wide feet, knees bent, butt down, glove out in front.
+    { n: 'Ready', j: { head: [44, 28], neck: [41, 35], hip: [28, 54], k1: [38, 68], f1: [30, 86], k2: [50, 66], f2: [50, 86], elbow: [50, 48], hand: [57, 58], glove: [60, 61] } },
+    // Low, glove down out in front of the eyes, not between the feet.
+    { n: 'Field it out front', j: { head: [53, 40], neck: [48, 46], hip: [26, 62], k1: [37, 73], f1: [27, 86], k2: [50, 72], f2: [52, 86], elbow: [58, 64], hand: [64, 79], glove: [67, 81], ball: [70, 80] } },
+    // Hands come up to the belly button.
+    { n: 'Funnel to belly', j: { head: [47, 32], neck: [44, 40], hip: [27, 60], k1: [37, 71], f1: [27, 86], k2: [49, 70], f2: [51, 86], elbow: [52, 56], hand: [43, 55], glove: [45, 55], ball: [45, 55] } },
   ],
 }
 
 // Drills with a pose set that has no moving diagram of its own.
-export const POSES_FOR = { 'tee-work': 'swing', 'funnel-grounders': 'ready' }
+export const POSES_FOR = { 'funnel-grounders': 'ready' }
