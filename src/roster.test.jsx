@@ -95,7 +95,10 @@ describe('roster on the Team tab', () => {
     const t = await saveTeam(team)
     const user = userEvent.setup()
     render(<App />)
-    await user.type(await screen.findByLabelText('Add a player'), 'Sam{enter}')
+    await user.click(await screen.findByRole('button', { name: 'Add a player' }))
+    await user.type(within(screen.getByRole('dialog')).getByLabelText('First name'), 'Sam')
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Save without details' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Done' }))
     await waitFor(async () => expect(await db.players.count()).toBe(1))
 
     await user.click(await screen.findByRole('button', { name: 'Edit Sam' }))
@@ -114,6 +117,26 @@ describe('roster on the Team tab', () => {
     await user.click(screen.getByRole('button', { name: 'Edit Sam' }))
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Remove' }))
     await waitFor(async () => expect(await db.players.count()).toBe(0))
+  })
+
+  it('adds several players in a row from one popup, keeping each one\'s skills', async () => {
+    const t = await saveTeam(team)
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(await screen.findByRole('button', { name: 'Add a player' }))
+    const dialog = screen.getByRole('dialog')
+    const next = within(dialog).getByRole('button', { name: 'Next' })
+    expect(next.disabled).toBe(true) // a first name is required
+    await user.type(within(dialog).getByLabelText('First name'), 'Ann{enter}')
+    await user.click(within(within(dialog).getByRole('group', { name: 'Strengths' })).getByRole('button', { name: 'Making contact' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Save and add next' }))
+    await user.type(within(dialog).getByLabelText('First name'), 'Bo{enter}')
+    await user.click(within(within(dialog).getByRole('group', { name: 'Needs work' })).getByRole('button', { name: 'Throwing accuracy' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Save and finish' }))
+    await waitFor(async () => expect(await db.players.count()).toBe(2))
+    const rows = await db.players.toArray()
+    expect(rows.find((p) => p.first === 'Ann')).toMatchObject({ strengths: ['contact'], teamId: t.id })
+    expect(rows.find((p) => p.first === 'Bo').weaknesses).toEqual(['throwing'])
   })
 
   it('will not save a player with no first name', async () => {

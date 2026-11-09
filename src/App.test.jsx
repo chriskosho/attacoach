@@ -54,17 +54,21 @@ describe('first run setup', () => {
     await user.click(screen.getByRole('button', { name: /New to coaching/ }))
     await user.click(press('Next'))
 
-    // Players: first name only is enough; details are optional.
-    await user.type(screen.getByLabelText('Add a player'), 'Sam')
-    await user.click(press('Add'))
-    await user.type(screen.getByLabelText('Add a player'), 'Lee Kim{enter}')
-    expect(screen.getByRole('list', { name: 'Players' }).children).toHaveLength(2)
-    await user.click(screen.getByRole('button', { name: 'Edit Sam' }))
+    // Players: a popup asks for the name, then the skills, then offers the next player.
+    await user.click(screen.getByRole('button', { name: 'Add a player' }))
     const dialog = screen.getByRole('dialog')
+    await user.type(within(dialog).getByLabelText('First name'), 'Sam')
+    await user.click(within(dialog).getByRole('button', { name: 'Next' }))
     await user.click(within(dialog).getByRole('button', { name: 'Developing' }))
     await user.click(within(within(dialog).getByRole('group', { name: 'Needs work' })).getByRole('button', { name: 'Catching fly balls' }))
     await user.click(within(within(dialog).getByRole('group', { name: 'Positions' })).getByRole('button', { name: 'Shortstop' }))
-    await user.click(within(dialog).getByRole('button', { name: 'Save player' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Save and add next' }))
+    expect(within(dialog).getByRole('status').textContent).toContain('Added Sam')
+    // Back at the name box, ready for the next player; a first name alone is enough.
+    await user.type(within(dialog).getByLabelText('First name'), 'Lee Kim{enter}')
+    await user.click(within(dialog).getByRole('button', { name: 'Save and finish' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByRole('list', { name: 'Players' }).children).toHaveLength(2)
     await user.click(press('Next'))
 
     // Needs start from the players' weak spots, and the coach can still add more.

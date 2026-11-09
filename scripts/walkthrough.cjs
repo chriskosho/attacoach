@@ -60,11 +60,10 @@ const AUTH_ON = process.env.VITE_AUTH_REQUIRED === "true"
       await page.getByRole('button', { name: 'Bunting' }).click()
       await shot('02-experience')
       await page.getByRole('button', { name: 'Next' }).click()
-      for (const n of ['Sam', 'Lee Kim', 'Jordan', 'Avery']) {
-        await page.getByLabel('Add a player').fill(n)
-        await page.getByRole('button', { name: 'Add', exact: true }).click()
-      }
-      await page.getByRole('button', { name: 'Edit Sam' }).click()
+      await page.getByRole('button', { name: 'Add a player' }).click()
+      await page.getByRole('dialog').getByLabel('First name').fill('Sam')
+      await shot('02a-add-player-name')
+      await page.getByRole('dialog').getByRole('button', { name: 'Next' }).click()
       await page.getByRole('dialog').getByRole('button', { name: 'Developing' }).click()
       await page.getByRole('group', { name: 'Needs work' }).getByRole('button', { name: 'Catching fly balls' }).click()
       await page.getByRole('group', { name: 'Needs work' }).getByRole('button', { name: 'Throwing accuracy' }).click()
@@ -72,7 +71,12 @@ const AUTH_ON = process.env.VITE_AUTH_REQUIRED === "true"
       await page.getByRole('group', { name: 'Positions' }).getByRole('button', { name: 'Shortstop' }).click()
       await page.getByRole('group', { name: 'Positions' }).getByRole('button', { name: 'Second base' }).click()
       await shot('02b-player')
-      await page.getByRole('button', { name: 'Save player' }).click()
+      await page.getByRole('button', { name: 'Save and add next' }).click()
+      for (const n of ['Lee Kim', 'Jordan', 'Avery']) {
+        await page.getByRole('dialog').getByLabel('First name').fill(n)
+        await page.getByRole('button', { name: 'Save without details' }).click()
+      }
+      await page.getByRole('dialog').getByRole('button', { name: 'Done' }).click()
       await shot('02c-players')
       await page.getByRole('button', { name: 'Next' }).click()
       await page.getByRole('button', { name: 'Base running' }).click()

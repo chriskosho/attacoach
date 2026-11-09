@@ -387,6 +387,9 @@ input[type='text'], input[type='search'], input[type='date'], input[type='email'
 .sheet-head h2 { flex: 1; }
 .sheet-body { overflow: auto; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 12px; }
 
+/* The wizard's save buttons stay in view while the skill list scrolls. */
+.wizard-actions { position: sticky; bottom: -20px; background: var(--bg); padding: 10px 0 20px; margin-bottom: -20px; border-top: 1px solid var(--line); }
+
 /* ------------------------------------------------ Field timer (the scoreboard) */
 .run {
   position: fixed;
@@ -509,9 +512,6 @@ a.btn { text-decoration: none; }
 .ranked .r-tools button:disabled { opacity: 0.3; cursor: default; }
 
 /* ------------------------------------------------ Roster */
-.quick-add { display: flex; gap: 10px; align-items: flex-end; }
-.quick-add .grow { flex: 1; min-width: 0; }
-.quick-add .btn { min-height: 46px; }
 .roster { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .roster li + li { border-top: 1px solid var(--line); }
 .player-row {

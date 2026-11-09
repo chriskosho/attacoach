@@ -1,6 +1,13 @@
-export const VERSION = '1.6.0'
+export const VERSION = '1.7.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.7.0',
+    date: '2026-11-09',
+    items: [
+      'Adding players is now a quick popup: type a name, pick strengths and needs work, then add the next player or finish.',
+    ],
+  },
   {
     version: '1.6.0',
     date: '2026-11-09',
