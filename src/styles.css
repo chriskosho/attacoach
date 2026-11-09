@@ -583,6 +583,11 @@ a.btn { text-decoration: none; }
 .dg-who { font-size: 10px; font-weight: 700; fill: #13221a; font-family: var(--font); }
 .dg-trail { fill: none; stroke: #fff; stroke-width: 2.5; stroke-dasharray: 2 6; stroke-linecap: round; opacity: 0.45; }
 .dg-trail.dg-done { stroke: var(--pole); stroke-width: 3; opacity: 1; }
+.dg-guide { fill: none; stroke: #fff; stroke-width: 1.5; stroke-dasharray: 4 5; opacity: 0.55; }
+.dg-screen { stroke: #13221a; stroke-width: 5; stroke-linecap: round; }
+.dg-screen.low { stroke-width: 2.5; stroke-dasharray: 3 3; }
+.dg-bucket { fill: #2d6fb7; stroke: #fff; stroke-width: 1.5; }
+.dg-who.two { font-size: 8px; }
 .dg-spot { fill: none; stroke: #ff8a3d; stroke-width: 2; stroke-dasharray: 3 3; }
 .dg-pop { fill: #fff; stroke: #13221a; stroke-width: 1; }
 .dg-poptext { font-size: 9px; font-weight: 700; fill: #13221a; font-family: var(--font); }

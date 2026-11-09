@@ -14,7 +14,7 @@ function Actor({ a, t }) {
     <g transform={`translate(${x} ${y})`}>
       <circle r="9" fill={a.fill} className="dg-body" />
       {a.label && (
-        <text y="3.5" textAnchor="middle" className="dg-who">
+        <text y="3.5" textAnchor="middle" className={`dg-who${a.label.length > 1 ? ' two' : ''}`}>
           {a.label}
         </text>
       )}
@@ -65,6 +65,9 @@ export function DrillDiagram({ drill, spec }) {
     <div className="dg" ref={ref}>
       <svg viewBox="0 0 300 300" role="img" aria-label={`Diagram of ${drill.name} from above`} className="dg-svg">
         <g dangerouslySetInnerHTML={{ __html: BG[spec.bg] + (spec.extras ?? '') }} />
+        {(spec.guides ?? []).filter((g) => t >= g.t0 && t <= g.t1).map((g, i) => (
+          <line key={i} x1={g.from[0]} y1={g.from[1]} x2={g.to[0]} y2={g.to[1]} className="dg-guide" />
+        ))}
         {trail && <path d={smoothPath(trail)} className="dg-trail" />}
         {done && done.length > 1 && <path d={smoothPath(done)} className="dg-trail dg-done" />}
         {/* players first, then the bat and balls on top so a held ball is never hidden */}

@@ -6,6 +6,7 @@ export const VIDEO_QUERY = {
   'rounding-first': 'rounding first base',
   pickle: 'youth baseball Pickle (rundown) drill',
   'tee-work': 'tee hitting drills youth baseball coach',
+  'front-toss': 'front toss batting practice youth baseball',
   'funnel-grounders': 'youth baseball ground ball fielding drill basics',
   'drop-step': 'outfield drop step drill youth baseball',
   'towel-drill': 'youth baseball towel drill pitching',

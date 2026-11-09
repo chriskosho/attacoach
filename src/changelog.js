@@ -1,6 +1,14 @@
-export const VERSION = '1.9.1'
+export const VERSION = '1.10.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.10.0',
+    date: '2026-11-09',
+    items: [
+      'Three more drill diagrams. Star drill: the ball draws the star while each thrower follows the throw, with a running count of catches in a row. Front toss: the coach tosses through the low side of the L-screen and is fully behind it before the swing. Cutoffs and relays: one full play (single to center, runner on 2nd) where the cutoff lines up, the catcher calls "Cut! Two!" and the out is made at second.',
+      'Front toss gets a "Find a video on YouTube" button. The star drill does not: searches for it bring up unrelated throwing videos.',
+    ],
+  },
   {
     version: '1.9.1',
     date: '2026-11-09',

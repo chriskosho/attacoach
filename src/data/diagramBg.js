@@ -40,4 +40,27 @@ const cage = () => {
   return s
 }
 
-export const BG = { field: field(), basepath: basepath(), cage: cage() }
+// Open grass with five cones in a star, 40 feet across. Cones at radius 100 around (150,152).
+export const STAR = [-90, -18, 54, 126, 198].map((a) => [150 + 100 * Math.cos((a * Math.PI) / 180), 152 + 100 * Math.sin((a * Math.PI) / 180)].map((v) => Math.round(v * 10) / 10))
+const star = () => {
+  let s = `<rect width="300" height="300" class="dg-turf"/>${stripes()}`
+  const o = [0, 2, 4, 1, 3, 0].map((i) => STAR[i].join(' '))
+  s += `<path d="M${o.join(' L')}" class="dg-guide"/>`
+  for (const [x, y] of STAR) s += `<polygon points="${x},${y - 7} ${x + 6},${y + 4} ${x - 6},${y + 4}" class="dg-cone"/>`
+  return s
+}
+
+// Front toss: hitter at home (150,236), coach behind an L-screen about 20 to 25 feet away.
+const toss = () => {
+  let s = `<rect width="300" height="300" class="dg-turf"/>${stripes()}`
+  s += '<line x1="20" y1="18" x2="280" y2="18" class="dg-net" stroke-width="3"/><text x="150" y="34" class="dg-lab" text-anchor="middle">Net or open field</text>'
+  s += '<rect x="108" y="206" width="84" height="52" rx="4" class="dg-box"/>'
+  s += '<polygon points="144,232 156,232 156,238 150,244 144,238" class="dg-base"/>'
+  s += '<line x1="114" y1="120" x2="160" y2="120" class="dg-screen"/><line x1="160" y1="120" x2="180" y2="120" class="dg-screen low"/>'
+  s += '<text x="96" y="124" class="dg-lab" text-anchor="end">L-screen</text>'
+  s += '<circle cx="200" cy="100" r="9" class="dg-bucket"/><text x="214" y="104" class="dg-lab">Bucket</text>'
+  s += '<line x1="16" y1="268" x2="112" y2="268" class="dg-line" stroke-dasharray="6 4"/><text x="122" y="290" class="dg-lab">Next hitters</text>'
+  return s
+}
+
+export const BG = { field: field(), basepath: basepath(), cage: cage(), star: star(), toss: toss() }
