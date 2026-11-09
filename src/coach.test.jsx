@@ -42,7 +42,7 @@ describe('coach the coach content', () => {
   })
 })
 
-describe('coach the coach in the app', () => {
+describe('coach corner in the app', () => {
   beforeEach(async () => {
     await clearEverything()
     window.location.hash = ''
@@ -52,7 +52,7 @@ describe('coach the coach in the app', () => {
   it('opens from Today with game day huddles and tough moments', async () => {
     const user = userEvent.setup()
     render(<App />)
-    await user.click(await screen.findByRole('button', { name: 'Open Coach the Coach' }))
+    await user.click(await screen.findByRole('button', { name: 'Open Coach Corner' }))
     expect(await screen.findByRole('heading', { name: 'Game day huddles' })).toBeTruthy()
     await user.click(screen.getByText('Pre-game huddle'))
     expect(screen.getByText(/Control what you can control/)).toBeTruthy()
@@ -75,5 +75,37 @@ describe('coach the coach in the app', () => {
     const last = items[items.length - 1]
     await user.click(within(last).getAllByRole('button')[0])
     expect(within(last).getByText(/one thing they improved/)).toBeTruthy()
+  })
+})
+
+describe('team, settings and coach tabs', () => {
+  beforeEach(async () => {
+    await clearEverything()
+    window.location.hash = '#/team'
+    await saveTeam({ name: 'Hawks', division: '12U', experience: 'new', needs: ['pitching'], rules: defaultRules('12U') })
+  })
+
+  it('keeps team things on Team and app things in Settings, reached by the gear', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    expect(await screen.findByRole('heading', { name: 'Players' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'How you practice' })).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'Backup' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Coach profile' })).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
+    for (const h of ['Coach profile', 'Display', 'Backup', 'Privacy', 'About']) expect(await screen.findByRole('heading', { name: h })).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'Players' })).toBeNull()
+    // Settings is not a tab, so there is no gear on it itself.
+    expect(screen.queryByRole('button', { name: 'Settings' })).toBeNull()
+  })
+
+  it('has Coach Corner as its own tab', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(await screen.findByRole('button', { name: 'Coach' }))
+    expect(await screen.findByRole('heading', { name: 'Game day huddles' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Coach Corner' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Coach' }).getAttribute('aria-current')).toBe('page')
   })
 })

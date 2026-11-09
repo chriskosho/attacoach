@@ -175,11 +175,11 @@ describe('staying signed in', () => {
   })
 })
 
-describe('team page: account, share and donate', () => {
+describe('settings page: account, share and donate', () => {
   beforeEach(async () => {
     seedSession()
     await saveTeam({ name: 'Hawks', division: '10U', experience: 'some', needs: ['contact'], rules: defaultRules('10U') })
-    window.location.hash = '#/team'
+    window.location.hash = '#/settings'
   })
 
   it('shows who is signed in', async () => {

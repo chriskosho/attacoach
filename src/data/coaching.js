@@ -1,4 +1,4 @@
-// Coach the Coach: what to say, what to skip, and how to run a team with confidence.
+// Coach Corner: what to say, what to skip, and how to run a team with confidence.
 // Short bullets on purpose. Coaches should say these in their own words.
 // Bands: "young" is 4U-8U, "older" is 10U-14U (see bandFor in motivation.js).
 

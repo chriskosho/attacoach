@@ -129,13 +129,13 @@ describe('coach name in the app', () => {
     expect(screen.queryByLabelText('What should we call you?')).toBeNull()
   })
 
-  it('edits the name on the Team tab', async () => {
+  it('edits the name in Settings', async () => {
     await saveTeam(team)
     await setSetting('coachName', 'Sam')
     const user = userEvent.setup()
-    window.location.hash = '#/team'
+    window.location.hash = '#/settings'
     render(<App />)
-    await user.click((await screen.findAllByRole('button', { name: 'Edit' }))[0])
+    await user.click(await screen.findByRole('button', { name: 'Edit' }))
     const input = await screen.findByLabelText('Your name')
     await user.clear(input)
     await user.type(input, 'Coach Dana')

@@ -103,6 +103,8 @@ p { margin: 0; }
   border-radius: 6px;
   padding: 2px 8px;
 }
+.top .gear { background: none; border: 0; color: var(--chalk); width: 40px; height: 40px; margin: -6px -8px -6px -4px; display: grid; place-items: center; cursor: pointer; border-radius: 10px; }
+.top .gear svg { width: 26px; height: 26px; }
 .top .back {
   background: none;
   border: 0;
@@ -543,7 +545,7 @@ a.btn { text-decoration: none; }
 .station-staff { font-size: 14px; color: var(--ink-2); }
 .station-staff strong { color: var(--ink); }
 
-/* ------------------------------------------------ Coach the Coach */
+/* ------------------------------------------------ Coach Corner */
 .huddle-points { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
 .say-this { border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 0 10px 10px 0; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
 .say-label { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: 13px; letter-spacing: 0.04em; margin-right: 4px; }

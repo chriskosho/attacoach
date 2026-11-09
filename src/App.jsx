@@ -14,6 +14,7 @@ import Drills, { DrillPage } from './components/Drills.jsx'
 import Log, { DebriefForm } from './components/Log.jsx'
 import CoachCorner from './components/CoachCorner.jsx'
 import TeamPage from './components/TeamPage.jsx'
+import SettingsPage from './components/SettingsPage.jsx'
 import RunTimer from './components/RunTimer.jsx'
 import { TabIcon } from './components/Icons.jsx'
 import { createFirstPlan } from './lib/starter.js'
@@ -23,10 +24,11 @@ const TABS = [
   { id: 'plans', label: 'Plans' },
   { id: 'drills', label: 'Drills' },
   { id: 'log', label: 'Log' },
+  { id: 'coach', label: 'Coach' },
   { id: 'team', label: 'Team' },
 ]
 
-const TAB_FOR = { plan: 'plans', run: 'plans', drill: 'drills', debrief: 'log', setup: 'team', coach: 'today' }
+const TAB_FOR = { plan: 'plans', run: 'plans', drill: 'drills', debrief: 'log', setup: 'team' }
 
 export default function App() {
   const route = useRoute()
@@ -90,7 +92,8 @@ export default function App() {
   else if (route.name === 'coach') page = <CoachCorner team={team} />
   else if (route.name === 'plans') page = <Plans team={team} />
   else if (route.name === 'drills') page = <Drills team={team} />
-  else if (route.name === 'team') page = <TeamPage team={team} teams={data.teams} theme={data.theme} auth={auth} coach={data.coach} players={data.players.filter((p) => p.teamId === team.id)} />
+  else if (route.name === 'team') page = <TeamPage team={team} teams={data.teams} players={data.players.filter((p) => p.teamId === team.id)} />
+  else if (route.name === 'settings') page = <SettingsPage team={team} theme={data.theme} auth={auth} coach={data.coach} />
   else page = <Today key={team.id} team={team} coach={data.coach} players={data.players.filter((p) => p.teamId === team.id)} />
 
   return (

@@ -37,7 +37,7 @@ const PRACTICE = ['practiceOpen', 'practiceClose']
 export default function CoachCorner({ team }) {
   return (
     <>
-      <TeamHeader team={team} title="Coach the Coach" backTo="today" />
+      <TeamHeader team={team} title="Coach Corner" />
       <main className="page">
         <p className="muted" style={{ margin: 0 }}>
           Talking points, not scripts. Read them over, then say them your way.

@@ -6,6 +6,8 @@ export const CHANGELOG = [
     date: '2026-11-09',
     items: [
       'Adding players is now a quick popup: type a name, pick strengths and needs work, then add the next player or finish.',
+      'New Settings page (the gear in the top corner) for your name, display, backup, sharing and account. The Team tab now holds just your team.',
+      'Coach Corner is now its own tab: huddles, what to say in tough moments, and guides for the night before.',
     ],
   },
   {
