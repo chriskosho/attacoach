@@ -1,5 +1,5 @@
 import { drillById } from '../data/drills.js'
-import { needLabel } from '../data/constants.js'
+import { focusSummary, coachTitle } from '../data/constants.js'
 import { schedule, totalMinutes, fmtClock, hasPitching } from './plan.js'
 
 export function blockTitle(block) {
@@ -10,10 +10,10 @@ export function blockTitle(block) {
 }
 
 // Plain-text version of a plan for texting to assistant coaches.
-export function planText(plan, team) {
+export function planText(plan, team, coachName = '') {
   const lines = []
   lines.push(`${team?.name ?? 'Practice'} practice plan (${team?.division ?? ''}), ${totalMinutes(plan)} min`)
-  if (plan.focus?.length) lines.push(`Focus: ${plan.focus.map(needLabel).join(', ')}`)
+  if (plan.focus?.length) lines.push(`Focus: ${focusSummary(plan.focus)}`)
   lines.push('')
   for (const { block, start, end } of schedule(plan)) {
     lines.push(`${fmtClock(start)}-${fmtClock(end)}  ${blockTitle(block)}`)
@@ -28,7 +28,7 @@ export function planText(plan, team) {
     lines.push('Pitchers: count every pitch and follow league pitch limits and rest days.')
   }
   lines.push('')
-  lines.push('Made with AttaCoach')
+  lines.push(coachName ? `From ${coachTitle(coachName)}, made with AttaCoach` : 'Made with AttaCoach')
   return lines.join('\n')
 }
 

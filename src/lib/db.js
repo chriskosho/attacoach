@@ -65,8 +65,8 @@ export function deleteDebrief(id) {
 export const BACKUP_FORMAT = 'attacoach-backup'
 
 export async function exportBackup() {
-  const [teams, plans, debriefs] = await Promise.all([db.teams.toArray(), db.plans.toArray(), db.debriefs.toArray()])
-  return { format: BACKUP_FORMAT, version: 2, exportedAt: new Date().toISOString(), teams, plans, debriefs }
+  const [teams, plans, debriefs, coachName] = await Promise.all([db.teams.toArray(), db.plans.toArray(), db.debriefs.toArray(), getSetting('coachName', '')])
+  return { format: BACKUP_FORMAT, version: 2, exportedAt: new Date().toISOString(), coachName, teams, plans, debriefs }
 }
 
 // Merges a backup into this device. Rows with the same id are replaced.
@@ -81,6 +81,7 @@ export async function importBackup(data) {
     await db.debriefs.bulkPut(debriefs)
     const current = await getSetting('currentTeamId')
     if (!current && data.teams[0]) await setSetting('currentTeamId', data.teams[0].id)
+    if (typeof data.coachName === 'string' && data.coachName.trim() && !(await getSetting('coachName'))) await setSetting('coachName', data.coachName.trim())
   })
   return { teams: data.teams.length, plans: data.plans.length, debriefs: debriefs.length }
 }

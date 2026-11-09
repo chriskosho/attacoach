@@ -36,7 +36,10 @@ describe('first run setup', () => {
     await user.click(press('12U'))
     await user.click(next())
 
+    expect(next().disabled).toBe(true)
     await user.click(screen.getByRole('button', { name: /New to coaching/ }))
+    expect(next().disabled).toBe(true) // the coach's name is required on first run
+    await user.type(screen.getByLabelText("What's your name?"), 'Chris')
     await user.click(next())
 
     await user.click(press('Base running'))
@@ -54,6 +57,8 @@ describe('first run setup', () => {
     expect(team).toMatchObject({ name: 'Blue Jays', division: '12U', experience: 'new', needs: ['baserunning', 'awareness'] })
     expect(team.rules.leadoff).toBe(false)
     expect(team.rules.droppedThird).toBe(true)
+    expect((await db.settings.get('coachName')).value).toBe('Chris')
+    expect(screen.getByText(/Good (morning|afternoon|evening), Coach Chris/)).toBeTruthy()
   })
 
   it('hides needs that do not fit young divisions', async () => {
@@ -63,6 +68,7 @@ describe('first run setup', () => {
     await user.click(press('4U'))
     await user.click(press('Next'))
     await user.click(screen.getByRole('button', { name: /New to coaching/ }))
+    await user.type(screen.getByLabelText("What's your name?"), 'Pat')
     await user.click(press('Next'))
     expect(screen.queryByRole('button', { name: 'Pitching' })).toBeNull()
     expect(screen.getByRole('button', { name: 'Catching the ball' })).toBeTruthy()
@@ -75,6 +81,7 @@ describe('first run setup', () => {
     await user.click(press('8U'))
     await user.click(press('Next'))
     await user.click(screen.getByRole('button', { name: /A few seasons/ }))
+    await user.type(screen.getByLabelText("What's your name?"), 'Pat')
     await user.click(press('Next'))
     await user.click(press('Making contact'))
     await user.click(press('Next'))

@@ -105,3 +105,24 @@ export function needsForDivision(division, drills) {
     drills.some((x) => x.needs.includes(n.id) && d >= divIndex(x.ages[0]) && d <= divIndex(x.ages[1])),
   )
 }
+
+// "A, B, C" or "A, B, C and 2 more" for a ranked list of need ids.
+export function focusSummary(ids = [], max = 3) {
+  if (!ids.length) return 'general'
+  const shown = ids.slice(0, max).map(needLabel).join(', ')
+  return ids.length > max ? `${shown} and ${ids.length - max} more` : shown
+}
+
+// How the app addresses the coach: "Coach Chris". Typing "Coach Chris" does not double up.
+export function coachTitle(name) {
+  const n = (name ?? '').trim().replace(/\s+/g, ' ')
+  if (!n) return ''
+  return /^coach\b/i.test(n) ? n : `Coach ${n}`
+}
+
+export function greeting(name, now = new Date()) {
+  const h = now.getHours()
+  const hello = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
+  const who = coachTitle(name)
+  return who ? `${hello}, ${who}` : hello
+}

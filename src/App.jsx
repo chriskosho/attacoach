@@ -31,12 +31,13 @@ export default function App() {
   // AUTH_REQUIRED never changes while the app runs, so the hook order is stable.
   const auth = AUTH_REQUIRED ? useAuth() : { status: 'off' } // eslint-disable-line react-hooks/rules-of-hooks
   const data = useLiveQuery(async () => {
-    const [teams, current, theme] = await Promise.all([
+    const [teams, current, theme, coach] = await Promise.all([
       db.teams.toArray(),
       db.settings.get('currentTeamId'),
       db.settings.get('theme'),
+      db.settings.get('coachName'),
     ])
-    return { teams, currentId: current?.value ?? null, theme: theme?.value ?? 'system' }
+    return { teams, currentId: current?.value ?? null, theme: theme?.value ?? 'system', coach: coach?.value ?? '' }
   }, [])
   const [updateReady, setUpdateReady] = useState(false)
 
@@ -57,25 +58,25 @@ export default function App() {
   const team = data.teams.find((t) => t.id === data.currentId) ?? data.teams[0] ?? null
 
   // First run: set up a team before anything else.
-  if (!team) return <Setup onDone={() => go('today')} first />
+  if (!team) return <Setup onDone={() => go('today')} first coachName={data.coach} />
 
   if (route.name === 'setup') {
     const editing = route.id === 'new' ? null : data.teams.find((t) => t.id === route.id) ?? team
-    return <Setup team={editing} onDone={() => go('team')} onCancel={() => go('team')} />
+    return <Setup team={editing} coachName={data.coach} onDone={() => go('team')} onCancel={() => go('team')} />
   }
 
   if (route.name === 'run' && route.id) return <RunTimer planId={route.id} team={team} />
 
   const tab = TAB_FOR[route.name] ?? route.name
   let page
-  if (route.name === 'plan' && route.id) page = <PlanView planId={route.id} team={team} />
+  if (route.name === 'plan' && route.id) page = <PlanView planId={route.id} team={team} coach={data.coach} />
   else if (route.name === 'drill' && route.id) page = <DrillPage drillId={route.id} team={team} />
   else if (route.name === 'debrief' && route.id) page = <DebriefForm team={team} id={route.id} />
   else if (route.name === 'log') page = <Log team={team} />
   else if (route.name === 'plans') page = <Plans team={team} />
   else if (route.name === 'drills') page = <Drills team={team} />
-  else if (route.name === 'team') page = <TeamPage team={team} teams={data.teams} theme={data.theme} auth={auth} />
-  else page = <Today team={team} />
+  else if (route.name === 'team') page = <TeamPage team={team} teams={data.teams} theme={data.theme} auth={auth} coach={data.coach} />
+  else page = <Today team={team} coach={data.coach} />
 
   return (
     <div className="app">

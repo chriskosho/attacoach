@@ -75,7 +75,8 @@ const newId = (prefix) => `${prefix}-${Date.now().toString(36)}-${(idCounter++).
 export function buildPlan(team, options = {}) {
   const minutes = options.minutes ?? 60
   const coaches = Math.max(1, options.coaches ?? 1)
-  const focus = (options.focus?.length ? options.focus : team.needs ?? []).slice(0, 3)
+  // Any number of ranked needs. Earlier ones get more of the practice.
+  const focus = options.focus?.length ? options.focus : team.needs ?? []
   const seed = options.seed ?? Date.now()
   const random = rng(seed)
   const division = team.division
@@ -145,11 +146,25 @@ export function buildPlan(team, options = {}) {
   // 4. Main work, aimed at the focus needs in turn.
   const stationCount = Math.min(coaches, 3)
   const stationMinutes = Math.min(MAX_BLOCK[division], young ? 6 : 10)
-  let needTurn = 0
   let lastWasStations = false
   const categoryCount = {}
   const overused = (d) => (categoryCount[d.category] ?? 0) >= 2
-  const nextNeed = () => (focus.length ? focus[needTurn++ % focus.length] : null)
+  // Weighted rotation: rank 1 gets about four turns for every one that rank 4 and below get.
+  const served = focus.map(() => 0)
+  const nextNeed = () => {
+    if (!focus.length) return null
+    let best = 0
+    let bestScore = Infinity
+    focus.forEach((_, i) => {
+      const s = (served[i] + 1) / Math.max(1, 4 - i)
+      if (s < bestScore) {
+        best = i
+        bestScore = s
+      }
+    })
+    served[best]++
+    return focus[best]
+  }
 
   const bestFor = (need, filter) => {
     const preferred = need ? ranked((d) => filter(d) && d.needs.includes(need) && !overused(d), [need, ...focus]) : []

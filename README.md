@@ -6,7 +6,7 @@ Live app: https://chriskosho.github.io/attacoach/
 
 ## What it does
 
-- **Team setup.** Division (4U–14U), the coach's experience, the team's top three developmental needs, and game rules. Rules default to the standard game: players pitch, stealing, leading off and the dropped third strike start at 10U. Each can be turned off for a local league.
+- **Team setup.** The coach's name, division (4U–14U), experience, a ranked list of every developmental need that applies (tap to add, arrows to reorder), and game rules. Rules default to the standard game: players pitch, stealing, leading off and the dropped third strike start at 10U. Each can be turned off for a local league.
 - **Goal-based plans.** Pick a date, practice length and number of coaches. The plan opens with an age-appropriate warm-up, includes catch play from 8U, spends most of its time on the chosen needs, rotates stations when there are two or more coaches, adds water breaks, finishes with a game and closes with a team huddle.
 - **Rated drills.** About 70 original drills across warm-ups, throwing, infield, outfield, hitting, base running, pitching, catching, team defense and games. Each is rated beginner, intermediate or advanced. New coaches get beginner drills with full write-ups; experienced coaches get harder drills and short notes.
 - **Editing.** Open any block to see the drill, change minutes, swap it for a similar drill, move it, add a break or remove it (with undo). Add any drill from the library.

@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { DIVISIONS, EXPERIENCE, RULES, defaultRules, needsForDivision } from '../data/constants.js'
+import NeedsRanker from './NeedsRanker.jsx'
 import { DRILLS } from '../data/drills.js'
-import { saveTeam } from '../lib/db.js'
+import { saveTeam, setSetting } from '../lib/db.js'
 
 const STEPS = ['Team', 'You', 'Needs', 'Rules']
 export const MAX_NEEDS = 3
@@ -56,10 +57,11 @@ export function RuleToggles({ rules, onChange }) {
   )
 }
 
-export default function Setup({ team = null, onDone, onCancel, first = false }) {
+export default function Setup({ team = null, onDone, onCancel, first = false, coachName = '' }) {
   const editing = !!team
   const [step, setStep] = useState(0)
   const [name, setName] = useState(team?.name ?? '')
+  const [you, setYou] = useState(coachName)
   const [division, setDivision] = useState(team?.division ?? null)
   const [experience, setExperience] = useState(team?.experience ?? null)
   const [needs, setNeeds] = useState(team?.needs ?? [])
@@ -90,11 +92,14 @@ export default function Setup({ team = null, onDone, onCancel, first = false }) 
     setStep(next)
   }
 
-  const canNext = [!!division && name.trim().length > 0, !!experience, needs.length > 0, true][step]
+  // The coach's name is asked on first run; later it is optional so older installs can still edit a team.
+  const nameOk = !first || you.trim().length > 0
+  const canNext = [!!division && name.trim().length > 0, !!experience && nameOk, needs.length > 0, true][step]
 
   const save = async () => {
     setSaving(true)
     const finalRules = currentRules()
+    if (you.trim()) await setSetting('coachName', you.trim().replace(/\s+/g, ' '))
     await saveTeam({ ...(team ?? {}), name: name.trim(), division, experience, needs, rules: finalRules })
     onDone?.()
   }
@@ -166,6 +171,10 @@ export default function Setup({ team = null, onDone, onCancel, first = false }) 
 
         {step === 1 && (
           <div className="card">
+            <label className="field">
+              What's your name?
+              <input type="text" value={you} maxLength={40} placeholder="e.g. Chris" autoComplete="given-name" onChange={(e) => setYou(e.target.value)} />
+            </label>
             <h2>How much have you coached?</h2>
             <p className="muted small">This sets how hard the drills are and how much coaching help each one shows. You can change it any time.</p>
             <div className="choices">
@@ -183,9 +192,9 @@ export default function Setup({ team = null, onDone, onCancel, first = false }) 
           <div className="card">
             <h2>What does your team most need to work on?</h2>
             <p className="muted small">
-              Pick up to {MAX_NEEDS}, most important first. Plans spend the most time on number 1.
+              Tap everything that applies. Each skill moves to your list. Put the most important first: plans spend the most time on number 1 and work down the list.
             </p>
-            <NeedPicker division={division} value={needs} onChange={setNeeds} />
+            <NeedsRanker division={division} value={needs} onChange={setNeeds} />
           </div>
         )}
 
@@ -213,7 +222,7 @@ export default function Setup({ team = null, onDone, onCancel, first = false }) 
             </button>
           )}
           {editing && step < 3 && (
-            <button className="btn ghost" disabled={!division || !name.trim() || !experience || !needs.length || saving} onClick={save}>
+            <button className="btn ghost" disabled={!division || !name.trim() || !experience || !nameOk || !needs.length || saving} onClick={save}>
               Save
             </button>
           )}

@@ -6,7 +6,7 @@ import {
   addDrill, addBreak, buildPlan, hasPitching, eligibleDrills,
 } from '../lib/plan.js'
 import { drillById, DRILLS } from '../data/drills.js'
-import { categoryLabel, needLabel } from '../data/constants.js'
+import { categoryLabel, focusSummary, coachTitle } from '../data/constants.js'
 import { blockTitle, planText, shareText } from '../lib/share.js'
 import { go } from '../lib/route.js'
 import { TeamHeader } from './Header.jsx'
@@ -54,7 +54,7 @@ function DrillBody({ drill, experienced }) {
   )
 }
 
-export default function PlanView({ planId, team }) {
+export default function PlanView({ planId, team, coach = '' }) {
   const plan = useLiveQuery(() => db.plans.get(planId), [planId])
   const [open, setOpen] = useState(() => new Set())
   const [swap, setSwap] = useState(null)
@@ -110,7 +110,7 @@ export default function PlanView({ planId, team }) {
   const rows = schedule(plan)
 
   const share = async () => {
-    const result = await shareText(`${team.name} practice plan`, planText(plan, team))
+    const result = await shareText(`${team.name} practice plan`, planText(plan, team, coach))
     if (result === 'copied') setToast('Plan copied. Paste it into a text or email.')
     else if (result === 'failed') setToast('Sharing isn\'t available on this browser.')
   }
@@ -184,8 +184,9 @@ export default function PlanView({ planId, team }) {
               />
             </label>
             <div className="small muted">
-              {plan.coaches} {plan.coaches === 1 ? 'coach' : 'coaches'}. Focus: {plan.focus.map(needLabel).join(', ') || 'general'}
+              {plan.coaches} {plan.coaches === 1 ? 'coach' : 'coaches'}. Focus: {focusSummary(plan.focus)}
             </div>
+            {coach && <div className="small muted">Prepared by {coachTitle(coach)}</div>}
           </div>
           <span className={`time-total${diff > 0 ? ' over' : ''}`} aria-live="polite">
             {total} of {plan.minutes} min

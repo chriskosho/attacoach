@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { EXPERIENCE, RULES, needLabel } from '../data/constants.js'
+import { EXPERIENCE, RULES, needLabel, coachTitle } from '../data/constants.js'
 import { exportBackup, importBackup, setSetting, deleteTeam, clearEverything } from '../lib/db.js'
 import { go } from '../lib/route.js'
 import { shareText } from '../lib/share.js'
@@ -8,9 +8,16 @@ import { APP_URL, AUTH_REQUIRED, DONATE_URL, SHARE_TEXT } from '../config.js'
 import { VERSION, CHANGELOG } from '../changelog.js'
 import { TeamHeader } from './Header.jsx'
 
-export default function TeamPage({ team, teams, theme, auth }) {
+export default function TeamPage({ team, teams, theme, auth, coach = '' }) {
   const fileRef = useRef(null)
   const [msg, setMsg] = useState(null)
+  const [nameDraft, setNameDraft] = useState(null)
+
+  const saveName = async () => {
+    const n = nameDraft.trim().replace(/\s+/g, ' ')
+    if (n) await setSetting('coachName', n)
+    setNameDraft(null)
+  }
 
   const download = async () => {
     const data = await exportBackup()
@@ -81,6 +88,33 @@ export default function TeamPage({ team, teams, theme, auth }) {
     <>
       <TeamHeader team={team} title="Team" />
       <main className="page">
+        <section className="card">
+          <h3>Coach profile</h3>
+          {nameDraft === null ? (
+            <div className="row">
+              <span className="spacer">{coach ? coachTitle(coach) : <span className="muted">No name yet</span>}</span>
+              <button className="btn quiet small" onClick={() => setNameDraft(coach)}>
+                {coach ? 'Edit' : 'Add your name'}
+              </button>
+            </div>
+          ) : (
+            <>
+              <label className="field">
+                Your name
+                <input type="text" value={nameDraft} maxLength={40} autoFocus onChange={(e) => setNameDraft(e.target.value)} />
+              </label>
+              <div className="action-row">
+                <button className="btn" disabled={!nameDraft.trim()} onClick={saveName}>
+                  Save name
+                </button>
+                <button className="btn quiet" onClick={() => setNameDraft(null)}>
+                  Cancel
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+
         <section className="card">
           <div className="row">
             <h2 className="spacer">{team.name}</h2>

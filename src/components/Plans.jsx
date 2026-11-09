@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../lib/db.js'
 import { totalMinutes } from '../lib/plan.js'
-import { needLabel } from '../data/constants.js'
+import { focusSummary } from '../data/constants.js'
 import { go } from '../lib/route.js'
 import { TeamHeader } from './Header.jsx'
 import { planDate, sortPlans } from './Today.jsx'
@@ -32,7 +32,7 @@ export default function Plans({ team }) {
                   {planDate(p)}, {totalMinutes(p)} minutes
                 </strong>
                 <span className="meta">
-                  Focus: {p.focus.map(needLabel).join(', ') || 'general'}
+                  Focus: {focusSummary(p.focus)}
                 </span>
               </button>
             ))}

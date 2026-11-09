@@ -1,6 +1,15 @@
-export const VERSION = '1.2.0'
+export const VERSION = '1.3.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.3.0',
+    date: '2026-11-09',
+    items: [
+      'AttaCoach asks your name and uses it in greetings and on shared plans.',
+      'Choose every skill your team needs, then rank them. Tap to add, use the arrows to reorder.',
+      'Plans work down your ranked list and spend the most time on number 1.',
+    ],
+  },
   {
     version: '1.2.0',
     date: '2026-11-09',

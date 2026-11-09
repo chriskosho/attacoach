@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db, savePlan } from '../lib/db.js'
+import { db, savePlan, setSetting } from '../lib/db.js'
 import { buildPlan, totalMinutes, localDate } from '../lib/plan.js'
 import { go, store } from '../lib/route.js'
-import { lengthsFor, needLabel } from '../data/constants.js'
+import { lengthsFor, focusSummary, greeting } from '../data/constants.js'
 import { COACH_TIPS, pick } from '../data/motivation.js'
-import { NeedPicker } from './Setup.jsx'
+import NeedsRanker from './NeedsRanker.jsx'
 import { TeamHeader } from './Header.jsx'
 import { useSuggestion, SuggestionList } from './Log.jsx'
 
@@ -29,7 +29,7 @@ export function sortPlans(plans) {
   return [...plans].sort((a, b) => (key(a) < key(b) ? 1 : -1))
 }
 
-export default function Today({ team }) {
+export default function Today({ team, coach = '' }) {
   const lengths = lengthsFor(team.division)
   const savedMinutes = store.get('minutes', 60)
   const [minutes, setMinutes] = useState(lengths.includes(savedMinutes) ? savedMinutes : lengths.includes(60) ? 60 : lengths[lengths.length - 1])
@@ -44,7 +44,10 @@ export default function Today({ team }) {
   )
 
   const { suggestion } = useSuggestion(team)
-  const useSuggested = suggestion && suggestion.needs.join() !== focus.join()
+  const matches = suggestion && suggestion.needs.every((n, i) => focus[i] === n)
+  const useSuggested = suggestion && !matches
+  // The suggested needs go first and the rest of the list stays below them.
+  const applySuggestion = () => setFocus([...suggestion.needs, ...focus.filter((n) => !suggestion.needs.includes(n))])
   const tip = pick(COACH_TIPS, new Date().toDateString())
   const changedFocus = focus.join() !== (team.needs ?? []).join()
 
@@ -61,6 +64,7 @@ export default function Today({ team }) {
     <>
       <TeamHeader team={team} />
       <main className="page">
+        {coach ? <p className="greeting">{greeting(coach)}</p> : <NamePrompt coach={coach} />}
         <section className="card" aria-labelledby="build-title">
           <h2 id="build-title">Plan a practice</h2>
 
@@ -100,7 +104,7 @@ export default function Today({ team }) {
               <strong>From your recent games and practices</strong>
               <SuggestionList suggestion={suggestion} />
               {useSuggested ? (
-                <button className="btn small" onClick={() => setFocus(suggestion.needs)}>
+                <button className="btn small" onClick={applySuggestion}>
                   Use this focus
                 </button>
               ) : (
@@ -118,7 +122,7 @@ export default function Today({ team }) {
                 </button>
               )}
             </div>
-            <NeedPicker division={team.division} value={focus} onChange={setFocus} />
+            <NeedsRanker division={team.division} value={focus} onChange={setFocus} />
           </div>
 
           <button className="btn big" onClick={build} disabled={building || focus.length === 0}>
@@ -133,7 +137,7 @@ export default function Today({ team }) {
             <strong>
               {planDate(latest)}, {totalMinutes(latest)} minutes
             </strong>
-            <span className="small muted">Focus: {latest.focus.map(needLabel).join(', ') || 'general'}</span>
+            <span className="small muted">Focus: {focusSummary(latest.focus)}</span>
           </button>
         )}
 
@@ -143,5 +147,31 @@ export default function Today({ team }) {
         </section>
       </main>
     </>
+  )
+}
+
+// Older installs never gave a name. Ask once, quietly, on the home screen.
+function NamePrompt({ coach }) {
+  const [name, setName] = useState('')
+  const [hidden, setHidden] = useState(false)
+  if (coach || hidden) return null
+  const save = async () => {
+    if (name.trim()) await setSetting('coachName', name.trim().replace(/\s+/g, ' '))
+  }
+  return (
+    <section className="card" aria-label="Your name">
+      <label className="field">
+        What should we call you?
+        <input type="text" value={name} maxLength={40} placeholder="e.g. Chris" autoComplete="given-name" onChange={(e) => setName(e.target.value)} />
+      </label>
+      <div className="action-row">
+        <button className="btn" disabled={!name.trim()} onClick={save}>
+          Save
+        </button>
+        <button className="btn quiet" onClick={() => setHidden(true)}>
+          Not now
+        </button>
+      </div>
+    </section>
   )
 }
