@@ -1,3 +1,4 @@
+import { DrillVisual } from './DrillDiagram.jsx'
 import { categoryLabel, needLabel, LEVELS, RULES } from '../data/constants.js'
 
 export function LevelTag({ level }) {
@@ -30,6 +31,7 @@ export function DrillText({ drill, compact = false }) {
           <p>{drill.setup}</p>
         </section>
       )}
+      <DrillVisual drill={drill} compact={compact} />
       <section>
         <h4>How it works</h4>
         <ol>

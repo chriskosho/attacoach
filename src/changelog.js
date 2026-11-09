@@ -1,6 +1,15 @@
-export const VERSION = '1.8.0'
+export const VERSION = '1.9.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.9.0',
+    date: '2026-11-09',
+    items: [
+      'First drill visuals: a moving top-down diagram for Round first on a hit, Pickle and Tee work, and body-position pictures for Tee work and Funnel grounders. Simple drills stay words only.',
+      'A "Find a video on YouTube" button on skill drills, using a plain search phrase that was tested to bring up relevant videos.',
+      'Tee work now has the coach in it: re-tee, one cue, and a round of swings per hitter.',
+    ],
+  },
   {
     version: '1.8.0',
     date: '2026-11-09',

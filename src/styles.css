@@ -562,3 +562,33 @@ a.btn { text-decoration: none; }
 .talk-more summary { cursor: pointer; font-weight: 600; }
 .run-cue { font-size: 18px; margin-top: 12px; }
 @media print { .say-this { background: none; border-left: 2px solid #000; } }
+
+/* Drill diagrams */
+.dg { display: grid; gap: 8px; }
+.dg-svg { width: 100%; max-width: 420px; border-radius: var(--radius); background: var(--grass); justify-self: center; }
+.dg-turf { fill: #2f7a4f; }
+.dg-stripes rect { fill: #fff; opacity: 0.05; }
+.dg-dirt { fill: #b98a5a; }
+.dg-line { stroke: #fff; stroke-width: 2; fill: none; opacity: 0.85; }
+.dg-base { fill: #fff; }
+.dg-cone { fill: #ff8a3d; }
+.dg-net { stroke: #fff; stroke-width: 1.5; opacity: 0.8; }
+.dg-box { fill: none; stroke: #fff; stroke-width: 2; }
+.dg-tee { fill: #111; }
+.dg-lab { fill: #fff; font-size: 10px; font-family: var(--font); }
+.dg-big { font-size: 16px; font-weight: 700; }
+.dg-ball { fill: #fff; stroke: #c33; stroke-width: 1.2; }
+.dg-bat { stroke: #e9c98a; stroke-width: 4; stroke-linecap: round; }
+.dg-body { stroke: #13221a; stroke-width: 1.5; }
+.dg-who { font-size: 10px; font-weight: 700; fill: #13221a; font-family: var(--font); }
+.dg-trail { fill: none; stroke: var(--pole); stroke-width: 3; stroke-dasharray: 2 6; stroke-linecap: round; opacity: 0.9; }
+.dg-pop { fill: #fff; stroke: #13221a; stroke-width: 1; }
+.dg-poptext { font-size: 9px; font-weight: 700; fill: #13221a; font-family: var(--font); }
+.dg-controls { display: flex; align-items: center; gap: 8px; }
+.dg-controls input { flex: 1; }
+.dg-now { margin: 0; min-height: 2.6em; }
+.dg-strip { display: flex; gap: 8px; }
+.dg-pose { display: grid; justify-items: center; gap: 2px; font-size: 0.75rem; color: var(--ink-2); flex: 1; }
+.dg-fig { width: 100%; max-width: 72px; color: var(--ink); }
+.dg > .dg-pose { justify-self: start; }
+@media print { .dg-controls { display: none; } }

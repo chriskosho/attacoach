@@ -628,10 +628,10 @@ const BASE_DRILLS = [
     setup: 'Tee set at the height of the belt, in front of a net or fence.',
     steps: [
       'Check stance: feet a little wider than shoulders, knuckles lined up, bat on the shoulder.',
-      'Hitter swings and hits the middle of the ball.',
-      '10 swings, then the next hitter. Other players shag balls.',
+      'Hitter swings and hits the middle of the ball. The coach re-tees the ball and gives one cue.',
+      'About 10 swings in a row (5 for the youngest), then the next hitter. Other players shag balls.',
     ],
-    points: ['Eyes stay on the ball through contact.', 'Swing level, finish high.'],
+    points: ['Eyes stay on the ball through contact.', 'Swing level, finish high.', 'One cue at a time: pick the one thing you see most.'],
     easier: 'Bigger ball or a lighter bat.',
     harder: 'Move the tee inside or outside and hit to the matching field.',
   },

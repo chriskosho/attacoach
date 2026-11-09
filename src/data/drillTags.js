@@ -41,7 +41,7 @@ export const TAGS = {
   'crow-hop-cutoff': { where: [F, O], staff: 'run', cap: [3, 6] },
   'outfield-grounders': { where: [F, O], staff: 'run', cap: [3, 6] },
   // hitting
-  'tee-work': { where: [F, C, O], gear: ['tee'], swap: 'No tee? Use soft toss or a self-run hitting trainer.', staff: 'watch', cap: [2, 6], bat: true },
+  'tee-work': { where: [F, C, O], gear: ['tee'], swap: 'No tee? Use soft toss or a self-run hitting trainer.', staff: 'run', cap: [2, 6], bat: true },
   'soft-toss': { where: [F, C, O], staff: 'run', cap: [2, 5], bat: true },
   'front-toss': { where: [F, C], gear: ['lscreen'], swap: 'No L-screen? Toss from the side, well out of the hitting line.', staff: 'run', cap: [3, 6], bat: true },
   'line-drive-target': { where: [F, C, O], gear: ['tee'], swap: 'No tee? Use soft toss.', staff: 'watch', cap: [2, 6], bat: true },
