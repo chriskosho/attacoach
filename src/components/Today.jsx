@@ -1,0 +1,130 @@
+import { useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db, savePlan } from '../lib/db.js'
+import { buildPlan, totalMinutes, localDate } from '../lib/plan.js'
+import { go, store } from '../lib/route.js'
+import { lengthsFor, needLabel } from '../data/constants.js'
+import { COACH_TIPS, pick } from '../data/motivation.js'
+import { NeedPicker } from './Setup.jsx'
+import { TeamHeader } from './Header.jsx'
+
+// Friendly practice date: "Today", "Tomorrow" or "Sat, Nov 14".
+export function planDate(plan) {
+  try {
+    const date = plan.date ?? localDate(new Date(plan.createdAt))
+    const today = localDate()
+    const tomorrow = localDate(new Date(Date.now() + 86400000))
+    if (date === today) return 'Today'
+    if (date === tomorrow) return 'Tomorrow'
+    return new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
+  } catch {
+    return ''
+  }
+}
+
+// Newest practice date first; ties by when the plan was made.
+export function sortPlans(plans) {
+  const key = (p) => `${p.date ?? (p.createdAt ?? '').slice(0, 10)}|${p.createdAt ?? ''}`
+  return [...plans].sort((a, b) => (key(a) < key(b) ? 1 : -1))
+}
+
+export default function Today({ team }) {
+  const lengths = lengthsFor(team.division)
+  const savedMinutes = store.get('minutes', 60)
+  const [minutes, setMinutes] = useState(lengths.includes(savedMinutes) ? savedMinutes : lengths.includes(60) ? 60 : lengths[lengths.length - 1])
+  const [coaches, setCoaches] = useState(store.get('coaches', 2))
+  const [focus, setFocus] = useState(team.needs ?? [])
+  const [building, setBuilding] = useState(false)
+  const [date, setDate] = useState(localDate())
+
+  const latest = useLiveQuery(
+    () => db.plans.where('teamId').equals(team.id).toArray().then((r) => sortPlans(r)[0] ?? null),
+    [team.id],
+  )
+
+  const tip = pick(COACH_TIPS, new Date().toDateString())
+  const changedFocus = focus.join() !== (team.needs ?? []).join()
+
+  const build = async () => {
+    setBuilding(true)
+    store.set('minutes', minutes)
+    store.set('coaches', coaches)
+    const plan = buildPlan(team, { minutes, coaches, focus, date, seed: Date.now() })
+    await savePlan(plan)
+    go(`plan/${plan.id}`)
+  }
+
+  return (
+    <>
+      <TeamHeader team={team} />
+      <main className="page">
+        <section className="card" aria-labelledby="build-title">
+          <h2 id="build-title">Plan a practice</h2>
+
+          <label className="field">
+            Practice date
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value || localDate())} />
+          </label>
+
+          <div className="stack">
+            <strong className="small">How long is practice?</strong>
+            <div className="seg" role="group" aria-label="Practice length in minutes">
+              {lengths.map((m) => (
+                <button key={m} type="button" aria-pressed={minutes === m} onClick={() => setMinutes(m)}>
+                  {m}
+                </button>
+              ))}
+            </div>
+            <span className="muted small">Minutes</span>
+          </div>
+
+          <div className="stack">
+            <strong className="small">How many coaches will be there?</strong>
+            <div className="seg" role="group" aria-label="Number of coaches">
+              {[1, 2, 3, 4].map((c) => (
+                <button key={c} type="button" aria-pressed={coaches === c} onClick={() => setCoaches(c)}>
+                  {c === 4 ? '4+' : c}
+                </button>
+              ))}
+            </div>
+            <span className="muted small">
+              {coaches === 1 ? 'One coach runs whole-team drills.' : `${Math.min(coaches, 3)} coaches can run stations that groups rotate through.`}
+            </span>
+          </div>
+
+          <div className="stack">
+            <div className="row">
+              <strong className="small spacer">Today's focus</strong>
+              {changedFocus && (
+                <button className="btn ghost small" onClick={() => setFocus(team.needs ?? [])}>
+                  Use team needs
+                </button>
+              )}
+            </div>
+            <NeedPicker division={team.division} value={focus} onChange={setFocus} />
+          </div>
+
+          <button className="btn big" onClick={build} disabled={building || focus.length === 0}>
+            Build practice plan
+          </button>
+          {focus.length === 0 && <span className="muted small">Pick at least one thing to work on.</span>}
+        </section>
+
+        {latest && (
+          <button className="card" style={{ textAlign: 'left', cursor: 'pointer' }} onClick={() => go(`plan/${latest.id}`)}>
+            <span className="muted small">Latest plan</span>
+            <strong>
+              {planDate(latest)}, {totalMinutes(latest)} minutes
+            </strong>
+            <span className="small muted">Focus: {latest.focus.map(needLabel).join(', ') || 'general'}</span>
+          </button>
+        )}
+
+        <section className="card">
+          <h3>Coach's tip</h3>
+          <p>{tip}</p>
+        </section>
+      </main>
+    </>
+  )
+}
