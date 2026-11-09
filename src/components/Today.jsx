@@ -7,6 +7,7 @@ import { lengthsFor, needLabel } from '../data/constants.js'
 import { COACH_TIPS, pick } from '../data/motivation.js'
 import { NeedPicker } from './Setup.jsx'
 import { TeamHeader } from './Header.jsx'
+import { useSuggestion, SuggestionList } from './Log.jsx'
 
 // Friendly practice date: "Today", "Tomorrow" or "Sat, Nov 14".
 export function planDate(plan) {
@@ -42,6 +43,8 @@ export default function Today({ team }) {
     [team.id],
   )
 
+  const { suggestion } = useSuggestion(team)
+  const useSuggested = suggestion && suggestion.needs.join() !== focus.join()
   const tip = pick(COACH_TIPS, new Date().toDateString())
   const changedFocus = focus.join() !== (team.needs ?? []).join()
 
@@ -91,6 +94,20 @@ export default function Today({ team }) {
               {coaches === 1 ? 'One coach runs whole-team drills.' : `${Math.min(coaches, 3)} coaches can run stations that groups rotate through.`}
             </span>
           </div>
+
+          {suggestion && (
+            <div className="suggest" role="region" aria-label="Suggested focus">
+              <strong>From your recent games and practices</strong>
+              <SuggestionList suggestion={suggestion} />
+              {useSuggested ? (
+                <button className="btn small" onClick={() => setFocus(suggestion.needs)}>
+                  Use this focus
+                </button>
+              ) : (
+                <span className="small muted">Today's focus matches.</span>
+              )}
+            </div>
+          )}
 
           <div className="stack">
             <div className="row">

@@ -15,6 +15,13 @@ const paths = {
       <path d="M7.5 5.2c2 2 2 11.6 0 13.6M16.5 5.2c-2 2-2 11.6 0 13.6" />
     </>
   ),
+  // Log: notebook with a pencil line
+  log: (
+    <>
+      <path d="M6 3.5h10a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6z" />
+      <path d="M6 3.5v17M10 8h5M10 12h5M10 16h3" />
+    </>
+  ),
   // Team: cap
   team: (
     <>

@@ -1,6 +1,14 @@
-export const VERSION = '1.1.0'
+export const VERSION = '1.2.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.2.0',
+    date: '2026-11-09',
+    items: [
+      'New Log tab: debrief a game or recap a practice in about two minutes.',
+      'Your next practice suggests what to work on, based on what you logged.',
+    ],
+  },
   {
     version: '1.1.0',
     date: '2026-11-08',

@@ -23,7 +23,7 @@ export default function TeamPage({ team, teams, theme, auth }) {
     a.click()
     a.remove()
     setTimeout(() => URL.revokeObjectURL(url), 1000)
-    setMsg(`Saved a backup of ${data.teams.length} ${data.teams.length === 1 ? 'team' : 'teams'} and ${data.plans.length} plans.`)
+    setMsg(`Saved a backup of ${data.teams.length} ${data.teams.length === 1 ? 'team' : 'teams'} and ${data.plans.length} plans${data.debriefs?.length ? ` and ${data.debriefs.length} log ${data.debriefs.length === 1 ? 'entry' : 'entries'}` : ''}.`)
   }
 
   const restore = async (e) => {
@@ -33,7 +33,7 @@ export default function TeamPage({ team, teams, theme, auth }) {
     try {
       const data = JSON.parse(await file.text())
       const r = await importBackup(data)
-      setMsg(`Restored ${r.teams} ${r.teams === 1 ? 'team' : 'teams'} and ${r.plans} plans.`)
+      setMsg(`Restored ${r.teams} ${r.teams === 1 ? 'team' : 'teams'} and ${r.plans} plans${r.debriefs ? ` and ${r.debriefs} log ${r.debriefs === 1 ? 'entry' : 'entries'}` : ''}.`)
     } catch (err) {
       setMsg(err.message?.includes('AttaCoach') ? err.message : 'That file could not be read. Choose an AttaCoach backup (.json).')
     }

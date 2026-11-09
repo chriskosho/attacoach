@@ -12,6 +12,7 @@ Live app: https://chriskosho.github.io/attacoach/
 - **Editing.** Open any block to see the drill, change minutes, swap it for a similar drill, move it, add a break or remove it (with undo). Add any drill from the library.
 - **Field timer.** Big scoreboard countdown, auto-advance with a beep and vibration, station rotation calls, coaching points, and the screen stays on.
 - **Motivation.** An opening talk and a closing huddle message matched to the age group, plus a coach's tip.
+- **Game debriefs and practice recaps.** The Log tab records what the coach saw (ratings by area, notes, what to work on). The next plan suggests a focus from recent entries, weighting newer ones more.
 - **Share and print.** Text the plan to assistant coaches or print it.
 - **Offline and installable.** Works with no signal at the field once loaded. Add it to the home screen.
 - **Sign-in gate (built, currently off).** Set `VITE_AUTH_REQUIRED=true` at build time to turn it on. Coaches sign up with an email link or a code (Supabase). Once signed in, the app works offline from the cached sign-in. The gate is a sign-up wall, not security: team data never leaves the device.
@@ -44,6 +45,7 @@ node scripts/walkthrough.cjs shots    # phone-width screenshots of every screen
 - `src/data/motivation.js`: team talks and coach tips.
 - `src/lib/plan.js`: the plan engine and editing helpers (pure functions).
 - `src/lib/auth.js`, `src/lib/supabase.js`, `src/config.js`: sign-in, the Supabase client and app links.
+- `src/lib/debrief.js`: log helpers and the next-focus suggestion.
 - `src/lib/db.js`: device storage (Dexie / IndexedDB), backup and restore.
 - `src/components/`: screens.
 - `scripts/sw-plugin.js`, `scripts/sw.template.js`: offline service worker.

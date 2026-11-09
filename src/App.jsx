@@ -11,6 +11,7 @@ import Today from './components/Today.jsx'
 import Plans from './components/Plans.jsx'
 import PlanView from './components/PlanView.jsx'
 import Drills, { DrillPage } from './components/Drills.jsx'
+import Log, { DebriefForm } from './components/Log.jsx'
 import TeamPage from './components/TeamPage.jsx'
 import RunTimer from './components/RunTimer.jsx'
 import { TabIcon } from './components/Icons.jsx'
@@ -19,10 +20,11 @@ const TABS = [
   { id: 'today', label: 'Today' },
   { id: 'plans', label: 'Plans' },
   { id: 'drills', label: 'Drills' },
+  { id: 'log', label: 'Log' },
   { id: 'team', label: 'Team' },
 ]
 
-const TAB_FOR = { plan: 'plans', run: 'plans', drill: 'drills', setup: 'team' }
+const TAB_FOR = { plan: 'plans', run: 'plans', drill: 'drills', debrief: 'log', setup: 'team' }
 
 export default function App() {
   const route = useRoute()
@@ -68,6 +70,8 @@ export default function App() {
   let page
   if (route.name === 'plan' && route.id) page = <PlanView planId={route.id} team={team} />
   else if (route.name === 'drill' && route.id) page = <DrillPage drillId={route.id} team={team} />
+  else if (route.name === 'debrief' && route.id) page = <DebriefForm team={team} id={route.id} />
+  else if (route.name === 'log') page = <Log team={team} />
   else if (route.name === 'plans') page = <Plans team={team} />
   else if (route.name === 'drills') page = <Drills team={team} />
   else if (route.name === 'team') page = <TeamPage team={team} teams={data.teams} theme={data.theme} auth={auth} />
