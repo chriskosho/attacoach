@@ -6,7 +6,8 @@ Live app: https://chriskosho.github.io/attacoach/
 
 ## What it does
 
-- **Team setup.** The coach's name, division (4U–14U), experience, a ranked list of every developmental need that applies (tap to add, arrows to reorder), and game rules. Rules default to the standard game: players pitch, stealing, leading off and the dropped third strike start at 10U. Each can be turned off for a local league.
+- **Quick onboarding.** Name, team and division, then coaching experience (and what you feel least sure teaching), an optional roster, an optional ranked list of team needs that starts from the players' weak spots, and how the league plays. Everything after the first two screens can be skipped and you land on a ready-made plan; a team with no chosen skills gets a starter plan on the basics.
+- **Players.** First name required, everything else optional: overall rating, strengths, needs work and positions. Managed on the Team tab. Players feed the suggested team needs.
 - **Goal-based plans.** Pick a date, practice length and number of coaches. The plan opens with an age-appropriate warm-up, includes catch play from 8U, spends most of its time on the chosen needs, rotates stations when there are two or more coaches, adds water breaks, finishes with a game and closes with a team huddle.
 - **Rated drills.** About 70 original drills across warm-ups, throwing, infield, outfield, hitting, base running, pitching, catching, team defense and games. Each is rated beginner, intermediate or advanced. New coaches get beginner drills with full write-ups; experienced coaches get harder drills and short notes.
 - **Editing.** Open any block to see the drill, change minutes, swap it for a similar drill, move it, add a break or remove it (with undo). Add any drill from the library.
@@ -46,6 +47,7 @@ node scripts/walkthrough.cjs shots    # phone-width screenshots of every screen
 - `src/lib/plan.js`: the plan engine and editing helpers (pure functions).
 - `src/lib/auth.js`, `src/lib/supabase.js`, `src/config.js`: sign-in, the Supabase client and app links.
 - `src/lib/debrief.js`: log helpers and the next-focus suggestion.
+- `src/lib/roster.js`: player helpers and the roll-up of player weaknesses into team needs.
 - `src/lib/db.js`: device storage (Dexie / IndexedDB), backup and restore.
 - `src/components/`: screens.
 - `scripts/sw-plugin.js`, `scripts/sw.template.js`: offline service worker.

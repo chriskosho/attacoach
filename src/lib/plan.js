@@ -2,7 +2,7 @@
 import { DRILLS, drillById } from '../data/drills.js'
 import { divIndex, levelIndex, MAX_LEVEL_FOR, MAX_BLOCK } from '../data/constants.js'
 import { OPENERS, CLOSERS, bandFor, pick } from '../data/motivation.js'
-import { needLabel } from '../data/constants.js'
+import { needLabel, starterNeeds } from '../data/constants.js'
 
 // Small seeded random generator so a given seed always builds the same plan.
 export function rng(seed) {
@@ -76,7 +76,7 @@ export function buildPlan(team, options = {}) {
   const minutes = options.minutes ?? 60
   const coaches = Math.max(1, options.coaches ?? 1)
   // Any number of ranked needs. Earlier ones get more of the practice.
-  const focus = options.focus?.length ? options.focus : team.needs ?? []
+  const focus = options.focus?.length ? options.focus : team.needs?.length ? team.needs : starterNeeds(team.division)
   const seed = options.seed ?? Date.now()
   const random = rng(seed)
   const division = team.division

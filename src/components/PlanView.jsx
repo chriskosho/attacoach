@@ -104,6 +104,8 @@ export default function PlanView({ planId, team, coach = '' }) {
     })
   const isOpen = (key) => printing || open.has(key)
   const experienced = team.experience === 'experienced'
+  // A coach who said they're unsure about a skill gets the full explanation for those drills.
+  const unsureAbout = (d) => (team.unsure ?? []).some((n) => d.needs.includes(n))
 
   const total = totalMinutes(plan)
   const diff = total - plan.minutes
@@ -170,6 +172,20 @@ export default function PlanView({ planId, team, coach = '' }) {
     <>
       <TeamHeader team={team} title="Practice plan" backTo="plans" />
       <main className="page">
+        {!team.needs?.length && (
+          <div className="suggest no-print" role="note">
+            <strong>This is a starter plan on the fundamentals for {team.division}.</strong>
+            <span>Add your players or choose your team's skills and the next plan will be built around them.</span>
+            <span className="action-row" style={{ width: '100%' }}>
+              <button className="btn small" onClick={() => go('team')}>
+                Add players
+              </button>
+              <button className="btn quiet small" onClick={() => go(`setup/${team.id}`)}>
+                Choose skills
+              </button>
+            </span>
+          </div>
+        )}
         <div className="row wrap">
           <div className="spacer">
             <label>
@@ -247,7 +263,7 @@ export default function PlanView({ planId, team, coach = '' }) {
 
                 {isOpen(key) && (
                   <div className="slot-body">
-                    {drill && <DrillBody drill={drill} experienced={experienced} />}
+                    {drill && <DrillBody drill={drill} experienced={experienced && !unsureAbout(drill)} />}
                     {b.kind === 'drill' && !drill && <p className="muted">This drill is no longer in the library. Swap it for another.</p>}
                     {b.kind === 'break' && <p className="muted">Water for everyone. On hot days, add more breaks and find shade.</p>}
                     {b.kind === 'huddle' && (
@@ -285,7 +301,7 @@ export default function PlanView({ planId, team, coach = '' }) {
                               </button>
                               {isOpen(skey) && (
                                 <div className="slot-body">
-                                  {sd && <DrillBody drill={sd} experienced={experienced} />}
+                                  {sd && <DrillBody drill={sd} experienced={experienced && !unsureAbout(sd)} />}
                                   <div className="edit-bar no-print">
                                     <button className="btn quiet small" onClick={() => setSwap({ blockId: b.id, stationIndex: si, drillId: id })}>
                                       Swap

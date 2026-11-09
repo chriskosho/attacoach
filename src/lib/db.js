@@ -9,12 +9,20 @@ db.version(1).stores({
   settings: 'key',
 })
 
-// Version 2: game debriefs and practice recaps.
+// Version 3 (below) adds players. Version 2: game debriefs and practice recaps.
 db.version(2).stores({
   teams: 'id, updatedAt',
   plans: 'id, teamId, createdAt',
   settings: 'key',
   debriefs: 'id, teamId, date',
+})
+
+db.version(3).stores({
+  teams: 'id, updatedAt',
+  plans: 'id, teamId, createdAt',
+  settings: 'key',
+  debriefs: 'id, teamId, date',
+  players: 'id, teamId',
 })
 
 export async function getSetting(key, fallback = null) {
@@ -36,12 +44,23 @@ export async function saveTeam(team) {
 }
 
 export async function deleteTeam(id) {
-  await db.transaction('rw', db.teams, db.plans, db.debriefs, db.settings, async () => {
+  await db.transaction('rw', db.teams, db.plans, db.debriefs, db.players, db.settings, async () => {
+    await db.players.where('teamId').equals(id).delete()
     await db.plans.where('teamId').equals(id).delete()
     await db.debriefs.where('teamId').equals(id).delete()
     await db.teams.delete(id)
     const next = await db.teams.toCollection().first()
     await setSetting('currentTeamId', next?.id ?? null)
+  })
+}
+
+// Makes the stored roster for a team match `players` exactly: adds, updates and removes.
+export async function savePlayers(teamId, players) {
+  await db.transaction('rw', db.players, async () => {
+    const keep = new Set(players.map((p) => p.id))
+    const old = await db.players.where('teamId').equals(teamId).primaryKeys()
+    await db.players.bulkDelete(old.filter((id) => !keep.has(id)))
+    await db.players.bulkPut(players.map((p) => ({ ...p, teamId })))
   })
 }
 
@@ -65,8 +84,8 @@ export function deleteDebrief(id) {
 export const BACKUP_FORMAT = 'attacoach-backup'
 
 export async function exportBackup() {
-  const [teams, plans, debriefs, coachName] = await Promise.all([db.teams.toArray(), db.plans.toArray(), db.debriefs.toArray(), getSetting('coachName', '')])
-  return { format: BACKUP_FORMAT, version: 2, exportedAt: new Date().toISOString(), coachName, teams, plans, debriefs }
+  const [teams, plans, debriefs, players, coachName] = await Promise.all([db.teams.toArray(), db.plans.toArray(), db.debriefs.toArray(), db.players.toArray(), getSetting('coachName', '')])
+  return { format: BACKUP_FORMAT, version: 3, exportedAt: new Date().toISOString(), coachName, teams, plans, debriefs, players }
 }
 
 // Merges a backup into this device. Rows with the same id are replaced.
@@ -75,7 +94,9 @@ export async function importBackup(data) {
     throw new Error('This file is not an AttaCoach backup.')
   }
   const debriefs = Array.isArray(data.debriefs) ? data.debriefs : []
-  await db.transaction('rw', db.teams, db.plans, db.debriefs, db.settings, async () => {
+  const players = Array.isArray(data.players) ? data.players : []
+  await db.transaction('rw', db.teams, db.plans, db.debriefs, db.players, db.settings, async () => {
+    await db.players.bulkPut(players)
     await db.teams.bulkPut(data.teams)
     await db.plans.bulkPut(data.plans)
     await db.debriefs.bulkPut(debriefs)
@@ -83,11 +104,11 @@ export async function importBackup(data) {
     if (!current && data.teams[0]) await setSetting('currentTeamId', data.teams[0].id)
     if (typeof data.coachName === 'string' && data.coachName.trim() && !(await getSetting('coachName'))) await setSetting('coachName', data.coachName.trim())
   })
-  return { teams: data.teams.length, plans: data.plans.length, debriefs: debriefs.length }
+  return { teams: data.teams.length, plans: data.plans.length, debriefs: debriefs.length, players: players.length }
 }
 
 export async function clearEverything() {
-  await db.transaction('rw', db.teams, db.plans, db.debriefs, db.settings, async () => {
-    await Promise.all([db.teams.clear(), db.plans.clear(), db.debriefs.clear(), db.settings.clear()])
+  await db.transaction('rw', db.teams, db.plans, db.debriefs, db.players, db.settings, async () => {
+    await Promise.all([db.teams.clear(), db.plans.clear(), db.debriefs.clear(), db.players.clear(), db.settings.clear()])
   })
 }

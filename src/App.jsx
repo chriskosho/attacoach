@@ -15,6 +15,7 @@ import Log, { DebriefForm } from './components/Log.jsx'
 import TeamPage from './components/TeamPage.jsx'
 import RunTimer from './components/RunTimer.jsx'
 import { TabIcon } from './components/Icons.jsx'
+import { createFirstPlan } from './lib/starter.js'
 
 const TABS = [
   { id: 'today', label: 'Today' },
@@ -31,13 +32,14 @@ export default function App() {
   // AUTH_REQUIRED never changes while the app runs, so the hook order is stable.
   const auth = AUTH_REQUIRED ? useAuth() : { status: 'off' } // eslint-disable-line react-hooks/rules-of-hooks
   const data = useLiveQuery(async () => {
-    const [teams, current, theme, coach] = await Promise.all([
+    const [teams, current, theme, coach, players] = await Promise.all([
       db.teams.toArray(),
       db.settings.get('currentTeamId'),
       db.settings.get('theme'),
       db.settings.get('coachName'),
+      db.players.toArray(),
     ])
-    return { teams, currentId: current?.value ?? null, theme: theme?.value ?? 'system', coach: coach?.value ?? '' }
+    return { teams, currentId: current?.value ?? null, theme: theme?.value ?? 'system', coach: coach?.value ?? '', players }
   }, [])
   const [updateReady, setUpdateReady] = useState(false)
 
@@ -58,11 +60,22 @@ export default function App() {
   const team = data.teams.find((t) => t.id === data.currentId) ?? data.teams[0] ?? null
 
   // First run: set up a team before anything else.
-  if (!team) return <Setup onDone={() => go('today')} first coachName={data.coach} />
+  if (!team) return (
+      <Setup
+        first
+        coachName={data.coach}
+        players={data.players}
+        onDone={async (row) => {
+          // Land on a ready-made plan so the first thing they see is useful.
+          const plan = await createFirstPlan(row)
+          go(`plan/${plan.id}`)
+        }}
+      />
+    )
 
   if (route.name === 'setup') {
     const editing = route.id === 'new' ? null : data.teams.find((t) => t.id === route.id) ?? team
-    return <Setup team={editing} coachName={data.coach} onDone={() => go('team')} onCancel={() => go('team')} />
+    return <Setup team={editing} coachName={data.coach} players={data.players} onDone={() => go('team')} onCancel={() => go('team')} />
   }
 
   if (route.name === 'run' && route.id) return <RunTimer planId={route.id} team={team} />
@@ -75,7 +88,7 @@ export default function App() {
   else if (route.name === 'log') page = <Log team={team} />
   else if (route.name === 'plans') page = <Plans team={team} />
   else if (route.name === 'drills') page = <Drills team={team} />
-  else if (route.name === 'team') page = <TeamPage team={team} teams={data.teams} theme={data.theme} auth={auth} coach={data.coach} />
+  else if (route.name === 'team') page = <TeamPage team={team} teams={data.teams} theme={data.theme} auth={auth} coach={data.coach} players={data.players.filter((p) => p.teamId === team.id)} />
   else page = <Today team={team} coach={data.coach} />
 
   return (

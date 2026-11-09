@@ -1,6 +1,16 @@
-export const VERSION = '1.3.0'
+export const VERSION = '1.4.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.4.0',
+    date: '2026-11-09',
+    items: [
+      'Quicker start: your name, team and division first, and you land on a ready-made practice plan.',
+      'Add your players (first name is enough) with a rating, strengths, needs and positions. Everything beyond the name is optional.',
+      'Team needs can start from your players, and you can skip them for a starter plan on the basics.',
+      'Tell AttaCoach what you feel least sure teaching and those drills show the full explanation.',
+    ],
+  },
   {
     version: '1.3.0',
     date: '2026-11-09',

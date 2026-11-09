@@ -26,25 +26,51 @@ beforeEach(async () => {
 const press = (name) => screen.getByRole('button', { name })
 
 describe('first run setup', () => {
-  it('walks through the four steps and lands on Today', async () => {
-    const user = userEvent.setup()
+  const start = async (user, { me = 'Chris', team = 'Blue Jays', division = '12U' } = {}) => {
     render(<App />)
     expect(await screen.findByText('Set up your team')).toBeTruthy()
-    const next = () => press('Next')
-    expect(next().disabled).toBe(true)
+    if (me) await user.type(screen.getByLabelText("What's your name?"), me)
+    await user.type(screen.getByLabelText('Team name'), team)
+    await user.click(press(division))
+  }
+
+  it('asks the coach, then team and division, on the very first screen', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await screen.findByText('Set up your team')
+    expect(press('Next').disabled).toBe(true)
     await user.type(screen.getByLabelText('Team name'), 'Blue Jays')
     await user.click(press('12U'))
-    await user.click(next())
-
-    expect(next().disabled).toBe(true)
-    await user.click(screen.getByRole('button', { name: /New to coaching/ }))
-    expect(next().disabled).toBe(true) // the coach's name is required on first run
+    expect(press('Next').disabled).toBe(true) // the coach's name is required on first run
     await user.type(screen.getByLabelText("What's your name?"), 'Chris')
-    await user.click(next())
+    expect(press('Next').disabled).toBe(false)
+  })
 
-    await user.click(press('Base running'))
-    await user.click(press('Knowing where to throw'))
-    await user.click(next())
+  it('walks through every step, starts the needs from the players, and lands on a plan', async () => {
+    const user = userEvent.setup()
+    await start(user)
+    await user.click(press('Next'))
+
+    await user.click(screen.getByRole('button', { name: /New to coaching/ }))
+    await user.click(press('Next'))
+
+    // Players: first name only is enough; details are optional.
+    await user.type(screen.getByLabelText('Add a player'), 'Sam')
+    await user.click(press('Add'))
+    await user.type(screen.getByLabelText('Add a player'), 'Lee Kim{enter}')
+    expect(screen.getByRole('list', { name: 'Players' }).children).toHaveLength(2)
+    await user.click(screen.getByRole('button', { name: 'Edit Sam' }))
+    const dialog = screen.getByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: 'Developing' }))
+    await user.click(within(within(dialog).getByRole('group', { name: 'Needs work' })).getByRole('button', { name: 'Catching fly balls' }))
+    await user.click(within(within(dialog).getByRole('group', { name: 'Positions' })).getByRole('button', { name: 'Shortstop' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Save player' }))
+    await user.click(press('Next'))
+
+    // Needs start from the players' weak spots, and the coach can still add more.
+    expect(screen.getByRole('list', { name: 'Ranked skills' }).textContent).toContain('Catching fly balls')
+    await user.click(within(screen.getByRole('group', { name: 'Skills to add' })).getByRole('button', { name: 'Base running' }))
+    await user.click(press('Next'))
 
     // Rules default on at 12U.
     const leading = screen.getByRole('checkbox', { name: /Leading off/ })
@@ -52,39 +78,72 @@ describe('first run setup', () => {
     await user.click(leading)
     await user.click(press('Save and start planning'))
 
-    expect(await screen.findByText("Plan a practice")).toBeTruthy()
+    expect(await screen.findByRole('list', { name: 'Practice blocks' })).toBeTruthy()
     const [team] = await db.teams.toArray()
-    expect(team).toMatchObject({ name: 'Blue Jays', division: '12U', experience: 'new', needs: ['baserunning', 'awareness'] })
+    expect(team).toMatchObject({ name: 'Blue Jays', division: '12U', experience: 'new', needs: ['flyballs', 'baserunning'] })
     expect(team.rules.leadoff).toBe(false)
     expect(team.rules.droppedThird).toBe(true)
     expect((await db.settings.get('coachName')).value).toBe('Chris')
-    expect(screen.getByText(/Good (morning|afternoon|evening), Coach Chris/)).toBeTruthy()
+    const players = await db.players.toArray()
+    expect(players.map((p) => p.first).sort()).toEqual(['Lee', 'Sam'])
+    expect(players.find((p) => p.first === 'Lee').last).toBe('Kim')
+    expect(players.find((p) => p.first === 'Sam')).toMatchObject({ rating: 'developing', weaknesses: ['flyballs'], positions: ['SS'], teamId: team.id })
+    expect(await db.plans.count()).toBe(1)
+  })
+
+  it('lets a coach skip everything after the first two screens and still get a starter plan', async () => {
+    const user = userEvent.setup()
+    await start(user, { team: 'Tiny', division: '6U' })
+    await user.click(press('Next'))
+    await user.click(screen.getByRole('button', { name: /New to coaching/ }))
+    await user.click(press('Next'))
+    await user.click(press('Skip for now')) // players
+    await user.click(press('Skip for now')) // needs
+    await user.click(press('Save and start planning'))
+
+    expect(await screen.findByText(/starter plan on the fundamentals for 6U/)).toBeTruthy()
+    const [team] = await db.teams.toArray()
+    expect(team.needs).toEqual([])
+    expect(await db.players.count()).toBe(0)
+    const [plan] = await db.plans.toArray()
+    expect(plan.focus).toEqual(['catching', 'throwing', 'contact'])
+  })
+
+  it('records how the coach feels about teaching, and shows full drill help for those skills', async () => {
+    const user = userEvent.setup()
+    await start(user)
+    await user.click(press('Next'))
+    await user.click(screen.getByRole('button', { name: /Experienced/ }))
+    await user.click(screen.getByRole('button', { name: 'Not really' }))
+    await user.click(within(screen.getByRole('group', { name: 'Least sure about teaching' })).getByRole('button', { name: 'Bunting' }))
+    await user.click(press('Next'))
+    await user.click(press('Skip for now'))
+    await user.click(press('Skip for now'))
+    await user.click(press('Save and start planning'))
+    await screen.findByRole('list', { name: 'Practice blocks' })
+    const [team] = await db.teams.toArray()
+    expect(team).toMatchObject({ played: 'no', unsure: ['bunting'] })
   })
 
   it('hides needs that do not fit young divisions', async () => {
     const user = userEvent.setup()
-    render(<App />)
-    await user.type(await screen.findByLabelText('Team name'), 'Tiny')
-    await user.click(press('4U'))
+    await start(user, { team: 'Tiny', division: '4U' })
     await user.click(press('Next'))
     await user.click(screen.getByRole('button', { name: /New to coaching/ }))
-    await user.type(screen.getByLabelText("What's your name?"), 'Pat')
     await user.click(press('Next'))
+    await user.click(press('Skip for now'))
     expect(screen.queryByRole('button', { name: 'Pitching' })).toBeNull()
     expect(screen.getByRole('button', { name: 'Catching the ball' })).toBeTruthy()
   })
 
   it('starts 8U with leading off and dropped third strike off', async () => {
     const user = userEvent.setup()
-    render(<App />)
-    await user.type(await screen.findByLabelText('Team name'), 'Eights')
-    await user.click(press('8U'))
+    await start(user, { team: 'Eights', division: '8U' })
     await user.click(press('Next'))
     await user.click(screen.getByRole('button', { name: /A few seasons/ }))
-    await user.type(screen.getByLabelText("What's your name?"), 'Pat')
     await user.click(press('Next'))
-    await user.click(press('Making contact'))
-    await user.click(press('Next'))
+    await user.click(press('Skip for now'))
+    await user.click(press('Skip for now'))
     expect(screen.getByRole('checkbox', { name: /Leading off/ }).checked).toBe(false)
     expect(screen.getByRole('checkbox', { name: /Dropped third strike/ }).checked).toBe(false)
   })
@@ -214,7 +273,7 @@ describe('backup', () => {
     const data = await exportBackup()
     await clearEverything()
     const r = await importBackup(JSON.parse(JSON.stringify(data)))
-    expect(r).toEqual({ teams: 1, plans: 1, debriefs: 0 })
+    expect(r).toEqual({ teams: 1, plans: 1, debriefs: 0, players: 0 })
     expect((await db.settings.get('currentTeamId')).value).toBe(team.id)
   })
 

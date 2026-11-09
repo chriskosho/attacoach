@@ -126,3 +126,38 @@ export function greeting(name, now = new Date()) {
   const who = coachTitle(name)
   return who ? `${hello}, ${who}` : hello
 }
+
+// ---------------------------------------------------------------- Players
+
+// Overall rating for a player. Coaches only; quick to tap.
+export const PLAYER_RATINGS = [
+  { id: 'novice', label: 'Novice' },
+  { id: 'developing', label: 'Developing' },
+  { id: 'solid', label: 'Solid' },
+  { id: 'strong', label: 'Strong' },
+]
+
+export const POSITIONS = [
+  { id: 'P', label: 'Pitcher', short: 'P' },
+  { id: 'C', label: 'Catcher', short: 'C' },
+  { id: '1B', label: 'First base', short: '1B' },
+  { id: '2B', label: 'Second base', short: '2B' },
+  { id: '3B', label: 'Third base', short: '3B' },
+  { id: 'SS', label: 'Shortstop', short: 'SS' },
+  { id: 'LF', label: 'Left field', short: 'LF' },
+  { id: 'CF', label: 'Center field', short: 'CF' },
+  { id: 'RF', label: 'Right field', short: 'RF' },
+]
+
+export const positionShort = (id) => POSITIONS.find((p) => p.id === id)?.short ?? id
+
+// What a team without chosen skills works on: the basics for the age group.
+export function starterNeeds(division) {
+  return divIndex(division) <= divIndex('6U') ? ['catching', 'throwing', 'contact'] : ['catching', 'throwing', 'grounders', 'contact']
+}
+
+export const PLAYED = [
+  { id: 'yes', label: 'Yes, quite a bit' },
+  { id: 'some', label: 'A little' },
+  { id: 'no', label: 'Not really' },
+]

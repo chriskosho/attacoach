@@ -1,6 +1,9 @@
 import { useRef, useState } from 'react'
-import { EXPERIENCE, RULES, needLabel, coachTitle } from '../data/constants.js'
-import { exportBackup, importBackup, setSetting, deleteTeam, clearEverything } from '../lib/db.js'
+import { EXPERIENCE, RULES, needLabel, coachTitle, needsForDivision } from '../data/constants.js'
+import { exportBackup, importBackup, setSetting, deleteTeam, clearEverything, savePlayers, saveTeam } from '../lib/db.js'
+import { rollupNeeds } from '../lib/roster.js'
+import { DRILLS } from '../data/drills.js'
+import Roster from './Roster.jsx'
 import { go } from '../lib/route.js'
 import { shareText } from '../lib/share.js'
 import { signOut, deleteAccount, friendlyAuthError } from '../lib/auth.js'
@@ -8,7 +11,7 @@ import { APP_URL, AUTH_REQUIRED, DONATE_URL, SHARE_TEXT } from '../config.js'
 import { VERSION, CHANGELOG } from '../changelog.js'
 import { TeamHeader } from './Header.jsx'
 
-export default function TeamPage({ team, teams, theme, auth, coach = '' }) {
+export default function TeamPage({ team, teams, theme, auth, coach = '', players = [] }) {
   const fileRef = useRef(null)
   const [msg, setMsg] = useState(null)
   const [nameDraft, setNameDraft] = useState(null)
@@ -82,6 +85,15 @@ export default function TeamPage({ team, teams, theme, auth, coach = '' }) {
     }
   }
 
+  const suggestedNeeds = rollupNeeds(players, needsForDivision(team.division, DRILLS).map((n) => n.id))
+  const needsDiffer = suggestedNeeds.length > 0 && suggestedNeeds.join() !== (team.needs ?? []).slice(0, suggestedNeeds.length).join()
+  const useRoster = async () => {
+    // The roster's picks go first; anything else already on the list stays below them.
+    const rest = (team.needs ?? []).filter((n) => !suggestedNeeds.includes(n))
+    await saveTeam({ ...team, needs: [...suggestedNeeds, ...rest] })
+    setMsg('Team needs updated from your players.')
+  }
+
   const exp = EXPERIENCE.find((x) => x.id === team.experience)
 
   return (
@@ -131,9 +143,16 @@ export default function TeamPage({ team, teams, theme, auth, coach = '' }) {
               <dt className="small muted">Your coaching experience</dt>
               <dd style={{ margin: 0 }}>{exp?.label}</dd>
             </div>
+            {team.unsure?.length > 0 && (
+              <div>
+                <dt className="small muted">Least sure about teaching</dt>
+                <dd style={{ margin: 0 }}>{team.unsure.map(needLabel).join(', ')}</dd>
+              </div>
+            )}
             <div>
               <dt className="small muted">Biggest needs</dt>
               <dd style={{ margin: 0 }}>
+                {!team.needs.length && <span className="muted">None chosen. Plans use a starter focus on the basics.</span>}
                 <ol style={{ margin: 0, paddingLeft: 22 }}>
                   {team.needs.map((n) => (
                     <li key={n}>{needLabel(n)}</li>
@@ -152,6 +171,19 @@ export default function TeamPage({ team, teams, theme, auth, coach = '' }) {
               </dd>
             </div>
           </dl>
+        </section>
+
+        <section className="card" aria-labelledby="roster-title">
+          <h3 id="roster-title">Players</h3>
+          <Roster division={team.division} players={players} onChange={(next) => savePlayers(team.id, next)} />
+          {needsDiffer && (
+            <div className="suggest">
+              <span>Your players point to: {suggestedNeeds.map(needLabel).join(', ')}.</span>
+              <button className="btn small" onClick={useRoster}>
+                Update team needs
+              </button>
+            </div>
+          )}
         </section>
 
         <section className="card">

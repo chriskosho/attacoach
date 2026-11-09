@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db, savePlan, setSetting } from '../lib/db.js'
 import { buildPlan, totalMinutes, localDate } from '../lib/plan.js'
 import { go, store } from '../lib/route.js'
-import { lengthsFor, focusSummary, greeting } from '../data/constants.js'
+import { lengthsFor, focusSummary, greeting, starterNeeds } from '../data/constants.js'
 import { COACH_TIPS, pick } from '../data/motivation.js'
 import NeedsRanker from './NeedsRanker.jsx'
 import { TeamHeader } from './Header.jsx'
@@ -34,7 +34,8 @@ export default function Today({ team, coach = '' }) {
   const savedMinutes = store.get('minutes', 60)
   const [minutes, setMinutes] = useState(lengths.includes(savedMinutes) ? savedMinutes : lengths.includes(60) ? 60 : lengths[lengths.length - 1])
   const [coaches, setCoaches] = useState(store.get('coaches', 2))
-  const [focus, setFocus] = useState(team.needs ?? [])
+  const teamFocus = team.needs?.length ? team.needs : starterNeeds(team.division)
+  const [focus, setFocus] = useState(teamFocus)
   const [building, setBuilding] = useState(false)
   const [date, setDate] = useState(localDate())
 
@@ -49,7 +50,7 @@ export default function Today({ team, coach = '' }) {
   // The suggested needs go first and the rest of the list stays below them.
   const applySuggestion = () => setFocus([...suggestion.needs, ...focus.filter((n) => !suggestion.needs.includes(n))])
   const tip = pick(COACH_TIPS, new Date().toDateString())
-  const changedFocus = focus.join() !== (team.needs ?? []).join()
+  const changedFocus = focus.join() !== teamFocus.join()
 
   const build = async () => {
     setBuilding(true)
@@ -113,11 +114,17 @@ export default function Today({ team, coach = '' }) {
             </div>
           )}
 
+          {!team.needs?.length && (
+            <p className="small muted" style={{ margin: 0 }}>
+              Using a starter focus on the basics. Choose your team's skills in Edit team, or add players on the Team tab.
+            </p>
+          )}
+
           <div className="stack">
             <div className="row">
               <strong className="small spacer">Today's focus</strong>
               {changedFocus && (
-                <button className="btn ghost small" onClick={() => setFocus(team.needs ?? [])}>
+                <button className="btn ghost small" onClick={() => setFocus(teamFocus)}>
                   Use team needs
                 </button>
               )}
