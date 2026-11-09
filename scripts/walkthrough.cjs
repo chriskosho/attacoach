@@ -18,6 +18,7 @@ const reply = (route, body) => route.fulfill({ status: 200, contentType: 'applic
 const out = process.argv[2] || 'screenshots'
 const URL = 'http://localhost:4173/attacoach/'
 
+const AUTH_ON = process.env.VITE_AUTH_REQUIRED === "true"
 ;(async () => {
   const server = spawn('npx', ['vite', 'preview', '--port', '4173', '--strictPort'], { stdio: 'ignore' })
   await new Promise((r) => setTimeout(r, 2500))
@@ -25,8 +26,8 @@ const URL = 'http://localhost:4173/attacoach/'
   const errors = []
   try {
     for (const scheme of ['light', 'dark']) {
-      // The gate, as a brand-new visitor sees it.
-      {
+      // The gate, as a brand-new visitor sees it (only when built with VITE_AUTH_REQUIRED=true).
+      if (AUTH_ON) {
         const gctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: scheme })
         await gctx.route(API, (r) => (r.request().url().includes('/auth/v1/otp') ? reply(r, {}) : r.abort()))
         const gpage = await gctx.newPage()
@@ -88,7 +89,7 @@ const URL = 'http://localhost:4173/attacoach/'
       await page.locator('.drill-row').first().click()
       await shot('11-drill')
       await page.getByRole('button', { name: 'Team' }).click()
-      await page.getByRole('heading', { name: 'Account' }).waitFor()
+      if (AUTH_ON) await page.getByRole('heading', { name: 'Account' }).waitFor()
       await shot('12-team')
       await ctx.close()
     }

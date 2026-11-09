@@ -14,7 +14,7 @@ Live app: https://chriskosho.github.io/attacoach/
 - **Motivation.** An opening talk and a closing huddle message matched to the age group, plus a coach's tip.
 - **Share and print.** Text the plan to assistant coaches or print it.
 - **Offline and installable.** Works with no signal at the field once loaded. Add it to the home screen.
-- **Sign-in gate.** Coaches sign up with an email link or a code (Supabase). Once signed in, the app works offline from the cached sign-in. The gate is a sign-up wall, not security: team data never leaves the device.
+- **Sign-in gate (built, currently off).** Set `VITE_AUTH_REQUIRED=true` at build time to turn it on. Coaches sign up with an email link or a code (Supabase). Once signed in, the app works offline from the cached sign-in. The gate is a sign-up wall, not security: team data never leaves the device.
 - **Share and support.** A Share AttaCoach button (Web Share, with a copy fallback) and a PayPal donate link on the Team tab.
 - **Private.** No ads or tracking. Teams and plans stay in the browser on the device, with backup and restore as a JSON file. Sign out and delete account are on the Team tab.
 
@@ -31,6 +31,7 @@ Checks with a real browser (needs Playwright and Chromium):
 
 ```
 npm run build
+VITE_AUTH_REQUIRED=true npm run build  # then:
 node scripts/check-auth.cjs           # gate, link and code sign-in, cached sign-in offline
 node scripts/check-offline.cjs        # loads the app, goes offline, builds a plan
 node scripts/walkthrough.cjs shots    # phone-width screenshots of every screen
@@ -52,7 +53,7 @@ node scripts/walkthrough.cjs shots    # phone-width screenshots of every screen
 Every push to `main` runs the tests, builds and deploys to GitHub Pages through `.github/workflows/deploy.yml`. Pages must be set to deploy from **GitHub Actions** in the repo settings.
 
 
-## Supabase setup (required before launch)
+## Supabase setup (required before turning the gate on)
 
 1. Dashboard > Authentication > URL Configuration: set Site URL and add a redirect URL of `https://chriskosho.github.io/attacoach/`.
 2. Authentication > Email Templates > Magic Link: include both `{{ .ConfirmationURL }}` (the link) and `{{ .Token }}` (the code).

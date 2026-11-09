@@ -4,6 +4,7 @@ import { db } from './lib/db.js'
 import { useRoute, go } from './lib/route.js'
 import { onUpdateReady, applyUpdate } from './lib/updates.js'
 import { useAuth } from './lib/auth.js'
+import { AUTH_REQUIRED } from './config.js'
 import SignIn, { Splash } from './components/SignIn.jsx'
 import Setup from './components/Setup.jsx'
 import Today from './components/Today.jsx'
@@ -25,7 +26,8 @@ const TAB_FOR = { plan: 'plans', run: 'plans', drill: 'drills', setup: 'team' }
 
 export default function App() {
   const route = useRoute()
-  const auth = useAuth()
+  // AUTH_REQUIRED never changes while the app runs, so the hook order is stable.
+  const auth = AUTH_REQUIRED ? useAuth() : { status: 'off' } // eslint-disable-line react-hooks/rules-of-hooks
   const data = useLiveQuery(async () => {
     const [teams, current, theme] = await Promise.all([
       db.teams.toArray(),

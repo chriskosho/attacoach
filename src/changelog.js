@@ -5,9 +5,7 @@ export const CHANGELOG = [
     version: '1.1.0',
     date: '2026-11-08',
     items: [
-      'Sign in with a link or a code sent to your email. Once signed in, AttaCoach works offline.',
       'Share AttaCoach with another coach, and a PayPal link to support it.',
-      'Sign out and delete your account from the Team tab.',
     ],
   },
   {

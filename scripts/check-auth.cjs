@@ -1,5 +1,5 @@
 // Drives the built app in Chromium with the real Supabase client and a stubbed network.
-// Usage: npm run build && node scripts/check-auth.cjs
+// Usage: VITE_AUTH_REQUIRED=true npm run build && node scripts/check-auth.cjs
 const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright')
 const { spawn } = require('child_process')
 

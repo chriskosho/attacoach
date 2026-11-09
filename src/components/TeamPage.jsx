@@ -4,7 +4,7 @@ import { exportBackup, importBackup, setSetting, deleteTeam, clearEverything } f
 import { go } from '../lib/route.js'
 import { shareText } from '../lib/share.js'
 import { signOut, deleteAccount, friendlyAuthError } from '../lib/auth.js'
-import { APP_URL, DONATE_URL, SHARE_TEXT } from '../config.js'
+import { APP_URL, AUTH_REQUIRED, DONATE_URL, SHARE_TEXT } from '../config.js'
 import { VERSION, CHANGELOG } from '../changelog.js'
 import { TeamHeader } from './Header.jsx'
 
@@ -193,7 +193,7 @@ export default function TeamPage({ team, teams, theme, auth }) {
         <section className="card">
           <h3>Privacy</h3>
           <p className="small">
-            AttaCoach has no ads or tracking. You sign in with your email, which is used only to sign you in. Your teams and plans stay in this browser on this device, and nothing about them is sent to a server. Clearing your browser data deletes them, so keep a backup.
+            AttaCoach has no ads or tracking.{AUTH_REQUIRED && ' You sign in with your email, which is used only to sign you in.'} Your teams and plans stay in this browser on this device, and nothing about them is sent to a server. Clearing your browser data deletes them, so keep a backup.
           </p>
         </section>
 

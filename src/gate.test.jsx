@@ -8,6 +8,8 @@ import { fake, resetFake, seedSession, setOnline, SESSION } from './test/fakeSup
 import { DONATE_URL, APP_URL } from './config.js'
 import { friendlyAuthError, isValidEmail } from './lib/auth.js'
 
+vi.mock('./config.js', async (orig) => ({ ...(await orig()), AUTH_REQUIRED: true }))
+
 vi.mock('./lib/supabase.js', async () => {
   const { fake } = await import('./test/fakeSupabase.js')
   return { getClient: () => fake, AUTH_STORAGE_KEY: 'attacoach-auth' }
