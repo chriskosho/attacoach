@@ -11,3 +11,8 @@ export const AUTH_REQUIRED = import.meta.env.VITE_AUTH_REQUIRED === 'true'
 export const APP_URL = 'https://chriskosho.github.io/attacoach/'
 export const DONATE_URL = 'https://paypal.me/chriskosho'
 export const SHARE_TEXT = 'AttaCoach builds baseball practice plans around what your team needs to work on. Free, works offline.'
+
+// Review tools: "Skip setup" and ready-made test teams on the first screen and in Settings.
+// On for now so content is easy to review. Set VITE_TEST_TOOLS=false at build time (or change the
+// default) when onboarding should be required.
+export const TEST_TOOLS = import.meta.env.VITE_TEST_TOOLS !== 'false'

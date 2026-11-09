@@ -4,7 +4,9 @@ import { exportBackup, importBackup, setSetting, clearEverything } from '../lib/
 import { go } from '../lib/route.js'
 import { shareText } from '../lib/share.js'
 import { signOut, deleteAccount, friendlyAuthError } from '../lib/auth.js'
-import { APP_URL, AUTH_REQUIRED, DONATE_URL, SHARE_TEXT } from '../config.js'
+import { APP_URL, AUTH_REQUIRED, DONATE_URL, SHARE_TEXT, TEST_TOOLS } from '../config.js'
+import TestTools from './TestTools.jsx'
+import { loadScenario } from '../lib/scenarios.js'
 import { VERSION, CHANGELOG } from '../changelog.js'
 import { TeamHeader } from './Header.jsx'
 
@@ -76,6 +78,12 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
     } catch (err) {
       setMsg(friendlyAuthError(err, 'delete'))
     }
+  }
+
+  const replay = async () => {
+    if (!window.confirm('Delete everything on this device and start setup again? Save a backup first if you need these teams.')) return
+    await clearEverything()
+    go('today')
   }
 
   return (
@@ -204,6 +212,22 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
           </section>
         )}
 
+        {TEST_TOOLS && (
+          <section className="card" aria-labelledby="test-title">
+            <h3 id="test-title">Testing tools</h3>
+            <p className="small muted">Add a ready-made team to try different situations. It becomes your current team; your other teams stay.</p>
+            <TestTools
+              label="Add a ready-made team"
+              onPick={async (sc) => {
+                await loadScenario(sc, { keepCoach: true })
+                go('today')
+              }}
+            />
+            <button className="btn quiet" onClick={replay}>
+              Start over and replay setup
+            </button>
+          </section>
+        )}
         <button className="btn danger" onClick={wipe}>
           Delete everything on this device
         </button>

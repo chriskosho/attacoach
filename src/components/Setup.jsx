@@ -3,6 +3,9 @@ import { DIVISIONS, EXPERIENCE, PLAYED, RULES, athleticDefault, defaultRules, ne
 import { rollupNeeds } from '../lib/roster.js'
 import NeedsRanker from './NeedsRanker.jsx'
 import Roster from './Roster.jsx'
+import TestTools from './TestTools.jsx'
+import { loadScenario } from '../lib/scenarios.js'
+import { TEST_TOOLS } from '../config.js'
 import PracticeSetup from './PracticeSetup.jsx'
 import SkillChips from './SkillChips.jsx'
 import { DRILLS } from '../data/drills.js'
@@ -134,6 +137,28 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
     onDone?.(row)
   }
 
+  // Review shortcut: save a team right now using whatever is filled in, with sensible fallbacks.
+  const skipSetup = async () => {
+    setSaving(true)
+    const d = division ?? '10U'
+    if (you.trim()) await setSetting('coachName', you.trim().replace(/\s+/g, ' '))
+    const row = await saveTeam({
+      name: name.trim() || 'My Team',
+      division: d,
+      experience: experience ?? 'some',
+      played,
+      unsure,
+      needs,
+      rules: division && rulesFor === division && rules ? rules : defaultRules(d),
+      practices: [],
+      equipment: null,
+      athletic: athleticDefault(d),
+    })
+    await savePlayers(row.id, players)
+    onDone?.(row)
+  }
+  const tryScenario = async (sc) => onDone?.(await loadScenario(sc))
+
   return (
     <div className="app">
       <header className="top" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
@@ -200,6 +225,19 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
                 </div>
               </div>
             </div>
+            {first && TEST_TOOLS && (
+              <div className="card">
+                <h3>Just looking around?</h3>
+                <p className="small muted">Skip the questions, or load a ready-made team to see plans, the timer and Coach Corner.</p>
+                <button className="btn quiet" disabled={saving} onClick={skipSetup}>
+                  Skip setup
+                </button>
+                <details className="test-tools">
+                  <summary>Ready-made test teams</summary>
+                  <TestTools onPick={tryScenario} />
+                </details>
+              </div>
+            )}
           </>
         )}
 

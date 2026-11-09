@@ -1,6 +1,14 @@
-export const VERSION = '1.7.0'
+export const VERSION = '1.8.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.8.0',
+    date: '2026-11-09',
+    items: [
+      'Review tools: skip setup from the first screen, or load a ready-made test team (T-ball, rookie 8U, full 10U roster, over-rostered 12U, different league rules, cage-only).',
+      'Settings has the same teams under Testing tools, plus a way to start over and replay setup.',
+    ],
+  },
   {
     version: '1.7.0',
     date: '2026-11-09',
