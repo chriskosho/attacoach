@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import { DIVISIONS, EXPERIENCE, PLAYED, RULES, defaultRules, needsForDivision } from '../data/constants.js'
+import { DIVISIONS, EXPERIENCE, PLAYED, RULES, athleticDefault, defaultRules, needsForDivision } from '../data/constants.js'
 import { rollupNeeds } from '../lib/roster.js'
 import NeedsRanker from './NeedsRanker.jsx'
 import Roster from './Roster.jsx'
+import PracticeSetup from './PracticeSetup.jsx'
 import SkillChips from './SkillChips.jsx'
 import { DRILLS } from '../data/drills.js'
 import { saveTeam, savePlayers, setSetting } from '../lib/db.js'
 
-const STEPS = ['You', 'Coaching', 'Players', 'Needs', 'League']
+const STEPS = ['You', 'Coaching', 'Players', 'Needs', 'League', 'Practice']
 const LAST = STEPS.length - 1
 export const MAX_NEEDS = 3
 
@@ -71,6 +72,11 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
   const [players, setPlayers] = useState(() => savedPlayers.filter((p) => p.teamId === team?.id))
   const [needsTouched, setNeedsTouched] = useState(!!team?.needs?.length)
   const [fromRoster, setFromRoster] = useState(false)
+  const [practice, setPractice] = useState({
+    practices: team?.practices ?? [],
+    equipment: team?.equipment ?? null,
+    athletic: team?.athletic ?? null,
+  })
   const [division, setDivision] = useState(team?.division ?? null)
   const [experience, setExperience] = useState(team?.experience ?? null)
   const [needs, setNeeds] = useState(team?.needs ?? [])
@@ -104,7 +110,7 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
         setFromRoster(true)
       }
     }
-    if (next === LAST && rulesFor !== division) {
+    if (next === 4 && rulesFor !== division) {
       if (rules) setRulesReset(true)
       setRules(defaultRules(division))
       setRulesFor(division)
@@ -114,14 +120,16 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
 
   // The coach's name is asked on first run; later it is optional so older installs can still edit a team.
   const nameOk = !first || you.trim().length > 0
-  const canNext = [!!division && name.trim().length > 0 && nameOk, !!experience, true, true, true][step]
+  const canNext = [!!division && name.trim().length > 0 && nameOk, !!experience, true, true, true, true][step]
   const readyToSave = !!division && !!name.trim() && !!experience && nameOk
 
   const save = async () => {
     setSaving(true)
     const finalRules = currentRules()
     if (you.trim()) await setSetting('coachName', you.trim().replace(/\s+/g, ' '))
-    const row = await saveTeam({ ...(team ?? {}), name: name.trim(), division, experience, played, unsure, needs, rules: finalRules })
+    const practices = practice.practices.map((p) => ({ ...p, name: p.name.trim() || 'Practice' }))
+    const athletic = practice.athletic ?? athleticDefault(division)
+    const row = await saveTeam({ ...(team ?? {}), name: name.trim(), division, experience, played, unsure, needs, rules: finalRules, practices, equipment: practice.equipment, athletic })
     await savePlayers(row.id, players)
     onDone?.(row)
   }
@@ -265,6 +273,18 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
                 setRules(r)
                 setRulesFor(division)
               }}
+            />
+          </div>
+        )}
+
+        {step === 5 && (
+          <div className="card">
+            <h2>How do you practice?</h2>
+            <p className="muted small">All optional. Skip it and plans assume a field practice; you can fill this in later on the Team tab.</p>
+            <PracticeSetup
+              division={division}
+              value={{ ...practice, athletic: practice.athletic ?? athleticDefault(division) }}
+              onChange={setPractice}
             />
           </div>
         )}

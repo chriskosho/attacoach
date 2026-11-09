@@ -19,7 +19,8 @@ export function planText(plan, team, coachName = '') {
     lines.push(`${fmtClock(start)}-${fmtClock(end)}  ${blockTitle(block)}`)
     if (block.kind === 'stations') {
       block.stations.forEach((id, i) => {
-        lines.push(`    Station ${i + 1}: ${drillById(id)?.name ?? id} (${block.stationMinutes} min each)`)
+        const who = staffShort(block.staff?.[i])
+        lines.push(`    Station ${i + 1}: ${drillById(id)?.name ?? id} (${block.stationMinutes} min each)${who ? `, ${who}` : ''}`)
       })
     }
   }
@@ -47,4 +48,13 @@ export async function shareText(title, text, url) {
   } catch {
     return 'failed'
   }
+}
+
+// Who covers a station, written for the helpers reading a shared plan.
+export function staffShort(s) {
+  if (!s) return ''
+  if (s.type === 'kids') return 'player-led'
+  const who = s.who === 'coach' ? 'head coach' : s.who === 'helper' ? `helper ${s.helper}` : null
+  if (s.type === 'run') return who ? `run by ${who}` : 'needs an adult'
+  return who ? `watched by ${who}` : 'watch-only'
 }

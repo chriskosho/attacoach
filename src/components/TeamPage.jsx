@@ -1,9 +1,12 @@
 import { useRef, useState } from 'react'
-import { EXPERIENCE, RULES, needLabel, coachTitle, needsForDivision } from '../data/constants.js'
+import { EXPERIENCE, RULES, needLabel, coachTitle, needsForDivision, spaceLabel, gearLabel, athleticDefault } from '../data/constants.js'
 import { exportBackup, importBackup, setSetting, deleteTeam, clearEverything, savePlayers, saveTeam } from '../lib/db.js'
 import { rollupNeeds } from '../lib/roster.js'
 import { DRILLS } from '../data/drills.js'
 import Roster from './Roster.jsx'
+import PracticeSetup from './PracticeSetup.jsx'
+import Sheet from './Sheet.jsx'
+import { teamPractices, dayName } from '../lib/practices.js'
 import { go } from '../lib/route.js'
 import { shareText } from '../lib/share.js'
 import { signOut, deleteAccount, friendlyAuthError } from '../lib/auth.js'
@@ -15,6 +18,15 @@ export default function TeamPage({ team, teams, theme, auth, coach = '', players
   const fileRef = useRef(null)
   const [msg, setMsg] = useState(null)
   const [nameDraft, setNameDraft] = useState(null)
+  const [practiceDraft, setPracticeDraft] = useState(null)
+
+  const editPractice = () =>
+    setPracticeDraft({ practices: team.practices ?? [], equipment: team.equipment ?? null, athletic: team.athletic ?? athleticDefault(team.division) })
+  const savePractice = async () => {
+    const practices = practiceDraft.practices.map((p) => ({ ...p, name: p.name.trim() || 'Practice' }))
+    await saveTeam({ ...team, ...practiceDraft, practices })
+    setPracticeDraft(null)
+  }
 
   const saveName = async () => {
     const n = nameDraft.trim().replace(/\s+/g, ' ')
@@ -183,6 +195,37 @@ export default function TeamPage({ team, teams, theme, auth, coach = '', players
                 Update team needs
               </button>
             </div>
+          )}
+        </section>
+
+        <section className="card" aria-labelledby="practice-title">
+          <div className="row">
+            <h3 id="practice-title" className="spacer">
+              How you practice
+            </h3>
+            <button className="btn quiet small" onClick={editPractice}>
+              Edit
+            </button>
+          </div>
+          <ul className="plain-list small">
+            {teamPractices(team).map((p) => (
+              <li key={p.id}>
+                <strong>{p.name}</strong>
+                {p.day != null ? `, ${dayName(p.day)}` : ''}, {p.minutes} min, {p.spaces.map(spaceLabel).join(' and ').toLowerCase()}
+              </li>
+            ))}
+          </ul>
+          <p className="small muted" style={{ margin: 0 }}>
+            Equipment: {team.equipment?.length ? team.equipment.map(gearLabel).join(', ') : 'not set (plans assume tees, cones and basic gear)'}.
+            {' '}Athletic warm-up: {(team.athletic ?? athleticDefault(team.division)) ? 'on' : 'off'}.
+          </p>
+          {practiceDraft && (
+            <Sheet title="How you practice" onClose={() => setPracticeDraft(null)}>
+              <PracticeSetup division={team.division} value={practiceDraft} onChange={setPracticeDraft} />
+              <button className="btn" onClick={savePractice}>
+                Save
+              </button>
+            </Sheet>
           )}
         </section>
 

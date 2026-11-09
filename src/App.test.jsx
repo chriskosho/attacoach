@@ -76,6 +76,8 @@ describe('first run setup', () => {
     const leading = screen.getByRole('checkbox', { name: /Leading off/ })
     expect(leading.checked).toBe(true)
     await user.click(leading)
+    await user.click(press('Next'))
+    expect(screen.getByRole('heading', { name: 'How do you practice?' })).toBeTruthy()
     await user.click(press('Save and start planning'))
 
     expect(await screen.findByRole('list', { name: 'Practice blocks' })).toBeTruthy()
@@ -99,6 +101,7 @@ describe('first run setup', () => {
     await user.click(press('Next'))
     await user.click(press('Skip for now')) // players
     await user.click(press('Skip for now')) // needs
+    await user.click(press('Next')) // league rules
     await user.click(press('Save and start planning'))
 
     expect(await screen.findByText(/starter plan on the fundamentals for 6U/)).toBeTruthy()
@@ -119,6 +122,7 @@ describe('first run setup', () => {
     await user.click(press('Next'))
     await user.click(press('Skip for now'))
     await user.click(press('Skip for now'))
+    await user.click(press('Next'))
     await user.click(press('Save and start planning'))
     await screen.findByRole('list', { name: 'Practice blocks' })
     const [team] = await db.teams.toArray()
@@ -158,7 +162,7 @@ describe('planning', () => {
     const user = userEvent.setup()
     render(<App />)
     await user.click(await screen.findByRole('button', { name: '90' }))
-    await user.click(press('3'))
+    await user.click(screen.getByRole('button', { name: 'More: Adults at practice' }))
     await user.click(press('Build practice plan'))
     expect(await screen.findByText('90 of 90 min')).toBeTruthy()
     const list = screen.getByRole('list', { name: 'Practice blocks' })
@@ -173,7 +177,7 @@ describe('planning', () => {
     const user = userEvent.setup()
     render(<App />)
     await user.click(await screen.findByRole('button', { name: '60' }))
-    await user.click(press('1'))
+    await user.click(screen.getByRole('button', { name: 'Fewer: Adults at practice' }))
     await user.click(press('Build practice plan'))
     await screen.findByText('60 of 60 min')
     const list = screen.getByRole('list', { name: 'Practice blocks' })
@@ -260,7 +264,8 @@ describe('timer', () => {
     const total = segs.reduce((s, x) => s + x.seconds, 0)
     expect(total).toBe(90 * 60)
     const rot = segs.filter((s) => s.kind === 'stations')
-    expect(rot.length % 3).toBe(0)
+    // One timer segment per rotation: a block with n stations has n rotations.
+    expect(rot.length).toBe(plan.blocks.filter((b) => b.kind === 'stations').reduce((n, b) => n + b.stations.length, 0))
     expect(fmtTime(65)).toBe('1:05')
     expect(fmtTime(-3)).toBe('0:00')
   })

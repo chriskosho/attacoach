@@ -3,7 +3,11 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db, savePlan, setSetting } from '../lib/db.js'
 import { buildPlan, totalMinutes, localDate } from '../lib/plan.js'
 import { go, store } from '../lib/route.js'
-import { lengthsFor, focusSummary, greeting, starterNeeds } from '../data/constants.js'
+import { lengthsFor, focusSummary, greeting, starterNeeds, divIndex, athleticDefault, SPACES, EQUIPMENT, WEEKDAYS, spaceLabel } from '../data/constants.js'
+import { teamPractices, nextPractice, practiceOn, staffingText } from '../lib/practices.js'
+import Stepper from './Stepper.jsx'
+import SkillChips from './SkillChips.jsx'
+import { AthleticToggle } from './PracticeSetup.jsx'
 import { COACH_TIPS, pick } from '../data/motivation.js'
 import NeedsRanker from './NeedsRanker.jsx'
 import { TeamHeader } from './Header.jsx'
@@ -29,20 +33,40 @@ export function sortPlans(plans) {
   return [...plans].sort((a, b) => (key(a) < key(b) ? 1 : -1))
 }
 
-export default function Today({ team, coach = '' }) {
+export default function Today({ team, coach = '', players = [] }) {
   const lengths = lengthsFor(team.division)
-  const savedMinutes = store.get('minutes', 60)
-  const [minutes, setMinutes] = useState(lengths.includes(savedMinutes) ? savedMinutes : lengths.includes(60) ? 60 : lengths[lengths.length - 1])
-  const [coaches, setCoaches] = useState(store.get('coaches', 2))
+  const young = divIndex(team.division) <= divIndex('6U')
+  const practices = teamPractices(team)
+  // Start on the next practice in the team's week, with its date, length and space.
+  const [start] = useState(() => nextPractice(practices))
+  const fitLength = (m) => (lengths.includes(m) ? m : lengths.includes(60) ? 60 : lengths[lengths.length - 1])
+  const [practiceId, setPracticeId] = useState(start.practice.id)
+  const [date, setDate] = useState(start.date)
+  const [minutes, setMinutes] = useState(fitLength(start.practice.minutes ?? store.get('minutes', 60)))
+  const [spaces, setSpaces] = useState(start.practice.spaces ?? ['field'])
+  const [adults, setAdults] = useState(store.get('adults', store.get('coaches', 2)))
+  // A full-looking roster sets the kid count; a partly entered one does not.
+  const [kids, setKids] = useState(players.length >= 8 ? players.length : store.get('kids', 12))
+  const [role, setRole] = useState('auto')
+  const [equipment, setEquipment] = useState(team.equipment ?? null)
+  const [athletic, setAthletic] = useState(team.athletic ?? athleticDefault(team.division))
   const teamFocus = team.needs?.length ? team.needs : starterNeeds(team.division)
   const [focus, setFocus] = useState(teamFocus)
   const [building, setBuilding] = useState(false)
-  const [date, setDate] = useState(localDate())
 
-  const latest = useLiveQuery(
-    () => db.plans.where('teamId').equals(team.id).toArray().then((r) => sortPlans(r)[0] ?? null),
-    [team.id],
-  )
+  const plans = useLiveQuery(() => db.plans.where('teamId').equals(team.id).toArray().then(sortPlans), [team.id])
+  const latest = plans?.[0] ?? null
+
+  const choosePractice = (p) => {
+    setPracticeId(p.id)
+    setMinutes(fitLength(p.minutes))
+    setSpaces(p.spaces?.length ? p.spaces : ['field'])
+  }
+  const changeDate = (iso) => {
+    setDate(iso)
+    const p = practiceOn(practices, iso)
+    if (p) choosePractice(p)
+  }
 
   const { suggestion } = useSuggestion(team)
   const matches = suggestion && suggestion.needs.every((n, i) => focus[i] === n)
@@ -51,15 +75,35 @@ export default function Today({ team, coach = '' }) {
   const applySuggestion = () => setFocus([...suggestion.needs, ...focus.filter((n) => !suggestion.needs.includes(n))])
   const tip = pick(COACH_TIPS, new Date().toDateString())
   const changedFocus = focus.join() !== teamFocus.join()
+  const chosen = practices.find((p) => p.id === practiceId)
 
   const build = async () => {
     setBuilding(true)
     store.set('minutes', minutes)
-    store.set('coaches', coaches)
-    const plan = buildPlan(team, { minutes, coaches, focus, date, seed: Date.now() })
+    store.set('adults', adults)
+    store.set('kids', kids)
+    // Other plans from the week before this practice, so the week stays balanced.
+    const weekAgo = localDate(new Date(new Date(`${date}T12:00:00`).getTime() - 6 * 86400000))
+    const recent = (plans ?? []).filter((p) => p.date && p.date >= weekAgo && p.date < date)
+    const plan = buildPlan(team, {
+      minutes,
+      adults,
+      kids,
+      coachRole: role,
+      spaces,
+      equipment,
+      athletic,
+      focus,
+      recent,
+      practiceName: chosen && practices.length > 1 ? chosen.name : chosen?.id === 'default' ? null : chosen?.name ?? null,
+      date,
+      seed: Date.now(),
+    })
     await savePlan(plan)
     go(`plan/${plan.id}`)
   }
+
+  const setupSummary = [spaces.map(spaceLabel).join(' + '), `${kids} kids`, athletic ? 'athletic warm-up' : null].filter(Boolean).join(', ')
 
   return (
     <>
@@ -69,9 +113,23 @@ export default function Today({ team, coach = '' }) {
         <section className="card" aria-labelledby="build-title">
           <h2 id="build-title">Plan a practice</h2>
 
+          {practices.length > 1 && (
+            <div className="stack">
+              <strong className="small">Which practice?</strong>
+              <div className="chips" role="group" aria-label="Which practice">
+                {practices.map((p) => (
+                  <button key={p.id} type="button" className="chip" aria-pressed={practiceId === p.id} onClick={() => choosePractice(p)}>
+                    {p.name}
+                    {p.day != null ? ` (${WEEKDAYS[p.day]})` : ''}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <label className="field">
             Practice date
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value || localDate())} />
+            <input type="date" value={date} onChange={(e) => changeDate(e.target.value || localDate())} />
           </label>
 
           <div className="stack">
@@ -87,18 +145,51 @@ export default function Today({ team, coach = '' }) {
           </div>
 
           <div className="stack">
-            <strong className="small">How many coaches will be there?</strong>
-            <div className="seg" role="group" aria-label="Number of coaches">
-              {[1, 2, 3, 4].map((c) => (
-                <button key={c} type="button" aria-pressed={coaches === c} onClick={() => setCoaches(c)}>
-                  {c === 4 ? '4+' : c}
-                </button>
-              ))}
+            <div className="row">
+              <strong className="small spacer" id="adults-label">
+                Adults at practice, counting you
+              </strong>
+              <Stepper label="Adults at practice" value={adults} onChange={setAdults} min={1} max={10} />
             </div>
-            <span className="muted small">
-              {coaches === 1 ? 'One coach runs whole-team drills.' : `${Math.min(coaches, 3)} coaches can run stations that groups rotate through.`}
-            </span>
+            <span className="muted small">{staffingText({ adults, kids, role, young })}</span>
           </div>
+
+          <details className="day-setup">
+            <summary>
+              Today's setup <span className="small muted">{setupSummary}</span>
+            </summary>
+            <div className="stack">
+              <div className="stack">
+                <strong className="small">Where is practice?</strong>
+                <SkillChips options={SPACES} value={spaces} onChange={(v) => setSpaces(v.length ? v : spaces)} label="Spaces today" />
+              </div>
+              <div className="row">
+                <strong className="small spacer">Kids expected</strong>
+                <Stepper label="Kids expected" value={kids} onChange={setKids} min={1} max={30} />
+              </div>
+              {adults > 1 && (
+                <div className="stack">
+                  <strong className="small">Your role</strong>
+                  <div className="seg" role="group" aria-label="Your role">
+                    {[
+                      ['auto', 'Suggest'],
+                      ['float', 'Float'],
+                      ['run', 'Run a station'],
+                    ].map(([id, label]) => (
+                      <button key={id} type="button" aria-pressed={role === id} onClick={() => setRole(id)}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="stack">
+                <strong className="small">Equipment today</strong>
+                <SkillChips options={EQUIPMENT} value={equipment ?? []} onChange={setEquipment} label="Equipment today" />
+              </div>
+              <AthleticToggle checked={athletic} onChange={setAthletic} />
+            </div>
+          </details>
 
           {suggestion && (
             <div className="suggest" role="region" aria-label="Suggested focus">

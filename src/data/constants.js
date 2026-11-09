@@ -161,3 +161,41 @@ export const PLAYED = [
   { id: 'some', label: 'A little' },
   { id: 'no', label: 'Not really' },
 ]
+
+// ---------------------------------------------------------------- Where and with what
+
+export const SPACES = [
+  { id: 'field', label: 'Full field', help: 'Bases, dirt and an outfield' },
+  { id: 'cage', label: 'Batting cage', help: 'Netted hitting tunnel' },
+  { id: 'open', label: 'Open grass', help: 'A grassy or open area for catch and fly balls' },
+  { id: 'gym', label: 'Gym or indoors', help: 'Soft balls, footwork and walk-throughs' },
+]
+
+// Generic names on purpose. Missing gear only nudges drill choice; it never blocks a plan.
+export const EQUIPMENT = [
+  { id: 'tee', label: 'Batting tees' },
+  { id: 'machine', label: 'Pitching machine' },
+  { id: 'selfTrainer', label: 'Self-run hitting trainer' },
+  { id: 'assistTrainer', label: 'Assisted hitting trainer' },
+  { id: 'net', label: 'Pitching net or strike target' },
+  { id: 'rebound', label: 'Rebound net' },
+  { id: 'lscreen', label: 'L-screen' },
+  { id: 'catcherGear', label: "Catcher's gear" },
+  { id: 'cones', label: 'Cones or agility ladder' },
+  { id: 'softBalls', label: 'Foam or practice balls' },
+]
+
+// Only one station at a time can use these (most teams have one).
+export const SINGLE_GEAR = ['machine', 'selfTrainer', 'assistTrainer', 'lscreen', 'net']
+
+export const spaceLabel = (id) => SPACES.find((s) => s.id === id)?.label ?? id
+export const gearLabel = (id) => EQUIPMENT.find((g) => g.id === id)?.label ?? id
+
+export const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+export const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+// The plan a team gets when it has not described how it practices.
+export const DEFAULT_PRACTICE = { id: 'default', name: 'Field practice', day: null, minutes: 60, spaces: ['field'] }
+
+// Athletic warm-up starts on for older teams, where it pays off most. Coaches can switch it any time.
+export const athleticDefault = (division) => divIndex(division) >= divIndex('10U')

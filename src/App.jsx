@@ -89,7 +89,7 @@ export default function App() {
   else if (route.name === 'plans') page = <Plans team={team} />
   else if (route.name === 'drills') page = <Drills team={team} />
   else if (route.name === 'team') page = <TeamPage team={team} teams={data.teams} theme={data.theme} auth={auth} coach={data.coach} players={data.players.filter((p) => p.teamId === team.id)} />
-  else page = <Today team={team} coach={data.coach} />
+  else page = <Today key={team.id} team={team} coach={data.coach} players={data.players.filter((p) => p.teamId === team.id)} />
 
   return (
     <div className="app">

@@ -44,6 +44,7 @@ const reply = (route, body) => route.fulfill({ status: 200, contentType: 'applic
     await page.getByRole('button', { name: 'Next' }).click()
     await page.getByRole('button', { name: 'Pitching' }).click()
     await page.getByRole('button', { name: 'Next' }).click()
+    await page.getByRole('button', { name: 'Next' }).click()
     await page.getByRole('button', { name: 'Save and start planning' }).click()
     await page.getByRole('list', { name: 'Practice blocks' }).waitFor()
     const fontOk = await page.evaluate(() => document.fonts.load('700 20px "Barlow Condensed"').then((f) => f.length > 0 && f[0].status === 'loaded'))

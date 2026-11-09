@@ -526,3 +526,19 @@ a.btn { text-decoration: none; }
   cursor: pointer;
   min-height: 56px;
 }
+
+/* ------------------------------------------------ Practice setup */
+.practice-box { border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin: 0; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.plain-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.stepper { display: inline-flex; align-items: center; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--card); }
+.stepper button { width: 48px; height: 46px; border: 0; background: transparent; font-size: 22px; font-weight: 700; cursor: pointer; color: var(--ink); }
+.stepper button:disabled { opacity: 0.3; cursor: default; }
+.stepper output { min-width: 40px; text-align: center; font-family: var(--display); font-size: 22px; font-weight: 700; }
+.day-setup { border-top: 1px solid var(--line); padding-top: 10px; }
+.day-setup summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.day-setup summary::-webkit-details-marker { display: none; }
+.day-setup summary::before { content: '▸'; color: var(--ink-2); }
+.day-setup[open] summary::before { content: '▾'; }
+.day-setup[open] > .stack { margin-top: 12px; }
+.station-staff { font-size: 14px; color: var(--ink-2); }
+.station-staff strong { color: var(--ink); }

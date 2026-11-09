@@ -1,6 +1,18 @@
-export const VERSION = '1.4.0'
+export const VERSION = '1.5.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.5.0',
+    date: '2026-11-09',
+    items: [
+      'Tell AttaCoach how you practice: your weekly practices, where (field, cage, open grass, gym) and the equipment you have.',
+      'Plans fit the day: cage days lean to hitting, and drills match your space and gear, with a quick swap when gear is missing.',
+      'Stations are built from the kids and adults you have. AttaCoach suggests who runs what and whether you float or run a station.',
+      'Helper cancelled? Change the adult count on the plan and it reworks the stations.',
+      'Optional athletic warm-up: a no-equipment routine that scales with age.',
+      '21 new drills for cages, open grass, gyms and practice equipment.',
+    ],
+  },
   {
     version: '1.4.0',
     date: '2026-11-09',

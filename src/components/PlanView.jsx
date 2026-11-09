@@ -3,10 +3,14 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db, savePlan } from '../lib/db.js'
 import {
   schedule, totalMinutes, fmtClock, alternatives, swapDrill, setBlockMinutes, moveBlock, removeBlock,
-  addDrill, addBreak, buildPlan, hasPitching, eligibleDrills,
+  addDrill, addBreak, hasPitching, eligibleDrills,
+  rebuildPlan,
+  missingGear,
 } from '../lib/plan.js'
+import { staffText } from '../lib/practices.js'
+import CountStepper from './Stepper.jsx'
 import { drillById, DRILLS } from '../data/drills.js'
-import { categoryLabel, focusSummary, coachTitle } from '../data/constants.js'
+import { categoryLabel, focusSummary, coachTitle, spaceLabel } from '../data/constants.js'
 import { blockTitle, planText, shareText } from '../lib/share.js'
 import { go } from '../lib/route.js'
 import { TeamHeader } from './Header.jsx'
@@ -118,11 +122,17 @@ export default function PlanView({ planId, team, coach = '' }) {
   }
 
   const rebuild = async () => {
-    if (!window.confirm('Build a new plan with the same length, coaches and focus? Your changes to this plan will be replaced.')) return
-    const fresh = buildPlan(team, { minutes: plan.minutes, coaches: plan.coaches, focus: plan.focus, date: plan.date, seed: Date.now() })
-    await update({ ...fresh, id: plan.id, createdAt: plan.createdAt })
+    if (!window.confirm('Build a new plan with the same length, setup and focus? Your changes to this plan will be replaced.')) return
+    await update(rebuildPlan(team, plan, { seed: Date.now() }))
     setOpen(new Set())
     setToast('New plan built.')
+  }
+
+  // Helpers cancel and parents show up. Rebuild for the adults actually there, keeping most drills.
+  const changeAdults = (n) => {
+    const before = plan
+    savePlan(rebuildPlan(team, plan, { adults: n }))
+    setToast(`Reworked for ${n} ${n === 1 ? 'adult' : 'adults'}.`, () => savePlan(before))
   }
 
   const remove = async () => {
@@ -132,7 +142,7 @@ export default function PlanView({ planId, team, coach = '' }) {
   }
 
   const pickSwap = async (drill) => {
-    await update(swapDrill(plan, swap.blockId, drill.id, swap.stationIndex))
+    await update(swapDrill(plan, swap.blockId, drill.id, swap.stationIndex, team.division))
     setSwap(null)
     setToast(`Swapped in ${drill.name}.`)
   }
@@ -200,7 +210,8 @@ export default function PlanView({ planId, team, coach = '' }) {
               />
             </label>
             <div className="small muted">
-              {plan.coaches} {plan.coaches === 1 ? 'coach' : 'coaches'}. Focus: {focusSummary(plan.focus)}
+              {[plan.practiceName, (plan.spaces ?? ['field']).map(spaceLabel).join(' + '), plan.kids ? `${plan.kids} kids` : null].filter(Boolean).join(', ')}. Focus:{' '}
+              {focusSummary(plan.focus)}
             </div>
             {coach && <div className="small muted">Prepared by {coachTitle(coach)}</div>}
           </div>
@@ -213,6 +224,17 @@ export default function PlanView({ planId, team, coach = '' }) {
             {diff > 0 ? `${diff} minutes over your practice length.` : `${-diff} minutes left to fill.`} Adjust a block's minutes or {diff > 0 ? 'remove' : 'add'} a drill.
           </p>
         )}
+
+        <div className="row no-print">
+          <span className="small spacer">
+            <strong>Adults today</strong>
+            <span className="muted">
+              {' '}
+              {(plan.adults ?? plan.coaches) === 1 ? 'Just you.' : plan.coachRole === 'float' ? 'You float and manage.' : 'You run a station.'}
+            </span>
+          </span>
+          <CountStepper label="Adults today" value={plan.adults ?? plan.coaches ?? 1} onChange={changeAdults} min={1} max={10} />
+        </div>
 
         <button className="btn big no-print" onClick={() => go(`run/${plan.id}`)}>
           Start practice
@@ -263,6 +285,7 @@ export default function PlanView({ planId, team, coach = '' }) {
 
                 {isOpen(key) && (
                   <div className="slot-body">
+                    {drill && <StationNotes drill={drill} plan={plan} groupSize={null} />}
                     {drill && <DrillBody drill={drill} experienced={experienced && !unsureAbout(drill)} />}
                     {b.kind === 'drill' && !drill && <p className="muted">This drill is no longer in the library. Swap it for another.</p>}
                     {b.kind === 'break' && <p className="muted">Water for everyone. On hot days, add more breaks and find shade.</p>}
@@ -275,7 +298,7 @@ export default function PlanView({ planId, team, coach = '' }) {
                     {b.kind === 'stations' && (
                       <>
                         <p>
-                          Split the team into {b.stations.length} groups, one coach per station. Every {b.stationMinutes} minutes, groups rotate to the next station until each group has done every one.
+                          Split the team into {b.stations.length} groups{b.groups ? ` (${b.groups.join(', ')} kids)` : ''}. Every {b.stationMinutes} minutes, groups rotate to the next station until each group has done every one.
                         </p>
                         <div className="row no-print">
                           <span className="small muted spacer">Minutes at each station</span>
@@ -296,17 +319,24 @@ export default function PlanView({ planId, team, coach = '' }) {
                                       {categoryLabel(sd.category)} <LevelTag level={sd.level} />
                                     </span>
                                   )}
+                                  {b.staff?.[si] && (
+                                    <>
+                                      <br />
+                                      <span className="station-staff">{staffText(b.staff[si], b.stations.map((x) => drillById(x)?.name))}</span>
+                                    </>
+                                  )}
                                 </span>
                                 <span className="small muted">{isOpen(skey) ? 'Hide' : 'Open'}</span>
                               </button>
                               {isOpen(skey) && (
                                 <div className="slot-body">
+                                  <StationNotes drill={sd} plan={plan} groupSize={b.groups ? Math.max(...b.groups) : null} />
                                   {sd && <DrillBody drill={sd} experienced={experienced && !unsureAbout(sd)} />}
                                   <div className="edit-bar no-print">
                                     <button className="btn quiet small" onClick={() => setSwap({ blockId: b.id, stationIndex: si, drillId: id })}>
                                       Swap
                                     </button>
-                                    <button className="btn danger small" onClick={() => removeWithUndo(removeBlock(plan, b.id, si), 'the station')}>
+                                    <button className="btn danger small" onClick={() => removeWithUndo(removeBlock(plan, b.id, si, team.division), 'the station')}>
                                       Remove station
                                     </button>
                                   </div>
@@ -398,5 +428,19 @@ function AddSheet({ team, plan, onPick, onClose }) {
       <DrillFilters team={team} value={filters} onChange={setFilters} />
       <DrillList drills={list} onPick={onPick} />
     </Sheet>
+  )
+}
+
+// Gentle notes, never warnings: a quick swap for missing gear, and a tip when a group runs big.
+function StationNotes({ drill, plan, groupSize }) {
+  if (!drill) return null
+  const missing = missingGear(drill, plan.equipment ?? null)
+  const crowded = groupSize && groupSize > drill.cap[1]
+  if (!missing.length && !crowded) return null
+  return (
+    <div className="suggest">
+      {missing.length > 0 && drill.swap && <span>{drill.swap}</span>}
+      {crowded && <span>{groupSize} kids is a big group for this one. Give the kids who are waiting a job, like shagging balls or dry swings.</span>}
+    </div>
   )
 }

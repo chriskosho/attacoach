@@ -8,7 +8,10 @@
 //   needs     developmental needs the drill builds (see constants NEEDS)
 //   requires  game rules that must be on for the drill to be relevant (optional)
 
-export const DRILLS = [
+import { MORE_DRILLS } from './drillsMore.js'
+import { withTags } from './drillTags.js'
+
+const BASE_DRILLS = [
   // ---------------------------------------------------------------- Warm-up
   {
     id: 'dynamic-warmup',
@@ -1464,4 +1467,8 @@ export const DRILLS = [
   },
 ]
 
-export const drillById = (id) => DRILLS.find((d) => d.id === id)
+// Every drill, with space, gear and staffing tags filled in.
+export const DRILLS = [...BASE_DRILLS, ...MORE_DRILLS].map(withTags)
+
+const BY_ID = new Map(DRILLS.map((d) => [d.id, d]))
+export const drillById = (id) => BY_ID.get(id)
