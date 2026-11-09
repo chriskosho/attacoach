@@ -239,9 +239,17 @@ export default function Today({ team, coach = '', players = [] }) {
           </button>
         )}
 
-        <section className="card">
-          <h3>Coach's tip</h3>
-          <p>{tip}</p>
+        <section className="card" aria-labelledby="coach-corner">
+          <h3 id="coach-corner">Coach the Coach</h3>
+          <p className="small muted" style={{ margin: 0 }}>
+            Game day huddles, what to say when a kid strikes out or a pitcher struggles, and how to run a great practice.
+          </p>
+          <p style={{ margin: 0 }}>
+            <strong>Today’s tip:</strong> {tip}
+          </p>
+          <button className="btn quiet" onClick={() => go('coach')}>
+            Open Coach the Coach
+          </button>
         </section>
       </main>
     </>

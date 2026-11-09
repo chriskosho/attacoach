@@ -1,6 +1,15 @@
-export const VERSION = '1.5.0'
+export const VERSION = '1.6.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.6.0',
+    date: '2026-11-09',
+    items: [
+      'New Coach the Coach section: game day huddles, what to say in tough moments, and short guides for the night before.',
+      'Every drill now has a "say this, not that" cue, also shown on the practice timer.',
+      'Practice plans include huddle talking points for the opener and the wrap-up.',
+    ],
+  },
   {
     version: '1.5.0',
     date: '2026-11-09',

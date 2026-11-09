@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../lib/db.js'
+import { cuesFor } from '../data/coaching.js'
+import { HuddlePoints } from './CoachCorner.jsx'
 import { drillById } from '../data/drills.js'
 import { blockTitle } from '../lib/share.js'
 import { go, store } from '../lib/route.js'
@@ -248,12 +250,21 @@ function Runner({ plan, team }) {
           </button>
         </>
       )}
+      {drill && cuesFor(drill)[0] && (
+        <p className="run-cue">
+          <strong>Say:</strong> “{cuesFor(drill)[0].say}”
+        </p>
+      )}
       {seg.kind === 'huddle' && <p style={{ fontSize: 20, marginTop: 12 }}>{plan.closer}</p>}
+      {seg.kind === 'huddle' && <HuddlePoints kind="practiceClose" team={team} focus={plan.focus} />}
       {seg.kind === 'break' && <p style={{ fontSize: 20, marginTop: 12 }}>Water for everyone.</p>}
       {state.index === 0 && (
         <p style={{ fontSize: 18, marginTop: 12 }}>
           <strong>Start with:</strong> {plan.opener}
         </p>
+      )}
+      {state.index === 0 && (
+        <HuddlePoints kind="practiceOpen" team={team} focus={plan.focus} />
       )}
 
       <div className="run-next">

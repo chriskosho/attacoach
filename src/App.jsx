@@ -12,6 +12,7 @@ import Plans from './components/Plans.jsx'
 import PlanView from './components/PlanView.jsx'
 import Drills, { DrillPage } from './components/Drills.jsx'
 import Log, { DebriefForm } from './components/Log.jsx'
+import CoachCorner from './components/CoachCorner.jsx'
 import TeamPage from './components/TeamPage.jsx'
 import RunTimer from './components/RunTimer.jsx'
 import { TabIcon } from './components/Icons.jsx'
@@ -25,7 +26,7 @@ const TABS = [
   { id: 'team', label: 'Team' },
 ]
 
-const TAB_FOR = { plan: 'plans', run: 'plans', drill: 'drills', debrief: 'log', setup: 'team' }
+const TAB_FOR = { plan: 'plans', run: 'plans', drill: 'drills', debrief: 'log', setup: 'team', coach: 'today' }
 
 export default function App() {
   const route = useRoute()
@@ -86,6 +87,7 @@ export default function App() {
   else if (route.name === 'drill' && route.id) page = <DrillPage drillId={route.id} team={team} />
   else if (route.name === 'debrief' && route.id) page = <DebriefForm team={team} id={route.id} />
   else if (route.name === 'log') page = <Log team={team} />
+  else if (route.name === 'coach') page = <CoachCorner team={team} />
   else if (route.name === 'plans') page = <Plans team={team} />
   else if (route.name === 'drills') page = <Drills team={team} />
   else if (route.name === 'team') page = <TeamPage team={team} teams={data.teams} theme={data.theme} auth={auth} coach={data.coach} players={data.players.filter((p) => p.teamId === team.id)} />

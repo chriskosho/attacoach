@@ -9,6 +9,8 @@ import {
 } from '../lib/plan.js'
 import { staffText } from '../lib/practices.js'
 import CountStepper from './Stepper.jsx'
+import { HuddlePoints, SayThis } from './CoachCorner.jsx'
+import { cuesFor } from '../data/coaching.js'
 import { drillById, DRILLS } from '../data/drills.js'
 import { categoryLabel, focusSummary, coachTitle, spaceLabel } from '../data/constants.js'
 import { blockTitle, planText, shareText } from '../lib/share.js'
@@ -46,8 +48,10 @@ function Stepper({ value, onChange, label }) {
 
 function DrillBody({ drill, experienced }) {
   const [full, setFull] = useState(!experienced)
+  const [cue] = cuesFor(drill)
   return (
     <>
+      {cue && <SayThis cue={cue} />}
       <DrillText drill={drill} compact={!full} />
       {experienced && (
         <button className="btn ghost small no-print" style={{ alignSelf: 'flex-start' }} onClick={() => setFull(!full)}>
@@ -243,6 +247,10 @@ export default function PlanView({ planId, team, coach = '' }) {
         <div className="talk">
           <div className="who">Open practice with</div>
           {plan.opener}
+          <details className="talk-more">
+            <summary>Huddle talking points</summary>
+            <HuddlePoints kind="practiceOpen" team={team} focus={plan.focus} />
+          </details>
         </div>
 
         {hasPitching(plan) && team.rules?.kidPitch && (
@@ -290,10 +298,13 @@ export default function PlanView({ planId, team, coach = '' }) {
                     {b.kind === 'drill' && !drill && <p className="muted">This drill is no longer in the library. Swap it for another.</p>}
                     {b.kind === 'break' && <p className="muted">Water for everyone. On hot days, add more breaks and find shade.</p>}
                     {b.kind === 'huddle' && (
-                      <div className="talk">
-                        <div className="who">Close practice with</div>
-                        {plan.closer}
-                      </div>
+                      <>
+                        <div className="talk">
+                          <div className="who">Close practice with</div>
+                          {plan.closer}
+                        </div>
+                        <HuddlePoints kind="practiceClose" team={team} focus={plan.focus} />
+                      </>
                     )}
                     {b.kind === 'stations' && (
                       <>

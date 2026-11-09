@@ -542,3 +542,18 @@ a.btn { text-decoration: none; }
 .day-setup[open] > .stack { margin-top: 12px; }
 .station-staff { font-size: 14px; color: var(--ink-2); }
 .station-staff strong { color: var(--ink); }
+
+/* ------------------------------------------------ Coach the Coach */
+.huddle-points { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.say-this { border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 0 10px 10px 0; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
+.say-label { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: 13px; letter-spacing: 0.04em; margin-right: 4px; }
+.say-not { color: var(--ink-2); }
+.say-not .say-label { color: var(--warn, #9a3412); }
+.coach-item { border-top: 1px solid var(--line); padding: 10px 0; }
+.coach-item summary { cursor: pointer; font-weight: 600; display: flex; flex-direction: column; gap: 2px; list-style: none; }
+.coach-item summary::-webkit-details-marker { display: none; }
+.coach-item[open] summary { margin-bottom: 8px; }
+.talk-more { margin-top: 8px; font-size: 15px; }
+.talk-more summary { cursor: pointer; font-weight: 600; }
+.run-cue { font-size: 18px; margin-top: 12px; }
+@media print { .say-this { background: none; border-left: 2px solid #000; } }
