@@ -32,17 +32,17 @@ export function planText(plan, team) {
   return lines.join('\n')
 }
 
-export async function shareText(title, text) {
+export async function shareText(title, text, url) {
   try {
     if (navigator.share) {
-      await navigator.share({ title, text })
+      await navigator.share(url ? { title, text, url } : { title, text })
       return 'shared'
     }
   } catch (err) {
     if (err?.name === 'AbortError') return 'cancelled'
   }
   try {
-    await navigator.clipboard.writeText(text)
+    await navigator.clipboard.writeText(url ? `${text} ${url}` : text)
     return 'copied'
   } catch {
     return 'failed'

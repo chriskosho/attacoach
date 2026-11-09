@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, within, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App.jsx'
@@ -7,11 +7,20 @@ import { defaultRules } from './data/constants.js'
 import { buildPlan } from './lib/plan.js'
 import { segmentsFor, fmtTime } from './components/RunTimer.jsx'
 import { parseRoute } from './lib/route.js'
+import { resetFake, seedSession, setOnline } from './test/fakeSupabase.js'
+
+vi.mock('./lib/supabase.js', async () => {
+  const { fake } = await import('./test/fakeSupabase.js')
+  return { getClient: () => fake, AUTH_STORAGE_KEY: 'attacoach-auth' }
+})
 
 beforeEach(async () => {
   await clearEverything()
   window.location.hash = ''
   try { window.localStorage.clear() } catch { /* ignore */ }
+  resetFake()
+  setOnline(true)
+  seedSession()
 })
 
 const press = (name) => screen.getByRole('button', { name })

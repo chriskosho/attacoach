@@ -2,6 +2,19 @@
 const { chromium } = require(process.env.PLAYWRIGHT_PATH || 'playwright')
 const { spawn } = require('child_process')
 
+const API = /pretxxjkcngmnksepwbt\.supabase\.co/
+const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url')
+const USER = { id: '11111111-1111-1111-1111-111111111111', aud: 'authenticated', role: 'authenticated', email: 'coach@example.com', app_metadata: {}, user_metadata: {}, created_at: '2026-11-08T00:00:00Z' }
+const sessionJson = (expiresAt) => JSON.stringify({
+  access_token: `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: USER.id, exp: expiresAt })}.sig`,
+  token_type: 'bearer', expires_in: 3600, expires_at: expiresAt, refresh_token: 'refresh-1', user: USER,
+})
+// Puts a sign-in on the device once per tab, so signing out in a script sticks.
+const seed = (ctx, expiresAt) => ctx.addInitScript(([k, v]) => {
+  if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, v); sessionStorage.setItem('seeded', '1') }
+}, ['attacoach-auth', sessionJson(expiresAt)])
+const reply = (route, body) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) })
+
 const out = process.argv[2] || 'screenshots'
 const URL = 'http://localhost:4173/attacoach/'
 
@@ -12,7 +25,24 @@ const URL = 'http://localhost:4173/attacoach/'
   const errors = []
   try {
     for (const scheme of ['light', 'dark']) {
+      // The gate, as a brand-new visitor sees it.
+      {
+        const gctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: scheme })
+        await gctx.route(API, (r) => (r.request().url().includes('/auth/v1/otp') ? reply(r, {}) : r.abort()))
+        const gpage = await gctx.newPage()
+        gpage.on('pageerror', (e) => errors.push(e.message))
+        await gpage.goto(URL)
+        await gpage.getByText('Sign in or create your account').waitFor()
+        await gpage.screenshot({ path: `${out}/${scheme}-00-gate.png`, fullPage: true })
+        await gpage.getByLabel('Email').fill('coach@example.com')
+        await gpage.getByRole('button', { name: 'Email me a sign-in link' }).click()
+        await gpage.getByText('Check your email').waitFor()
+        await gpage.screenshot({ path: `${out}/${scheme}-00b-gate-sent.png`, fullPage: true })
+        await gctx.close()
+      }
       const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: scheme })
+      await seed(ctx, Math.floor(Date.now() / 1000) + 3000)
+      await ctx.route(API, (r) => reply(r, USER))
       const page = await ctx.newPage()
       page.on('pageerror', (e) => errors.push(e.message))
       page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
@@ -58,6 +88,7 @@ const URL = 'http://localhost:4173/attacoach/'
       await page.locator('.drill-row').first().click()
       await shot('11-drill')
       await page.getByRole('button', { name: 'Team' }).click()
+      await page.getByRole('heading', { name: 'Account' }).waitFor()
       await shot('12-team')
       await ctx.close()
     }

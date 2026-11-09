@@ -2,10 +2,13 @@ import { useRef, useState } from 'react'
 import { EXPERIENCE, RULES, needLabel } from '../data/constants.js'
 import { exportBackup, importBackup, setSetting, deleteTeam, clearEverything } from '../lib/db.js'
 import { go } from '../lib/route.js'
+import { shareText } from '../lib/share.js'
+import { signOut, deleteAccount, friendlyAuthError } from '../lib/auth.js'
+import { APP_URL, DONATE_URL, SHARE_TEXT } from '../config.js'
 import { VERSION, CHANGELOG } from '../changelog.js'
 import { TeamHeader } from './Header.jsx'
 
-export default function TeamPage({ team, teams, theme }) {
+export default function TeamPage({ team, teams, theme, auth }) {
   const fileRef = useRef(null)
   const [msg, setMsg] = useState(null)
 
@@ -46,6 +49,30 @@ export default function TeamPage({ team, teams, theme }) {
     if (!window.confirm('Delete every team and plan on this device? Save a backup first if you might want them later.')) return
     await clearEverything()
     go('today')
+  }
+
+  const shareApp = async () => {
+    const r = await shareText('AttaCoach', SHARE_TEXT, APP_URL)
+    if (r === 'copied') setMsg('Link copied. Paste it into a text or email.')
+    else if (r === 'failed') setMsg(`Sharing isn't available here. The link is ${APP_URL}`)
+  }
+
+  const doSignOut = async () => {
+    if (!window.confirm('Sign out of AttaCoach on this device? Your teams and plans stay here. You will need to sign in again to use the app.')) return
+    await signOut()
+  }
+
+  const doDeleteAccount = async () => {
+    if (!navigator.onLine) {
+      setMsg('Connect to the internet to delete your account.')
+      return
+    }
+    if (!window.confirm('Delete your AttaCoach account? Your sign-in is removed and you will be signed out. Teams and plans stay on this device until you delete them. This cannot be undone.')) return
+    try {
+      await deleteAccount()
+    } catch (err) {
+      setMsg(friendlyAuthError(err, 'delete'))
+    }
   }
 
   const exp = EXPERIENCE.find((x) => x.id === team.experience)
@@ -127,6 +154,22 @@ export default function TeamPage({ team, teams, theme }) {
         </section>
 
         <section className="card">
+          <h3>Share AttaCoach</h3>
+          <p className="small muted">Know a coach who could use it? Send them the link.</p>
+          <button className="btn quiet" onClick={shareApp}>
+            Share AttaCoach
+          </button>
+        </section>
+
+        <section className="card">
+          <h3>Support AttaCoach</h3>
+          <p className="small muted">AttaCoach is free and has no ads. If it helps your team, you can chip in.</p>
+          <a className="btn quiet" href={DONATE_URL} target="_blank" rel="noopener noreferrer">
+            Donate with PayPal
+          </a>
+        </section>
+
+        <section className="card">
           <h3>Backup</h3>
           <p className="small muted">
             Your teams and plans are saved only on this device. Save a backup file to keep them safe or move them to a new phone.
@@ -150,7 +193,7 @@ export default function TeamPage({ team, teams, theme }) {
         <section className="card">
           <h3>Privacy</h3>
           <p className="small">
-            AttaCoach has no accounts, ads or tracking. Everything you enter stays in this browser on this device. Nothing is sent to a server. Clearing your browser data deletes it, so keep a backup.
+            AttaCoach has no ads or tracking. You sign in with your email, which is used only to sign you in. Your teams and plans stay in this browser on this device, and nothing about them is sent to a server. Clearing your browser data deletes them, so keep a backup.
           </p>
         </section>
 
@@ -170,6 +213,24 @@ export default function TeamPage({ team, teams, theme }) {
             </div>
           ))}
         </section>
+
+        {auth?.email && (
+          <section className="card">
+            <h3>Account</h3>
+            <p className="small">
+              Signed in as <strong>{auth.email}</strong>
+            </p>
+            <div className="action-row">
+              <button className="btn quiet" onClick={doSignOut}>
+                Sign out
+              </button>
+              <button className="btn danger" onClick={doDeleteAccount}>
+                Delete account
+              </button>
+            </div>
+            <p className="small muted">Signing out keeps your teams and plans on this device.</p>
+          </section>
+        )}
 
         <button className="btn danger" onClick={removeTeam}>
           Delete this team

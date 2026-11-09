@@ -3,6 +3,8 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from './lib/db.js'
 import { useRoute, go } from './lib/route.js'
 import { onUpdateReady, applyUpdate } from './lib/updates.js'
+import { useAuth } from './lib/auth.js'
+import SignIn, { Splash } from './components/SignIn.jsx'
 import Setup from './components/Setup.jsx'
 import Today from './components/Today.jsx'
 import Plans from './components/Plans.jsx'
@@ -23,6 +25,7 @@ const TAB_FOR = { plan: 'plans', run: 'plans', drill: 'drills', setup: 'team' }
 
 export default function App() {
   const route = useRoute()
+  const auth = useAuth()
   const data = useLiveQuery(async () => {
     const [teams, current, theme] = await Promise.all([
       db.teams.toArray(),
@@ -40,6 +43,10 @@ export default function App() {
     if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t
     else delete document.documentElement.dataset.theme
   }, [data?.theme])
+
+  // Sign-in gate: nothing else shows until someone has signed in at least once on this device.
+  if (auth.status === 'loading') return <Splash />
+  if (auth.status === 'signedOut') return <SignIn />
 
   if (!data) return null
 
@@ -61,7 +68,7 @@ export default function App() {
   else if (route.name === 'drill' && route.id) page = <DrillPage drillId={route.id} team={team} />
   else if (route.name === 'plans') page = <Plans team={team} />
   else if (route.name === 'drills') page = <Drills team={team} />
-  else if (route.name === 'team') page = <TeamPage team={team} teams={data.teams} theme={data.theme} />
+  else if (route.name === 'team') page = <TeamPage team={team} teams={data.teams} theme={data.theme} auth={auth} />
   else page = <Today team={team} />
 
   return (

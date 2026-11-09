@@ -249,7 +249,7 @@ main.page { flex: 1; padding: 16px 16px calc(96px + env(safe-area-inset-bottom))
 .seg button[aria-pressed='true'] { background: var(--accent); color: var(--accent-ink); }
 
 label.field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 15px; }
-input[type='text'], input[type='search'], input[type='date'], select {
+input[type='text'], input[type='search'], input[type='date'], input[type='email'], select {
   border: 2px solid var(--line);
   background: var(--card);
   border-radius: 10px;
@@ -440,3 +440,7 @@ input[type='text'], input[type='search'], input[type='date'], select {
 }
 
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.gate-page { justify-content: center; padding-top: calc(env(safe-area-inset-top) + 24px); }
+.code-input { font-family: var(--display); font-size: 30px; letter-spacing: 0.35em; text-align: center; }
+a.btn { text-decoration: none; }
