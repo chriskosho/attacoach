@@ -1,5 +1,6 @@
 import { DrillVisual } from './DrillDiagram.jsx'
 import { categoryLabel, needLabel, LEVELS, RULES } from '../data/constants.js'
+import { drillFor, ruleText } from '../lib/sport.js'
 
 export function LevelTag({ level }) {
   const label = LEVELS.find((l) => l.id === level)?.label ?? level
@@ -20,9 +21,10 @@ export function DrillMeta({ drill }) {
 }
 
 // Full drill write-up. New coaches see everything; experienced coaches get the short version
-// unless they ask for more.
-export function DrillText({ drill, compact = false }) {
-  const rules = (drill.requires ?? []).map((r) => RULES.find((x) => x.id === r)?.label).filter(Boolean)
+// unless they ask for more. `sport` picks the wording: softball teams see the drill's softball text.
+export function DrillText({ drill: base, compact = false, sport = 'baseball' }) {
+  const drill = drillFor(base, sport)
+  const rules = (drill.requires ?? []).map((r) => RULES.find((x) => x.id === r)).filter(Boolean).map((r) => ruleText(r, sport).label)
   return (
     <div className="drill-text stack">
       {!compact && (
@@ -31,7 +33,7 @@ export function DrillText({ drill, compact = false }) {
           <p>{drill.setup}</p>
         </section>
       )}
-      <DrillVisual drill={drill} compact={compact} />
+      <DrillVisual drill={drill} compact={compact} sport={sport} />
       <section>
         <h4>How it works</h4>
         <ol>

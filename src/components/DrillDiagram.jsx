@@ -149,8 +149,8 @@ export function PoseStrip({ set, active = null }) {
   )
 }
 
-export function VideoLink({ id }) {
-  const url = videoUrl(id)
+export function VideoLink({ id, sport = 'baseball' }) {
+  const url = videoUrl(id, sport)
   if (!url) return null
   return (
     <p className="no-print">
@@ -162,14 +162,14 @@ export function VideoLink({ id }) {
 }
 
 // Everything visual for a drill, or nothing when the words are enough.
-export function DrillVisual({ drill, compact = false }) {
+export function DrillVisual({ drill, compact = false, sport = 'baseball' }) {
   const spec = DIAGRAMS[drill.id]
   const set = POSES_FOR[drill.id]
   return (
     <>
       {spec && !compact && <DrillDiagram drill={drill} spec={spec} />}
       {!spec && set && !compact && <PoseStrip set={set} />}
-      <VideoLink id={drill.id} />
+      <VideoLink id={drill.id} sport={sport} />
     </>
   )
 }

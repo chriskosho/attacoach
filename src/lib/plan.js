@@ -3,6 +3,7 @@ import { DRILLS, drillById } from '../data/drills.js'
 import { divIndex, levelIndex, MAX_LEVEL_FOR, MAX_BLOCK, SINGLE_GEAR } from '../data/constants.js'
 import { OPENERS, closerFor, bandFor, pick } from '../data/motivation.js'
 import { needLabel, starterNeeds } from '../data/constants.js'
+import { sportFits } from './sport.js'
 
 // Small seeded random generator so a given seed always builds the same plan.
 export function rng(seed) {
@@ -31,10 +32,10 @@ export function levelAllowed(drill, experience, showAll = false) {
   return levelIndex(drill.level) <= levelIndex(MAX_LEVEL_FOR[experience] ?? 'advanced')
 }
 
-// Drills a team can use: right age, rules allow it, and within the coach's level.
+// Drills a team can use: its sport, right age, rules allow it, and within the coach's level.
 export function eligibleDrills(team, { showAllLevels = false } = {}) {
   return DRILLS.filter(
-    (d) => fitsDivision(d, team.division) && rulesAllow(d, team.rules) && levelAllowed(d, team.experience, showAllLevels),
+    (d) => sportFits(d, team) && fitsDivision(d, team.division) && rulesAllow(d, team.rules) && levelAllowed(d, team.experience, showAllLevels),
   )
 }
 

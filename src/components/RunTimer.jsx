@@ -5,10 +5,11 @@ import { cuesFor } from '../data/coaching.js'
 import { HuddlePoints } from './CoachCorner.jsx'
 import { drillById } from '../data/drills.js'
 import { blockTitle } from '../lib/share.js'
+import { drillFor, sportOf } from '../lib/sport.js'
 import { go, store } from '../lib/route.js'
 
 // Turns a plan into timed segments. Each station rotation is its own segment.
-export function segmentsFor(plan) {
+export function segmentsFor(plan, sport = 'baseball') {
   const segs = []
   plan.blocks.forEach((b, bi) => {
     if (b.kind === 'stations') {
@@ -17,7 +18,7 @@ export function segmentsFor(plan) {
         segs.push({ key: `${b.id}:${r}`, blockIndex: bi, kind: 'stations', title: 'Stations', seconds: b.stationMinutes * 60, stations: b.stations, rotation: r, rotations: n })
       }
     } else {
-      segs.push({ key: b.id, blockIndex: bi, kind: b.kind, title: blockTitle(b), seconds: b.minutes * 60, drillId: b.drillId })
+      segs.push({ key: b.id, blockIndex: bi, kind: b.kind, title: blockTitle(b, sport), seconds: b.minutes * 60, drillId: b.drillId })
     }
   })
   return segs
@@ -100,7 +101,7 @@ export default function RunTimer({ planId, team }) {
 }
 
 function Runner({ plan, team }) {
-  const segs = useMemo(() => segmentsFor(plan), [plan])
+  const segs = useMemo(() => segmentsFor(plan, sportOf(team)), [plan, team])
   const storeKey = `run:${plan.id}`
   const [state, setState] = useState(() => {
     const saved = store.get(storeKey)
@@ -171,7 +172,7 @@ function Runner({ plan, team }) {
   const totalSeconds = segs.reduce((s, x) => s + x.seconds, 0)
   const doneSeconds = segs.slice(0, state.index).reduce((s, x) => s + x.seconds, 0) + Math.min(elapsed, seg?.seconds ?? 0)
   const next = segs[state.index + 1]
-  const drill = seg?.drillId ? drillById(seg.drillId) : null
+  const drill = seg?.drillId ? drillFor(drillById(seg.drillId), team) : null
 
   if (finished) {
     return (
@@ -228,7 +229,7 @@ function Runner({ plan, team }) {
                 <div key={g}>
                   <b>{g + 1}</b>
                   <span>
-                    Group {g + 1}: Station {st + 1}, {drillById(seg.stations[st])?.name}
+                    Group {g + 1}: Station {st + 1}, {drillFor(drillById(seg.stations[st]), team)?.name}
                   </span>
                 </div>
               )

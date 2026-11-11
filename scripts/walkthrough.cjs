@@ -56,6 +56,8 @@ const AUTH_ON = process.env.VITE_AUTH_REQUIRED === "true"
       await shot('01a-test-tools')
       await page.getByText('Ready-made test teams').click()
       await page.getByLabel('Team name').fill('Blue Jays')
+      // A softball team, so the sport choice and softball wording show up in the screenshots.
+      await page.getByRole('button', { name: 'Softball', exact: true }).click()
       await page.getByRole('button', { name: '12U', exact: true }).click()
       await shot('01b-you-and-team')
       await page.getByRole('button', { name: 'Next' }).click()

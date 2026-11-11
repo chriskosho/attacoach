@@ -25,6 +25,27 @@ db.version(3).stores({
   players: 'id, teamId',
 })
 
+// Version 4: teams carry a sport. Every team made before then is a baseball team.
+db.version(4)
+  .stores({
+    teams: 'id, updatedAt',
+    plans: 'id, teamId, createdAt',
+    settings: 'key',
+    debriefs: 'id, teamId, date',
+    players: 'id, teamId',
+  })
+  .upgrade((tx) =>
+    tx
+      .table('teams')
+      .toCollection()
+      .modify((t) => {
+        if (!t.sport) t.sport = 'baseball'
+      }),
+  )
+
+// Teams from older backups or installs have no sport: they are baseball teams.
+export const withSport = (t) => (t.sport ? t : { ...t, sport: 'baseball' })
+
 export async function getSetting(key, fallback = null) {
   const row = await db.settings.get(key)
   return row ? row.value : fallback
@@ -85,7 +106,7 @@ export const BACKUP_FORMAT = 'attacoach-backup'
 
 export async function exportBackup() {
   const [teams, plans, debriefs, players, coachName] = await Promise.all([db.teams.toArray(), db.plans.toArray(), db.debriefs.toArray(), db.players.toArray(), getSetting('coachName', '')])
-  return { format: BACKUP_FORMAT, version: 3, exportedAt: new Date().toISOString(), coachName, teams, plans, debriefs, players }
+  return { format: BACKUP_FORMAT, version: 4, exportedAt: new Date().toISOString(), coachName, teams, plans, debriefs, players }
 }
 
 // Merges a backup into this device. Rows with the same id are replaced.
@@ -97,7 +118,7 @@ export async function importBackup(data) {
   const players = Array.isArray(data.players) ? data.players : []
   await db.transaction('rw', db.teams, db.plans, db.debriefs, db.players, db.settings, async () => {
     await db.players.bulkPut(players)
-    await db.teams.bulkPut(data.teams)
+    await db.teams.bulkPut(data.teams.map(withSport))
     await db.plans.bulkPut(data.plans)
     await db.debriefs.bulkPut(debriefs)
     const current = await getSetting('currentTeamId')

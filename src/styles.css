@@ -254,6 +254,9 @@ main.page { flex: 1; padding: 16px 16px calc(96px + env(safe-area-inset-bottom))
   cursor: pointer;
 }
 .choice[aria-pressed='true'] { border-color: var(--accent); background: var(--accent-soft); }
+.choices.sport-pick { flex-direction: row; }
+.sport-pick .choice { flex: 1; text-align: center; min-height: 64px; }
+.sport-pick .choice strong { font-size: 22px; }
 .choice strong { display: block; font-size: 17px; }
 .choice span { font-size: 14px; color: var(--ink-2); }
 

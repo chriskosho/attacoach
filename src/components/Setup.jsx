@@ -10,6 +10,7 @@ import PracticeSetup from './PracticeSetup.jsx'
 import SkillChips from './SkillChips.jsx'
 import { DRILLS } from '../data/drills.js'
 import { saveTeam, savePlayers, setSetting } from '../lib/db.js'
+import { SPORTS, formatsFor, defaultFormat, ruleText, sportOf } from '../lib/sport.js'
 
 const STEPS = ['You', 'Coaching', 'Players', 'Needs', 'League', 'Practice']
 const LAST = STEPS.length - 1
@@ -44,14 +45,14 @@ export function NeedPicker({ division, value, onChange, max = MAX_NEEDS }) {
   )
 }
 
-export function RuleToggles({ rules, onChange }) {
+export function RuleToggles({ rules, onChange, sport = 'baseball' }) {
   return (
     <div>
       {RULES.map((r) => (
         <label className="toggle" key={r.id}>
           <span className="t-text">
-            {r.label}
-            <span>{r.help}</span>
+            {ruleText(r, sport).label}
+            <span>{ruleText(r, sport).help}</span>
           </span>
           <input
             type="checkbox"
@@ -81,12 +82,21 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
     athletic: team?.athletic ?? null,
   })
   const [division, setDivision] = useState(team?.division ?? null)
+  // Existing teams are baseball unless they say otherwise; a new team picks.
+  const [sport, setSport] = useState(team ? sportOf(team) : null)
+  const [format, setFormat] = useState(team?.format ?? null)
   const [experience, setExperience] = useState(team?.experience ?? null)
   const [needs, setNeeds] = useState(team?.needs ?? [])
   const [rules, setRules] = useState(team?.rules ?? null)
-  const [rulesFor, setRulesFor] = useState(team?.division ?? null)
+  const [rulesFor, setRulesFor] = useState(team ? `${team.division}|${sportOf(team)}|${sportOf(team) === 'softball' ? team.format ?? defaultFormat(team.division) : ''}` : null)
   const [rulesReset, setRulesReset] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  // Softball's format follows the age until the coach picks one, and stays valid for the age.
+  const formatFor = (div, cur) => (cur && formatsFor(div).some((f) => f.id === cur) ? cur : defaultFormat(div))
+  const teamFormat = sport === 'softball' && division ? formatFor(division, format) : null
+  // Rules reset to the defaults when the age, sport or format changes.
+  const rulesKey = `${division}|${sport ?? 'baseball'}|${teamFormat ?? ''}`
 
   const pickDivision = (d) => {
     setDivision(d)
@@ -98,8 +108,8 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
 
   // Rules follow the division's defaults until the coach changes them.
   const currentRules = () => {
-    if (rules && rulesFor === division) return rules
-    return defaultRules(division)
+    if (rules && rulesFor === rulesKey) return rules
+    return defaultRules(division, sport ?? 'baseball', teamFormat)
   }
 
   const allowedNeeds = () => needsForDivision(division, DRILLS).map((n) => n.id)
@@ -113,18 +123,18 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
         setFromRoster(true)
       }
     }
-    if (next === 4 && rulesFor !== division) {
+    if (next === 4 && rulesFor !== rulesKey) {
       if (rules) setRulesReset(true)
-      setRules(defaultRules(division))
-      setRulesFor(division)
+      setRules(defaultRules(division, sport ?? 'baseball', teamFormat))
+      setRulesFor(rulesKey)
     }
     setStep(next)
   }
 
   // The coach's name is asked on first run; later it is optional so older installs can still edit a team.
   const nameOk = !first || you.trim().length > 0
-  const canNext = [!!division && name.trim().length > 0 && nameOk, !!experience, true, true, true, true][step]
-  const readyToSave = !!division && !!name.trim() && !!experience && nameOk
+  const canNext = [!!sport && !!division && name.trim().length > 0 && nameOk, !!experience, true, true, true, true][step]
+  const readyToSave = !!sport && !!division && !!name.trim() && !!experience && nameOk
 
   const save = async () => {
     setSaving(true)
@@ -132,7 +142,21 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
     if (you.trim()) await setSetting('coachName', you.trim().replace(/\s+/g, ' '))
     const practices = practice.practices.map((p) => ({ ...p, name: p.name.trim() || 'Practice' }))
     const athletic = practice.athletic ?? athleticDefault(division)
-    const row = await saveTeam({ ...(team ?? {}), name: name.trim(), division, experience, played, unsure, needs, rules: finalRules, practices, equipment: practice.equipment, athletic })
+    const row = await saveTeam({
+      ...(team ?? {}),
+      name: name.trim(),
+      sport,
+      format: teamFormat,
+      division,
+      experience,
+      played,
+      unsure,
+      needs,
+      rules: finalRules,
+      practices,
+      equipment: practice.equipment,
+      athletic,
+    })
     await savePlayers(row.id, players)
     onDone?.(row)
   }
@@ -141,15 +165,19 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
   const skipSetup = async () => {
     setSaving(true)
     const d = division ?? '10U'
+    const sp = sport ?? 'baseball'
+    const fmt = sp === 'softball' ? formatFor(d, format) : null
     if (you.trim()) await setSetting('coachName', you.trim().replace(/\s+/g, ' '))
     const row = await saveTeam({
       name: name.trim() || 'My Team',
+      sport: sp,
+      format: fmt,
       division: d,
       experience: experience ?? 'some',
       played,
       unsure,
       needs,
-      rules: division && rulesFor === division && rules ? rules : defaultRules(d),
+      rules: division && rulesFor === rulesKey && rules ? rules : defaultRules(d, sp, fmt),
       practices: [],
       equipment: null,
       athletic: athleticDefault(d),
@@ -208,6 +236,16 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
                 />
               </label>
               <div className="stack">
+                <strong className="small">Sport</strong>
+                <div className="choices sport-pick" role="group" aria-label="Sport">
+                  {SPORTS.map((x) => (
+                    <button key={x.id} type="button" className="choice" aria-pressed={sport === x.id} onClick={() => setSport(x.id)}>
+                      <strong>{x.label}</strong>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="stack">
                 <strong className="small">Division</strong>
                 <div className="seg" role="group" aria-label="Division">
                   {DIVISIONS.slice(0, 3).map((d) => (
@@ -224,6 +262,19 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
                   ))}
                 </div>
               </div>
+              {sport === 'softball' && division && (
+                <div className="stack">
+                  <strong className="small">Who pitches?</strong>
+                  <div className="seg" role="group" aria-label="Softball format">
+                    {formatsFor(division).map((f) => (
+                      <button key={f.id} type="button" aria-pressed={teamFormat === f.id} onClick={() => setFormat(f.id)}>
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                  <span className="small muted">{formatsFor(division).find((f) => f.id === teamFormat)?.help}</span>
+                </div>
+              )}
             </div>
             {first && TEST_TOOLS && (
               <div className="card">
@@ -304,12 +355,13 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
             <p className="muted small">
               Set to the usual rules for {division}. Turn off anything your league does not allow, and drills that teach it will be left out.
             </p>
-            {rulesReset && <p className="note">You changed the division, so these were reset to the {division} defaults.</p>}
+            {rulesReset && <p className="note">You changed the team, so these were reset to the usual rules for {division}.</p>}
             <RuleToggles
+              sport={sport ?? 'baseball'}
               rules={currentRules()}
               onChange={(r) => {
                 setRules(r)
-                setRulesFor(division)
+                setRulesFor(rulesKey)
               }}
             />
           </div>

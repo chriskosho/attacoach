@@ -35,6 +35,7 @@ const reply = (route, body) => route.fulfill({ status: 200, contentType: 'applic
     await page.reload()
     await page.getByLabel("What's your name?").fill('Pat')
     await page.getByLabel('Team name').fill('Offline Owls')
+    await page.getByRole('button', { name: 'Baseball', exact: true }).click()
     await page.getByRole('button', { name: '10U', exact: true }).click()
     await page.getByRole('button', { name: 'Next' }).click()
     await page.getByRole('button', { name: /Experienced/ }).click()

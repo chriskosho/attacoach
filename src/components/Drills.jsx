@@ -4,12 +4,14 @@ import { CATEGORIES, LEVELS, needsForDivision, MAX_LEVEL_FOR, levelIndex } from 
 import { fitsDivision, rulesAllow } from '../lib/plan.js'
 import { go, store } from '../lib/route.js'
 import { TeamHeader } from './Header.jsx'
+import { sportFits, drillFor, sportOf, sportLabel } from '../lib/sport.js'
 import { DrillMeta, DrillText } from './DrillText.jsx'
 
 export function filterDrills(drills, { team, query = '', category = '', need = '', level = '', fitsTeam = true }) {
   const q = query.trim().toLowerCase()
-  return drills.filter((d) => {
-    if (fitsTeam && !(fitsDivision(d, team.division) && rulesAllow(d, team.rules))) return false
+  // Read and searched in the team's sport's wording.
+  return drills.map((d) => drillFor(d, team)).filter((d) => {
+    if (fitsTeam && !(sportFits(d, team) && fitsDivision(d, team.division) && rulesAllow(d, team.rules))) return false
     if (category && d.category !== category) return false
     if (need && !d.needs.includes(need)) return false
     if (level && d.level !== level) return false
@@ -67,7 +69,7 @@ export function DrillFilters({ team, value, onChange }) {
         <span className="t-text">
           Only drills for my team
           <span>
-            {team.division} and your game rules
+            {sportLabel(sportOf(team))}, {team.division} and your game rules
           </span>
         </span>
         <input type="checkbox" className="switch" checked={value.fitsTeam} onChange={set('fitsTeam')} />
@@ -100,7 +102,7 @@ export default function Drills({ team }) {
 }
 
 export function DrillPage({ drillId, team }) {
-  const drill = drillById(drillId)
+  const drill = drillFor(drillById(drillId), team)
   if (!drill) {
     return (
       <>
@@ -112,6 +114,7 @@ export function DrillPage({ drillId, team }) {
     )
   }
   const fits = fitsDivision(drill, team.division)
+  const sportOk = sportFits(drill, team)
   const allowed = rulesAllow(drill, team.rules)
   const aboveLevel = levelIndex(drill.level) > levelIndex(MAX_LEVEL_FOR[team.experience] ?? 'advanced')
   return (
@@ -120,12 +123,13 @@ export function DrillPage({ drillId, team }) {
       <main className="page">
         <div className="card">
           <DrillMeta drill={drill} />
+          {!sportOk && <p className="note">Written for {sportLabel(drill.sport).toLowerCase()}, so plans for your team leave it out.</p>}
           {!fits && <p className="note">Made for {drill.ages[0]}–{drill.ages[1]}, not {team.division}.</p>}
           {!allowed && <p className="note">Your game rules are set so this doesn't come up in games.</p>}
-          {fits && allowed && aboveLevel && (
+          {sportOk && fits && allowed && aboveLevel && (
             <p className="note">This one is rated {drill.level}. Plans won't include it for your experience setting, but you can add it to a plan yourself.</p>
           )}
-          <DrillText drill={drill} />
+          <DrillText drill={drill} sport={sportOf(team)} />
         </div>
       </main>
     </>

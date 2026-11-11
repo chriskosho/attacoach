@@ -15,4 +15,15 @@ export const VIDEO_QUERY = {
   'cutoffs-relays': 'cutoff and relay throws baseball youth',
 }
 
-export const videoUrl = (id) => (VIDEO_QUERY[id] ? `https://www.youtube.com/results?search_query=${encodeURIComponent(VIDEO_QUERY[id])}` : null)
+// Softball teams search with "softball" in place of "baseball" (or added, when the phrase names
+// neither). These softball phrases have not been tested yet.
+export function videoQuery(id, sport = 'baseball') {
+  const q = VIDEO_QUERY[id]
+  if (!q || sport !== 'softball') return q ?? null
+  return /baseball/i.test(q) ? q.replace(/baseball/gi, 'softball') : `${q} softball`
+}
+
+export const videoUrl = (id, sport = 'baseball') => {
+  const q = videoQuery(id, sport)
+  return q ? `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}` : null
+}

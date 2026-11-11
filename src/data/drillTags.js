@@ -1,3 +1,5 @@
+import { SOFTBALL_TEXT } from './drillSoftball.js'
+
 // Space, gear and staffing tags for the original drill library (see drillsMore.js for the meaning of
 // each field). Kept apart from the drill write-ups so the tags are easy to scan and adjust.
 
@@ -89,9 +91,24 @@ export const TAGS = {
   'hit-all-fields': { where: [F], gear: ['tee'], swap: 'No tee? Use front toss.', staff: 'run', cap: [3, 6], bat: true },
 }
 
-// Fills in defaults so every drill has the same shape.
+// Drills for one sport only. Absent means both. Baseball-only drills teach baseball mechanics:
+// overhand pitching from a leg lift, pickoff moves, and leading off before the pitch.
+export const SPORT = {
+  'balance-point': 'baseball', // leg lift to a balance point: overhand pitching
+  'towel-drill': 'baseball', // overhand pitching motion and stride
+  'net-targets': 'baseball', // pitching from the stretch with a leg lift
+  'pickoff-move': 'baseball', // pickoffs, the set position and balks
+  'leadoff-basics': 'baseball', // leading off before the pitch
+  'steal-start': 'baseball', // crossover start from a lead
+  'ball-in-dirt': 'baseball', // secondary lead off first as the pitch comes
+  'pitcher-covers-first': 'baseball', // pitcher off the mound covering first: softball coverage differs
+}
+
+// Fills in defaults so every drill has the same shape, plus its sport and softball wording.
 export function withTags(d) {
   const t = TAGS[d.id] ?? {}
+  const sport = SPORT[d.id]
+  const softball = SOFTBALL_TEXT[d.id]
   return {
     where: ['field'],
     gear: [],
@@ -101,5 +118,7 @@ export function withTags(d) {
     athletic: false,
     ...t,
     ...d,
+    ...(sport ? { sport } : {}),
+    ...(softball ? { softball } : {}),
   }
 }

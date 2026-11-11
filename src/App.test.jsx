@@ -26,11 +26,12 @@ beforeEach(async () => {
 const press = (name) => screen.getByRole('button', { name })
 
 describe('first run setup', () => {
-  const start = async (user, { me = 'Chris', team = 'Blue Jays', division = '12U' } = {}) => {
+  const start = async (user, { me = 'Chris', team = 'Blue Jays', division = '12U', sport = 'Baseball' } = {}) => {
     render(<App />)
     expect(await screen.findByText('Set up your team')).toBeTruthy()
     if (me) await user.type(screen.getByLabelText("What's your name?"), me)
     await user.type(screen.getByLabelText('Team name'), team)
+    await user.click(press(sport))
     await user.click(press(division))
   }
 
@@ -43,6 +44,8 @@ describe('first run setup', () => {
     await user.click(press('12U'))
     expect(press('Next').disabled).toBe(true) // the coach's name is required on first run
     await user.type(screen.getByLabelText("What's your name?"), 'Chris')
+    expect(press('Next').disabled).toBe(true) // and baseball or softball
+    await user.click(press('Softball'))
     expect(press('Next').disabled).toBe(false)
   })
 

@@ -1,6 +1,16 @@
-export const VERSION = '1.11.0'
+export const VERSION = '1.12.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.12.0',
+    date: '2026-11-11',
+    items: [
+      'Baseball or softball: pick your sport when you set up a team, and change it any time with Edit on the Team tab. Softball teams also pick who pitches: fastpitch, coach pitch, or (at 6U) tee ball. Teams you already have stay baseball.',
+      'Softball teams never get baseball-only drills, like pickoff moves, leading off before the pitch, or overhand pitching from a leg lift. Shared drills use softball words where it matters, and video searches say softball.',
+      'For softball, the leading-off rule reads "Leaving on the pitch". In fastpitch, players pitch; in coach pitch and tee ball they don\u2019t. As always, set the rules to match your league.',
+      'Three softball test teams: 6U tee ball, 8U coach pitch and 12U fastpitch. Softball pitching drills are still to come, so softball plans have little pitching work for now.',
+    ],
+  },
   {
     version: '1.11.0',
     date: '2026-11-11',

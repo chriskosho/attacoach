@@ -9,6 +9,7 @@ import Sheet from './Sheet.jsx'
 import { teamPractices, dayName } from '../lib/practices.js'
 import { go } from '../lib/route.js'
 import { TeamHeader } from './Header.jsx'
+import { ruleText, sportOf, sportSummary } from '../lib/sport.js'
 
 // Everything about one team: who is on it, how it practices, its needs and rules. App-wide things
 // (your name, backup, display, account) live under Settings.
@@ -54,6 +55,10 @@ export default function TeamPage({ team, teams, players = [] }) {
           </div>
           <dl className="stack" style={{ margin: 0 }}>
             <div>
+              <dt className="small muted">Sport</dt>
+              <dd style={{ margin: 0 }}>{sportSummary(team)}</dd>
+            </div>
+            <div>
               <dt className="small muted">Division</dt>
               <dd style={{ margin: 0 }}>{team.division}</dd>
             </div>
@@ -83,7 +88,7 @@ export default function TeamPage({ team, teams, players = [] }) {
               <dd style={{ margin: 0 }}>
                 {RULES.map((r) => (
                   <div key={r.id}>
-                    {r.label}: {team.rules?.[r.id] ? 'on' : 'off'}
+                    {ruleText(r, sportOf(team)).label}: {team.rules?.[r.id] ? 'on' : 'off'}
                   </div>
                 ))}
               </dd>
@@ -147,7 +152,9 @@ export default function TeamPage({ team, teams, players = [] }) {
               {teams.map((t) => (
                 <button key={t.id} className="choice" aria-pressed={t.id === team.id} onClick={() => setSetting('currentTeamId', t.id)}>
                   <strong>{t.name}</strong>
-                  <span>{t.division}</span>
+                  <span>
+                    {t.division} {sportOf(t) === 'softball' ? 'softball' : 'baseball'}
+                  </span>
                 </button>
               ))}
             </div>

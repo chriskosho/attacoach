@@ -12,6 +12,10 @@ import CountStepper from './Stepper.jsx'
 import { HuddlePoints, SayThis } from './CoachCorner.jsx'
 import { cuesFor } from '../data/coaching.js'
 import { drillById, DRILLS } from '../data/drills.js'
+import { drillFor, sportOf, sportCopy } from '../lib/sport.js'
+
+// A drill in the team's sport's wording.
+const drillIn = (team) => (id) => drillFor(drillById(id), team)
 import { categoryLabel, focusSummary, coachTitle, spaceLabel } from '../data/constants.js'
 import { blockTitle, planText, shareText } from '../lib/share.js'
 import { go } from '../lib/route.js'
@@ -46,13 +50,13 @@ function Stepper({ value, onChange, label }) {
   )
 }
 
-function DrillBody({ drill, experienced }) {
+function DrillBody({ drill, experienced, sport }) {
   const [full, setFull] = useState(!experienced)
-  const [cue] = cuesFor(drill)
+  const [cue] = sportCopy(cuesFor(drill), sport)
   return (
     <>
       {cue && <SayThis cue={cue} />}
-      <DrillText drill={drill} compact={!full} />
+      <DrillText drill={drill} compact={!full} sport={sport} />
       {experienced && (
         <button className="btn ghost small no-print" style={{ alignSelf: 'flex-start' }} onClick={() => setFull(!full)}>
           {full ? 'Show less' : 'Show setup, variations and equipment'}
@@ -63,6 +67,7 @@ function DrillBody({ drill, experienced }) {
 }
 
 export default function PlanView({ planId, team, coach = '' }) {
+  const drillOf = drillIn(team)
   const plan = useLiveQuery(() => db.plans.get(planId), [planId])
   const [open, setOpen] = useState(() => new Set())
   const [swap, setSwap] = useState(null)
@@ -176,7 +181,7 @@ export default function PlanView({ planId, team, coach = '' }) {
           Add break after
         </button>
       )}
-      <button className="btn danger small" onClick={() => removeWithUndo(removeBlock(plan, b.id), blockTitle(b).toLowerCase())}>
+      <button className="btn danger small" onClick={() => removeWithUndo(removeBlock(plan, b.id), blockTitle(b, sportOf(team)).toLowerCase())}>
         Remove
       </button>
     </div>
@@ -260,7 +265,7 @@ export default function PlanView({ planId, team, coach = '' }) {
         <ol className="card flat lineup" aria-label="Practice blocks">
           {rows.map(({ block: b, start, end }, i) => {
             const key = b.id
-            const drill = b.drillId ? drillById(b.drillId) : null
+            const drill = b.drillId ? drillOf(b.drillId) : null
             return (
               <li key={b.id} className={`slot ${b.kind}${isOpen(key) ? ' open' : ''}`}>
                 <button className="slot-head" onClick={() => toggle(key)} aria-expanded={isOpen(key)}>
@@ -270,7 +275,7 @@ export default function PlanView({ planId, team, coach = '' }) {
                     <span className="small">{fmtClock(end)}</span>
                   </span>
                   <span>
-                    <span className="slot-title">{blockTitle(b)}</span>
+                    <span className="slot-title">{blockTitle(b, sportOf(team))}</span>
                     <br />
                     {drill && (
                       <span className="slot-sub">
@@ -279,7 +284,7 @@ export default function PlanView({ planId, team, coach = '' }) {
                     )}
                     {b.kind === 'stations' && (
                       <span className="slot-sub">
-                        {b.stations.length} × {b.stationMinutes} min: {b.stations.map((id) => drillById(id)?.name).join(', ')}
+                        {b.stations.length} × {b.stationMinutes} min: {b.stations.map((id) => drillOf(id)?.name).join(', ')}
                       </span>
                     )}
                     {b.kind === 'break' && <span className="slot-sub">Water and shade</span>}
@@ -294,7 +299,7 @@ export default function PlanView({ planId, team, coach = '' }) {
                 {isOpen(key) && (
                   <div className="slot-body">
                     {drill && <StationNotes drill={drill} plan={plan} groupSize={null} />}
-                    {drill && <DrillBody drill={drill} experienced={experienced && !unsureAbout(drill)} />}
+                    {drill && <DrillBody drill={drill} sport={sportOf(team)} experienced={experienced && !unsureAbout(drill)} />}
                     {b.kind === 'drill' && !drill && <p className="muted">This drill is no longer in the library. Swap it for another.</p>}
                     {b.kind === 'break' && <p className="muted">Water for everyone. On hot days, add more breaks and find shade.</p>}
                     {b.kind === 'huddle' && (
@@ -316,7 +321,7 @@ export default function PlanView({ planId, team, coach = '' }) {
                           <Stepper label="Minutes at each station" value={b.stationMinutes} onChange={(m) => update(setBlockMinutes(plan, b.id, m))} />
                         </div>
                         {b.stations.map((id, si) => {
-                          const sd = drillById(id)
+                          const sd = drillOf(id)
                           const skey = `${b.id}:${si}`
                           return (
                             <div className="station" key={skey}>
@@ -333,7 +338,7 @@ export default function PlanView({ planId, team, coach = '' }) {
                                   {b.staff?.[si] && (
                                     <>
                                       <br />
-                                      <span className="station-staff">{staffText(b.staff[si], b.stations.map((x) => drillById(x)?.name))}</span>
+                                      <span className="station-staff">{staffText(b.staff[si], b.stations.map((x) => drillOf(x)?.name))}</span>
                                     </>
                                   )}
                                 </span>
@@ -342,7 +347,7 @@ export default function PlanView({ planId, team, coach = '' }) {
                               {isOpen(skey) && (
                                 <div className="slot-body">
                                   <StationNotes drill={sd} plan={plan} groupSize={b.groups ? Math.max(...b.groups) : null} />
-                                  {sd && <DrillBody drill={sd} experienced={experienced && !unsureAbout(sd)} />}
+                                  {sd && <DrillBody drill={sd} sport={sportOf(team)} experienced={experienced && !unsureAbout(sd)} />}
                                   <div className="edit-bar no-print">
                                     <button className="btn quiet small" onClick={() => setSwap({ blockId: b.id, stationIndex: si, drillId: id })}>
                                       Swap
@@ -409,8 +414,10 @@ export default function PlanView({ planId, team, coach = '' }) {
 
 function SwapSheet({ team, plan, swap, onPick, onClose }) {
   const [harder, setHarder] = useState(false)
-  const current = drillById(swap.drillId)
-  const list = alternatives(team, swap.drillId, plan, { showAllLevels: harder }).slice(0, 12)
+  const current = drillFor(drillById(swap.drillId), team)
+  const list = alternatives(team, swap.drillId, plan, { showAllLevels: harder })
+    .slice(0, 12)
+    .map((d) => drillFor(d, team))
   return (
     <Sheet title={`Swap ${current?.name ?? 'drill'}`} onClose={onClose}>
       <p className="muted small">Similar drills for {team.division} that aren't already in this plan, closest match first.</p>

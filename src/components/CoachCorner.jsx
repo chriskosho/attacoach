@@ -1,11 +1,12 @@
-import { HUDDLES, MOMENTS, GUIDES, fillFocus } from '../data/coaching.js'
+import { HUDDLES as ALL_HUDDLES, MOMENTS as ALL_MOMENTS, GUIDES as ALL_GUIDES, fillFocus } from '../data/coaching.js'
+import { sportCopy, sportOf } from '../lib/sport.js'
 import { bandFor } from '../data/motivation.js'
 import { focusSummary, starterNeeds } from '../data/constants.js'
 import { TeamHeader } from './Header.jsx'
 
 // Huddle talking points as a short list. Bullets, not a script: say it your way.
 export function HuddlePoints({ kind, team, focus }) {
-  const h = HUDDLES[kind]
+  const h = sportCopy(ALL_HUDDLES, sportOf(team))[kind]
   const band = bandFor(team.division)
   const f = focusSummary(focus ?? (team.needs?.length ? team.needs : starterNeeds(team.division))).toLowerCase()
   return (
@@ -35,6 +36,11 @@ const GAME_DAY = ['preGame', 'postGameWin', 'postGameLoss']
 const PRACTICE = ['practiceOpen', 'practiceClose']
 
 export default function CoachCorner({ team }) {
+  // Coaching copy in the team's sport's words.
+  const sport = sportOf(team)
+  const HUDDLES = sportCopy(ALL_HUDDLES, sport)
+  const MOMENTS = sportCopy(ALL_MOMENTS, sport)
+  const GUIDES = sportCopy(ALL_GUIDES, sport)
   return (
     <>
       <TeamHeader team={team} title="Coach Corner" />

@@ -33,9 +33,12 @@ export const RULES = [
   },
 ]
 
-export function defaultRules(division) {
+// Softball teams: players pitch in fastpitch at any age, and never in coach pitch or tee ball.
+export function defaultRules(division, sport = 'baseball', format = null) {
   const d = divIndex(division)
-  return Object.fromEntries(RULES.map((r) => [r.id, d >= divIndex(r.fromDivision)]))
+  const rules = Object.fromEntries(RULES.map((r) => [r.id, d >= divIndex(r.fromDivision)]))
+  if (sport === 'softball' && format) rules.kidPitch = format === 'fastpitch'
+  return rules
 }
 
 export const EXPERIENCE = [
