@@ -476,6 +476,119 @@ const firstToThird = {
   ],
 }
 
+// ---------------------------------------------------------------- Team rundowns
+// A line of fielders at each base. Rep 1: the ball carrier at 2nd runs the runner back toward 1st,
+// the partner calls "Now!", one throw, tag; the thrower peels off to the back of the line at 1st.
+// Rep 2 runs the other way. The lines end the same size they started, so the loop carries on.
+const RD_LEN = 14.6
+const F1 = [54, 150]
+const F2 = [246, 150]
+const K1 = [40, 214]
+const K2 = [260, 214]
+const M = [150, 150]
+const RW = [150, 236]
+const kidF = (track) => F('', track)
+const rundownTeam = {
+  len: RD_LEN,
+  bg: 'basepath',
+  at: [1.0, 3.0, 4.4, 12.6],
+  actors: [
+    // A1: front at 1st. Tags in rep 1, carries the ball in rep 2, ends at the back of the 2nd line.
+    kidF([[0, ...F1], [3.3, ...F1], [3.6, 72, 150], [4.6, 72, 150], [5.0, ...F1], [7.0, ...F1], [9.4, 170, 150], [10.4, 170, 150], [11.0, 190, 196], [11.6, 230, 234], [12.2, ...K2], [RD_LEN, ...K2]]),
+    // A2: behind at 1st, steps up when A1 leaves.
+    kidF([[0, ...K1], [7.6, ...K1], [8.2, ...F1], [RD_LEN, ...F1]]),
+    // B1: front at 2nd with the ball. Carries it in rep 1, then peels off to the back of the 1st line.
+    kidF([[0, ...F2], [1.0, ...F2], [3.4, 130, 150], [4.4, 130, 150], [5.0, 124, 196], [5.8, 70, 232], [6.4, 40, 244], [8.2, 40, 244], [8.8, ...K1], [RD_LEN, ...K1]]),
+    // B2: behind at 2nd, steps up when B1 leaves, tags in rep 2.
+    kidF([[0, ...K2], [4.6, ...K2], [5.2, ...F2], [9.3, ...F2], [9.6, 232, 150], [10.6, 232, 150], [11.0, ...F2], [RD_LEN, ...F2]]),
+    { kind: 'runner', label: 'R', fill: Y, track: [[0, ...M], [1.2, ...M], [3.6, 88, 151], [5.9, 88, 151], [6.5, 116, 236], [6.9, ...RW], [11.6, ...RW], [12.4, ...M], [RD_LEN, ...M]] },
+    { kind: 'runner', label: 'R', fill: Y, track: [[0, ...RW], [5.6, ...RW], [6.4, ...M], [7.2, ...M], [9.6, 212, 151], [12.4, 212, 151], [13.0, 200, 236], [13.6, ...RW], [RD_LEN, ...RW]] },
+    { kind: 'ball', track: [[0, 246, 140], [1.0, 246, 140], [3.4, 130, 140], [3.5, 130, 140], [3.75, 72, 140], [4.6, 72, 140], [5.0, 54, 140], [7.0, 54, 140], [9.4, 170, 140], [9.5, 170, 140], [9.75, 232, 140], [10.6, 232, 140], [11.0, 246, 140], [RD_LEN, 246, 140]] },
+  ],
+  pops: [
+    { t0: 1.2, t1: 2.6, at: 2, text: 'Ball up, run hard' },
+    { t0: 3.0, t1: 3.6, at: 0, text: 'Now!' },
+    { t0: 3.9, t1: 4.8, at: 4, text: 'Out' },
+    { t0: 4.4, t1: 5.8, at: 2, text: 'Back of the line at 1st', below: true },
+    { t0: 9.0, t1: 9.6, at: 3, text: 'Now!' },
+    { t0: 9.9, t1: 10.8, at: 5, text: 'Out' },
+    { t0: 10.4, t1: 11.8, at: 0, text: 'Back of the line at 2nd', below: true },
+  ],
+  labels: [{ t0: 12.6, t1: 14.5, x: 14, y: 70, text: 'Then 2nd–3rd and 3rd–home' }],
+}
+
+// ---------------------------------------------------------------- Beat the ball
+// The batter hits off the tee, sets the bat down and runs all the bases. Fielders get the ball to the
+// cone beside home (on the first-base side, away from where the runner comes in). The ball gets there
+// first this time. The next batter brings the ball back to the tee; the runner joins the end of the line.
+const BB_LEN = 10
+const BB_CONE = [186, 258]
+// Batters and runners are yellow, fielders white.
+const batter = (track) => ({ kind: 'kid', fill: Y, label: '', track })
+const beatTheBall = {
+  len: BB_LEN,
+  bg: 'field',
+  extras: `<rect x="146" y="242" width="8" height="8" rx="1" class="dg-tee"/><polygon points="${BB_CONE[0]},${BB_CONE[1] - 7} ${BB_CONE[0] + 6},${BB_CONE[1] + 4} ${BB_CONE[0] - 6},${BB_CONE[1] + 4}" class="dg-cone"/><text x="196" y="250" class="dg-lab">cone</text>`,
+  at: [0.4, 2.0, 4.0],
+  actors: [
+    batter([[0, 138, 250], [1.45, 138, 250], [2.6, 232, 172], [3.8, 150, 92], [5.0, 68, 172], [6.2, 150, 252], [6.6, 122, 272], [8.2, 122, 272], [8.6, 176, 266], [9.0, 214, 266], [9.4, 226, 288], [BB_LEN, 226, 288]]),
+    { kind: 'bat', vis: [0.2, 1.45], track: [[0, 120], [0.4, 120], [0.7, 140], [0.95, 60], [1.05, 0], [1.2, -80], [1.35, -160], [1.45, -200]] },
+    kid([[0, 100, 104], [1.1, 100, 104], [1.9, 104, 108], [5.0, 104, 108], [6.0, 100, 104], [BB_LEN, 100, 104]]),
+    kid([[0, 104, 180], [2.6, 104, 180], [4.0, ...BB_CONE.map((v, i) => v - (i ? 0 : 2))], [6.6, 184, 258], [7.6, 104, 180], [BB_LEN, 104, 180]]),
+    kid([[0, 200, 104], [BB_LEN, 200, 104]]),
+    kid([[0, 150, 56], [BB_LEN, 150, 56]]),
+    kid([[0, 188, 186], [BB_LEN, 188, 186]]),
+    batter([[0, 200, 288], [7.0, 200, 288], [7.4, 186, 266], [8.0, 138, 250], [BB_LEN, 138, 250]]),
+    batter([[0, 226, 288], [8.0, 226, 288], [8.4, 200, 288], [BB_LEN, 200, 288]]),
+    { kind: 'coach', label: '', fill: O, track: [[0, 150, 150], [BB_LEN, 150, 150]] },
+    { kind: 'ball', track: [[0, 150, 246], [1.05, 150, 246], [1.9, 104, 106], [2.2, 104, 106], [2.6, 104, 176], [4.0, 184, 254], [7.4, 184, 254], [7.95, 150, 246], [BB_LEN, 150, 246]] },
+  ],
+  pops: [
+    { t0: 2.0, t1: 2.8, at: 2, text: 'Toss it!' },
+    { t0: 4.0, t1: 5.2, at: 3, text: 'Ball wins!' },
+    { t0: 7.0, t1: 8.0, at: 7, text: 'Next batter' },
+  ],
+}
+
+// ---------------------------------------------------------------- Pop-up priority
+// Two pop-ups. Shallow left: the left fielder calls it and catches; the shortstop and third baseman
+// give way and back up. Then near the first-base line: the first baseman takes it over the catcher.
+const PU_LEN = 8.8
+const pu = (label, to, rep) => {
+  const from = SPOT[label]
+  const w = rep === 1 ? [0.9, 1.9, 3.6, 4.4] : [5.0, 5.9, 7.2, 8.0]
+  return F(label, goAndBack(from, to, [w], PU_LEN))
+}
+const popUpPriority = {
+  len: PU_LEN,
+  bg: 'field',
+  at: [0.4, 1.0, 1.5],
+  actors: [
+    pu('LF', [88, 90], 1),
+    pu('SS', [118, 108], 1),
+    pu('3B', [80, 138], 1),
+    F('CF', [[0, ...SPOT.CF], [PU_LEN, ...SPOT.CF]]),
+    F('RF', [[0, ...SPOT.RF], [PU_LEN, ...SPOT.RF]]),
+    F('2B', [[0, ...SPOT['2B']], [PU_LEN, ...SPOT['2B']]]),
+    F('P', [[0, ...SPOT.P], [PU_LEN, ...SPOT.P]]),
+    pu('1B', [206, 206], 2),
+    pu('C', [180, 240], 2),
+    { kind: 'coach', label: '', fill: O, track: [[0, 124, 258], [PU_LEN, 124, 258]] },
+    { kind: 'ball', track: [[0, 128, 254], [0.4, 128, 254], [1.9, 90, 94], [2.6, 90, 94], [3.4, 128, 254], [5.0, 128, 254], [5.9, 206, 210], [6.6, 206, 210], [7.4, 128, 254], [PU_LEN, 128, 254]] },
+  ],
+  pops: [
+    { t0: 1.0, t1: 1.9, at: 0, text: 'I got it! I got it!' },
+    { t0: 1.9, t1: 2.7, at: 1, text: 'Take it!' },
+    { t0: 1.6, t1: 2.6, at: 2, text: 'Yours, LF!', below: true },
+    { t0: 5.2, t1: 6.0, at: 7, text: 'I got it!' },
+    { t0: 5.4, t1: 6.4, at: 8, text: 'Take it, 1B!', below: true },
+  ],
+  labels: [
+    { t0: 0.4, t1: 3.4, x: 10, y: 292, text: 'Outfield over infield' },
+    { t0: 5.0, t1: 7.4, x: 10, y: 292, text: 'Corners over the catcher' },
+  ],
+}
+
 // Holds a diagram still for `by` seconds at time `from`, so a step has time to be read.
 function delay(spec, from, by) {
   const m = (t) => (t >= from && t > 0 ? t + by : t)
@@ -490,4 +603,4 @@ function delay(spec, from, by) {
   }
 }
 
-export const DIAGRAMS = { 'rounding-first': roundingFirst, pickle, 'tee-work': teeWork, 'star-drill': starDrill, 'front-toss': frontToss, 'cutoffs-relays': cutoffs, 'backing-up': everybodyMoves, 'pitcher-covers-first': pitcherCoversFirst, 'bunt-defense': buntDefense, 'first-and-third': delay(firstAndThird, 0.75, 1.4), 'dp-feeds': dpFeeds, 'flyball-communication': flyballComm, 'first-to-third': firstToThird }
+export const DIAGRAMS = { 'rounding-first': roundingFirst, pickle, 'tee-work': teeWork, 'star-drill': starDrill, 'front-toss': frontToss, 'cutoffs-relays': cutoffs, 'backing-up': everybodyMoves, 'pitcher-covers-first': pitcherCoversFirst, 'bunt-defense': buntDefense, 'first-and-third': delay(firstAndThird, 0.75, 1.4), 'dp-feeds': dpFeeds, 'flyball-communication': flyballComm, 'first-to-third': firstToThird, 'rundown-team': rundownTeam, 'beat-the-ball': beatTheBall, 'pop-up-priority': popUpPriority }

@@ -1,11 +1,11 @@
-export const VERSION = '1.20.1'
+export const VERSION = '1.20.2'
 
 export const CHANGELOG = [
   {
-    version: '1.20.1',
+    version: '1.20.2',
     date: '2026-11-11',
     items: [
-      'Moving diagrams for Everybody moves, Pitcher covers first, Bunt defense, First and third defense, Double play feeds, I got it, you take it, and First to third: who goes where, step by step.',
+      'Moving diagrams for Everybody moves, Pitcher covers first, Bunt defense, First and third defense, Double play feeds, I got it, you take it, First to third, Team rundowns, Beat the ball and Pop-up priority: who goes where, step by step.',
     ],
   },
   {
