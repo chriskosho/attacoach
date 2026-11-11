@@ -15,7 +15,7 @@ export const HUDDLES = {
       'Get them moving fast. Little kids listen best for about 30 seconds.',
     ],
     older: [
-      'Today’s focus and why it matters: "{focus}. It showed up in our last game."',
+      'Today’s focus and why it matters: "{focus}. Here is where it shows up in games."',
       'One thing you want to see from everyone, like "talk on every ball".',
       'Effort and attitude are the two things they control. Say you are watching for both.',
       'Keep it under 2 minutes, then go.',
@@ -88,6 +88,53 @@ export const HUDDLES = {
 }
 
 export const fillFocus = (text, focus) => text.replace('{focus}', focus)
+
+// More ways to say each practice huddle point, so the opener and wrap-up don't read the same every
+// practice. Slot i lists other versions of HUDDLES[kind][band][i]; huddleLines picks one per slot.
+export const HUDDLE_VARIANTS = {
+  practiceOpen: {
+    young: [
+      ['High-five every player on the way in, by name.', 'Ask one or two kids about their week. Kids work harder for a coach who knows them.'],
+      ['Make the goal a challenge: "Let’s see who gets better at {focus} today."', 'Ask: "Who can show me what {focus} looks like?" Take one answer, then go.'],
+      ['One rule today: when the coach talks, ball in the glove and eyes on the coach.', 'Teach one signal, like a raised hand for "quiet and look here". Use it all practice.'],
+      ['Say one thing, not five. They will remember one.', 'Race to the warm-up spot. Energy first, talking later.'],
+    ],
+    older: [
+      ['Name today’s focus, {focus}, and what it looks like done right.', 'Ask a player: "Where did {focus} cost us last time?" Build on the answer.'],
+      ['One team standard for today, like "every throw to the chest".', 'Pick a player to lead the warm-up. Rotate it through the season.'],
+      ['Tell them how today runs: stations, team defense, then a game. No surprises.', 'Mistakes in practice are cheap. Tell them to try the hard thing here.'],
+      ['Under 2 minutes. They came to play.', 'Keep it short, end with a clap, then go.'],
+    ],
+  },
+  practiceClose: {
+    young: [
+      ['Ask: "What was your favorite drill?" Let a few kids answer.', 'Ask a few kids to show you one thing they learned, like ready position.'],
+      ['Pick two kids who were great teammates today and say why.', 'Praise something the whole team did: "Everybody hustled between drills."'],
+      ['Homework: ten tosses and catches with a grown-up before next practice.', 'Tell them one fun thing about next practice, so they look forward to it.'],
+      ['Team cheer, then a high-five line on the way out.', 'Let a player pick the team cheer. Leave them smiling.'],
+    ],
+    older: [
+      ['Ask: "What did we get better at today?" Let the players answer, not you.', 'Ask one player to sum up practice in one sentence.'],
+      ['Let players give the shout-outs: one teammate who did the small things.', 'Name one play from today you want to see in the next game.'],
+      ['One thing to work on at home: ten minutes, no coach needed.', 'Pitchers and catchers: tell a parent today’s count and how the arm feels.'],
+      ['Short and positive. Corrections happen one-on-one, not in front of the team.', 'End on time. Players and parents trust a coach who keeps the schedule.'],
+    ],
+  },
+}
+
+// The huddle points for one practice: each slot is the original line or one of its variants, picked
+// by `key` (the practice date), so the same practice always shows the same words.
+export function huddleLines(huddles, variants, kind, band, key = '') {
+  const base = huddles[kind][band]
+  const alts = variants?.[kind]?.[band]
+  if (!alts || !key) return base
+  let h = 0
+  for (const c of `${kind}|${key}`) h = (h * 31 + c.charCodeAt(0)) >>> 0
+  return base.map((line, i) => {
+    const options = [line, ...(alts[i] ?? [])]
+    return options[(h + i * 7) % options.length]
+  })
+}
 
 // ---------------------------------------------------------------- Say this, not that (by drill type)
 

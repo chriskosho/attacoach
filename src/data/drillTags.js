@@ -20,7 +20,7 @@ export const TAGS = {
   // throwing
   'throwing-progression': { where: [F, O], staff: 'run' },
   'tennis-ball-catch': { where: [F, O, G], staff: 'watch', cap: [2, 8] },
-  alligator: { where: [F, O, G], staff: 'watch', cap: [2, 8] },
+  alligator: { where: [F, O, G], staff: 'watch', cap: [2, 6] },
   'target-throw': { where: [F, O, G], staff: 'watch', cap: [2, 8] },
   'star-drill': { where: [F, O], staff: 'run', cap: [4, 6] },
   'quick-hands': { where: [F, O, G, C], staff: 'kids', cap: [2, 12] },
@@ -118,6 +118,27 @@ export const TAGS = {
   pepper: { where: [F, O], staff: 'watch', cap: [4, 12], bat: true },
   'relay-race': { where: [F, O], staff: 'run', cap: [6, 14] },
 
+  // ---------------------------------------------------------------- 10U to 14U (drillsOlder.js)
+  'bullpen-intent': { where: [F, C], gear: ['catcherGear'], swap: 'No catcher gear? Pitch to a net or strike target.', staff: 'run', cap: [2, 4] },
+  'bullpen-plan': { where: [F, C], gear: ['catcherGear'], swap: 'No catcher gear? Pitch to a net or strike target and chart the same way.', staff: 'run', cap: [2, 4] },
+  'pfp-comebackers': { where: [F], staff: 'run', cap: [4, 6] },
+  'pitcher-covers-home': { where: [F], gear: ['catcherGear'], swap: 'No catcher gear? Run it with the coach as the catcher, no pitches thrown.', staff: 'run', cap: [3, 5] },
+  'time-to-plate': { where: [F], gear: ['catcherGear'], swap: 'No catcher gear? Pitch to a net and time to the net.', staff: 'run', cap: [3, 5] },
+  'receiving-progression': { where: [F, C, G, O], gear: ['catcherGear'], swap: 'No catcher gear? Stay with tennis balls and tosses, and wear a mask if you have one.', staff: 'watch', cap: [2, 4] },
+  'catcher-pop-ups': { where: [F], gear: ['catcherGear'], swap: 'No catcher gear? A helmet and soft balls, so the mask toss is pretend.', staff: 'run', cap: [2, 4] },
+  'catcher-throws-bases': { where: [F], gear: ['catcherGear'], swap: 'No catcher gear? Coach hands the ball in and the catcher works footwork and throws only.', staff: 'run', cap: [3, 5] },
+  'dp-turns': { where: [F], staff: 'run', cap: [4, 6] },
+  'relay-footwork': { where: [F, O], staff: 'watch', cap: [3, 9] },
+  'pop-up-priority': { where: [F], staff: 'run', cap: [6, 14] },
+  'cutoff-to-base': { where: [F], staff: 'run', cap: [7, 14] },
+  'fence-and-gaps': { where: [F], staff: 'run', cap: [3, 6] },
+  'oppo-rounds': { where: [F, C], gear: ['lscreen'], swap: 'No L-screen? Use a tee set on the outer half.', staff: 'run', cap: [3, 5], bat: true },
+  'live-at-bats': { where: [F], gear: ['catcherGear'], swap: 'No catcher gear? Coach pitches and nobody catches; a fence or net stops the ball.', staff: 'run', cap: [8, 14], bat: true },
+  'move-the-runner': { where: [F], gear: ['lscreen'], swap: 'No L-screen? Use a pitching machine, or soft toss from the side and play it out.', staff: 'run', cap: [7, 14], bat: true },
+  'first-to-third': { where: [F], staff: 'run', cap: [4, 8] },
+  'secondary-lead': { where: [F], staff: 'run', cap: [4, 8] },
+  'dirt-read-third': { where: [F], gear: ['catcherGear'], swap: 'No catcher gear? Coach rolls balls past or in front of a cone at home.', staff: 'run', cap: [3, 6] },
+  'rundown-team': { where: [F], staff: 'run', cap: [6, 12] },
   // ---------------------------------------------------------------- Softball (drillsSoftball.js)
   // fastpitch pitching
   'fp-grip-snaps': { where: [F, O, G], staff: 'watch', cap: [2, 6] },
@@ -162,6 +183,13 @@ export const SPORT = {
   'steal-start': 'baseball', // crossover start from a lead
   'ball-in-dirt': 'baseball', // secondary lead off first as the pitch comes
   'pitcher-covers-first': 'baseball', // pitcher off the mound covering first: softball coverage differs
+  'bullpen-intent': 'baseball', // windup and stretch
+  'bullpen-plan': 'baseball', // windup, stretch and mound
+  'pfp-comebackers': 'baseball', // pitchers fielding off the mound (softball: fp-pitcher-fields)
+  'pitcher-covers-home': 'baseball', // pitcher off the mound covering home
+  'time-to-plate': 'baseball', // leg lift, the set position and balks
+  'secondary-lead': 'baseball', // secondary leads
+  'dirt-read-third': 'baseball', // leading off third
   // Softball only: every drill in drillsSoftball.js.
   'fp-grip-snaps': 'softball',
   'fp-k-drill': 'softball',

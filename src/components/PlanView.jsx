@@ -323,7 +323,7 @@ export default function PlanView({ planId, team, coach = '' }) {
           {plan.opener}
           <details className="talk-more">
             <summary>Huddle talking points</summary>
-            <HuddlePoints kind="practiceOpen" team={team} focus={plan.focus} />
+            <HuddlePoints kind="practiceOpen" team={team} focus={plan.focus} seed={plan.date ?? plan.id} />
           </details>
         </div>
 
@@ -383,7 +383,7 @@ export default function PlanView({ planId, team, coach = '' }) {
                           <div className="who">Close practice with</div>
                           {plan.closer}
                         </div>
-                        <HuddlePoints kind="practiceClose" team={team} focus={plan.focus} />
+                        <HuddlePoints kind="practiceClose" team={team} focus={plan.focus} seed={plan.date ?? plan.id} />
                       </>
                     )}
                     {b.kind === 'stations' && (

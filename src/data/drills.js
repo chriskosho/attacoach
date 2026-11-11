@@ -11,6 +11,7 @@
 import { MORE_DRILLS } from './drillsMore.js'
 import { YOUNG_DRILLS } from './drillsYoung.js'
 import { SOFTBALL_DRILLS } from './drillsSoftball.js'
+import { OLDER_DRILLS } from './drillsOlder.js'
 import { withTags } from './drillTags.js'
 
 const BASE_DRILLS = [
@@ -425,7 +426,7 @@ const BASE_DRILLS = [
       'Then to the throwing-hand side (backhand). Five each.',
       'Mix them randomly for the last round.',
     ],
-    points: ['Backhand: glove-side foot leads, glove opens toward the ball.', 'Keep the glove down; don\'t stab.'],
+    points: ['Backhand: field it out in front of the throwing-side foot, glove open toward the ball.', 'Keep the glove down; don\'t stab.'],
     easier: 'Slow rolls with a step or two of range.',
     harder: 'Finish each with a throw to first.',
   },
@@ -484,8 +485,8 @@ const BASE_DRILLS = [
     equipment: ['Balls', 'First base'],
     setup: 'First baseman in fielding position. Coach throws from shortstop area.',
     steps: [
-      'On "ball!", first baseman runs to the bag and puts both heels on the front edge.',
-      'Coach throws; first baseman steps toward the throw with the glove-side foot and stretches.',
+      'On "ball!", first baseman runs to the bag and sets up facing the thrower, heels against the side of the bag that faces the infield.',
+      'Coach throws; first baseman steps toward the throw with the glove-side foot, keeps the throwing-side foot on the bag, and stretches.',
       'Add low throws (scoop) and wide throws (come off the bag to catch it).',
     ],
     points: ['Find the bag first, then the ball.', 'Don\'t stretch until you see where the throw is going.'],
@@ -545,7 +546,7 @@ const BASE_DRILLS = [
     group: 'small',
     needs: ['flyballs', 'catching'],
     equipment: ['Tennis balls'],
-    setup: 'Players in a line 15 feet from the coach.',
+    setup: 'Players in a line 15 feet from the coach. Waiting players toss and catch to themselves behind the line.',
     steps: [
       'Coach tosses a high, soft fly ball.',
       'Player calls "I got it!" and catches with two hands above the head.',
@@ -633,7 +634,7 @@ const BASE_DRILLS = [
       'Hitter swings and hits the middle of the ball. The coach re-tees the ball and gives one cue.',
       'About 10 swings in a row (5 for the youngest), then the next hitter. Other players shag balls.',
     ],
-    points: ['Eyes stay on the ball through contact.', 'Swing level, finish high.', 'One cue at a time: pick the one thing you see most.'],
+    points: ['Eyes stay on the ball through contact.', 'Get the barrel to the ball fast and through it, and finish high. Aim for hard line drives.', 'One cue at a time: pick the one thing you see most.'],
     easier: 'Bigger ball or a lighter bat.',
     harder: 'Move the tee inside or outside and hit to the matching field.',
   },
@@ -675,13 +676,13 @@ const BASE_DRILLS = [
     ],
     points: ['Coach gets fully behind the screen after every toss.', 'Hard line drives beat high fly balls.'],
     easier: 'Slow tosses from a shorter distance.',
-    harder: 'Mix speeds and locations; hitter must hit to the right field on outside tosses.',
+    harder: 'Mix speeds and locations; hitter takes outside tosses to the opposite field.',
   },
   {
     id: 'line-drive-target',
     name: 'Line drive target',
     category: 'hitting',
-    ages: ['6U', '12U'],
+    ages: ['6U', '10U'],
     level: 'beginner',
     minutes: 8,
     group: 'small',
@@ -868,13 +869,13 @@ const BASE_DRILLS = [
     id: 'run-through-first',
     name: 'Run through first',
     category: 'baserunning',
-    ages: ['6U', '14U'],
+    ages: ['6U', '10U'],
     level: 'beginner',
     minutes: 6,
     group: 'small',
     needs: ['baserunning', 'athleticism'],
     equipment: ['Helmets', 'First base'],
-    setup: 'Runners in a line at home plate in a batting stance.',
+    setup: 'Runners in a line at home plate in a batting stance. The runner who just finished stands at first as the base coach and yells "Through!".',
     steps: [
       'On "hit!", runner swings an imaginary bat and sprints to first.',
       'Hit the front edge of the bag and run through it. Don\'t jump at it.',
@@ -894,7 +895,7 @@ const BASE_DRILLS = [
     group: 'small',
     needs: ['baserunning'],
     equipment: ['Cone', 'Bases'],
-    setup: 'Cone about 10 feet before first base and a few feet outside the line.',
+    setup: 'Cone about 10 feet before first base and a few feet outside the line. Runners go one after another from home, each starting when the runner ahead reaches first.',
     steps: [
       'Runner sprints out of the box and curves out around the cone (a banana turn).',
       'Hit the inside corner of first with either foot and push toward second.',
@@ -1046,7 +1047,7 @@ const BASE_DRILLS = [
       'Stride straight toward the target, landing on the ball of the foot.',
       'Throw and finish with the throwing hand outside the opposite knee.',
     ],
-    points: ['Stay tall at the balance point; don\'t lean back.', 'Glove arm tucks to the chest as the arm comes through.'],
+    points: ['Stay tall at the balance point; don\'t lean back.', 'Firm front side: the chest comes to the glove. Don\'t yank the glove back.'],
     easier: 'No ball, just the motion to the balance point.',
     harder: 'Throw to a target: catcher\'s glove at the knees.',
   },
@@ -1129,7 +1130,7 @@ const BASE_DRILLS = [
     steps: [
       'On any ball to the right side, the pitcher breaks for first.',
       'Run to a spot on the line a few steps before the bag, then run up the line.',
-      'First baseman tosses underhand; pitcher catches it and steps on the bag.',
+      'First baseman tosses underhand; pitcher catches it, steps on the inside edge of the bag, and turns into the infield, away from the runner.',
     ],
     points: ['Every ball to the right side, the pitcher goes. Habit beats thinking.', 'Run up the line, not across the runner.'],
     easier: 'Walk through with no ball.',
@@ -1150,7 +1151,7 @@ const BASE_DRILLS = [
     setup: 'Catchers in gear. Coach throws from 30 to 40 feet.',
     steps: [
       'Stance: feet shoulder width, weight on the balls of the feet, glove out in front.',
-      'Throwing hand behind the back or behind the glove-side leg (no runners).',
+      'Throwing hand behind the back or behind the throwing-side heel (no runners).',
       'Catch each pitch and stick it: hold the glove still for a second.',
     ],
     points: ['Catch the ball out front, not deep by the body.', 'Quiet glove. Don\'t stab at the pitch.'],
@@ -1194,7 +1195,7 @@ const BASE_DRILLS = [
       'Short replacement step with the right foot, then step toward second and throw.',
       'Time it from catch to throw.',
     ],
-    points: ['A quick transfer beats a strong arm.', 'Throw through the bag at chest height.'],
+    points: ['A quick transfer beats a strong arm.', 'Aim knee-high at the bag, where the tag goes.'],
     easier: 'Footwork only, no throw.',
     harder: 'Mix in throws to third.',
   },
@@ -1314,15 +1315,15 @@ const BASE_DRILLS = [
     group: 'team',
     needs: ['awareness', 'bunting'],
     equipment: ['Balls', 'Helmets'],
-    setup: 'Full infield. A hitter bunts from the plate; runners on first or first and second.',
+    setup: 'Full infield, a pitcher and a catcher. A hitter in a helmet bunts from the plate with a runner on first.',
     steps: [
-      'Corners charge, second baseman covers first, shortstop covers second.',
+      'Runner on first: corners charge, the pitcher covers the middle, the second baseman covers first, the shortstop covers second.',
       'Catcher calls where to throw: "One!", "Two!" or "Three!".',
       'The fielder gets the sure out unless the lead runner is easy.',
     ],
     points: ['The catcher sees the play; listen to the call.', 'Get one out for sure.'],
     easier: 'Coach rolls the bunt.',
-    harder: 'Mix in fake bunts and slashes.',
+    harder: 'Runners on first and second: the third baseman stays near the bag unless the pitcher can\'t get to the ball, and the pitcher breaks toward the third-base line. Run your own coverage if the team already has one.',
   },
   {
     id: 'first-and-third',
@@ -1343,7 +1344,7 @@ const BASE_DRILLS = [
     ],
     points: ['Keep it to two plays the team knows well.', 'Check the runner at third before every throw.'],
     easier: 'Walk through each play slowly.',
-    harder: 'Runners choose when to break.',
+    harder: 'Add a third play the team knows, like the catcher faking the throw and checking the runner at third, and let runners choose when to break.',
   },
 
   // ---------------------------------------------------------------- Games and competition
@@ -1357,7 +1358,7 @@ const BASE_DRILLS = [
     group: 'small',
     needs: ['awareness', 'throwing', 'baserunning'],
     equipment: ['Two bases', 'One soft ball', 'Helmets'],
-    setup: 'Two bases 60 feet apart, a fielder at each and a runner between them.',
+    setup: 'Two bases at your field\'s base distance, a fielder at each and a runner between them.',
     steps: [
       'Fielders run the runner back toward the base the runner came from.',
       'Hold the ball up and run hard at the runner; throw only when the partner calls "now!".',
@@ -1471,7 +1472,7 @@ const BASE_DRILLS = [
 ]
 
 // Every drill, with space, gear and staffing tags filled in.
-export const DRILLS = [...BASE_DRILLS, ...MORE_DRILLS, ...YOUNG_DRILLS, ...SOFTBALL_DRILLS].map(withTags)
+export const DRILLS = [...BASE_DRILLS, ...MORE_DRILLS, ...YOUNG_DRILLS, ...OLDER_DRILLS, ...SOFTBALL_DRILLS].map(withTags)
 
 const BY_ID = new Map(DRILLS.map((d) => [d.id, d]))
 

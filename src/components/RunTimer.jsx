@@ -362,7 +362,7 @@ function Runner({ plan, team }) {
         </p>
       )}
       {seg.kind === 'huddle' && <p style={{ fontSize: 20, marginTop: 12 }}>{plan.closer}</p>}
-      {seg.kind === 'huddle' && <HuddlePoints kind="practiceClose" team={team} focus={plan.focus} />}
+      {seg.kind === 'huddle' && <HuddlePoints kind="practiceClose" team={team} focus={plan.focus} seed={plan.date ?? plan.id} />}
       {seg.kind === 'break' && <p style={{ fontSize: 20, marginTop: 12 }}>Water for everyone.</p>}
       {state.index === 0 && (
         <p style={{ fontSize: 18, marginTop: 12 }}>
@@ -376,7 +376,7 @@ function Runner({ plan, team }) {
           </button>
         </div>
       )}
-      {state.index === 0 && showOpen && <HuddlePoints kind="practiceOpen" team={team} focus={plan.focus} />}
+      {state.index === 0 && showOpen && <HuddlePoints kind="practiceOpen" team={team} focus={plan.focus} seed={plan.date ?? plan.id} />}
 
       <div className="run-next">
         {next ? (

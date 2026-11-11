@@ -1,6 +1,16 @@
-export const VERSION = '1.18.0'
+export const VERSION = '1.19.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.19.0',
+    date: '2026-11-11',
+    items: [
+      '20 new drills for 10U to 14U, most of them intermediate or advanced: structured bullpens with a pitch count and a goal for each set, pitchers fielding comebackers and bunts and covering home, a quicker delivery with runners on, catcher pop-ups and throws to first and third, double play turns, relay footwork, pop-up priority, gap and fence play, opposite-field hitting, live at-bats with counts, moving a runner, first to third, secondary leads and team rundowns.',
+      'Drills that need leading off or stealing only show up when your league allows them.',
+      'An accuracy pass over the whole library: better cues for tee work, first base footwork, backhands, catcher throws and receiving, and pitchers covering first; tighter age ranges for drills older teams outgrow; and jobs for players waiting in line.',
+      'The practice opener and wrap-up now change from practice to practice.',
+    ],
+  },
   {
     version: '1.18.0',
     date: '2026-11-11',

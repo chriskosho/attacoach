@@ -1,17 +1,19 @@
-import { HUDDLES as ALL_HUDDLES, MOMENTS as ALL_MOMENTS, GUIDES as ALL_GUIDES, fillFocus } from '../data/coaching.js'
+import { HUDDLES as ALL_HUDDLES, HUDDLE_VARIANTS, MOMENTS as ALL_MOMENTS, GUIDES as ALL_GUIDES, fillFocus, huddleLines } from '../data/coaching.js'
 import { sportCopy, sportOf } from '../lib/sport.js'
 import { bandFor } from '../data/motivation.js'
 import { focusSummary, starterNeeds } from '../data/constants.js'
 import { TeamHeader } from './Header.jsx'
 
 // Huddle talking points as a short list. Bullets, not a script: say it your way.
-export function HuddlePoints({ kind, team, focus }) {
-  const h = sportCopy(ALL_HUDDLES, sportOf(team))[kind]
+// `seed` (a practice's date or id) picks among the other ways to say each point, so practices vary.
+export function HuddlePoints({ kind, team, focus, seed }) {
+  const sport = sportOf(team)
   const band = bandFor(team.division)
+  const lines = huddleLines(sportCopy(ALL_HUDDLES, sport), sportCopy(HUDDLE_VARIANTS, sport), kind, band, seed)
   const f = focusSummary(focus ?? (team.needs?.length ? team.needs : starterNeeds(team.division))).toLowerCase()
   return (
     <ul className="huddle-points">
-      {h[band].map((b) => (
+      {lines.map((b) => (
         <li key={b}>{fillFocus(b, f)}</li>
       ))}
     </ul>
