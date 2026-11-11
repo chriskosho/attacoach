@@ -221,4 +221,136 @@ const cutoffs = {
   labels: [{ t0: 0, t1: 2.6, x: 10, y: 292, text: 'Single to center, runner on 2nd' }],
 }
 
-export const DIAGRAMS = { 'rounding-first': roundingFirst, pickle, 'tee-work': teeWork, 'star-drill': starDrill, 'front-toss': frontToss, 'cutoffs-relays': cutoffs }
+// ---------------------------------------------------------------- Shared helpers for full-field plays
+// Standard spots on the full diamond (see BG.field): home (150,252), 1st (232,172), 2nd (150,92),
+// 3rd (68,172), mound (150,172).
+const SPOT = {
+  P: [150, 172], C: [150, 266], '1B': [222, 158], '2B': [188, 122], SS: [112, 126], '3B': [78, 162],
+  LF: [64, 50], CF: [150, 28], RF: [236, 50],
+}
+// A track that sits at `from`, moves to `to` during each [go, arrive] window, and comes back during
+// each [leave, back] window: windows = [[go, arrive, leave, back], ...].
+const goAndBack = (from, to, windows, len) => {
+  const t = [[0, ...from]]
+  for (const [g, a, l, b] of windows) t.push([g, ...from], [a, ...to], [l, ...to], [b, ...from])
+  t.push([len, ...from])
+  return t
+}
+
+// ---------------------------------------------------------------- Everybody moves
+// Ground ball to short, nobody on. First a walk-through: the coach calls it, everyone walks to their
+// job (the dashed lines are the pretend ball and throw), freeze and check. Then the same play with a
+// real ball at game speed. Jobs: SS fields, 1B covers the bag, 2B covers second, the catcher runs
+// down the line to back up first, RF backs up first, LF backs up short, CF backs up second.
+const EM_LEN = 13.6
+const walk = [1.2, 3.4, 6.0, 7.6]
+const live = [8.0, 9.4, 11.4, 12.8]
+const em = (label, to, viaCatcher) => {
+  const from = SPOT[label]
+  if (!viaCatcher) return F(label, goAndBack(from, to, [walk, live], EM_LEN))
+  // The catcher goes down the line in foul territory, never across the infield.
+  const v = [196, 240]
+  const track = [[0, ...from]]
+  for (const [g, a, l, b] of [walk, live]) {
+    const m = g + (a - g) * 0.45
+    const mb = l + (b - l) * 0.55
+    track.push([g, ...from], [m, ...v], [a, ...to], [l, ...to], [mb, ...v], [b, ...from])
+  }
+  track.push([EM_LEN, ...from])
+  return F(label, track)
+}
+const COACH_AT_HOME = [124, 258]
+const everybodyMoves = {
+  len: EM_LEN,
+  bg: 'field',
+  at: [0.3, 1.2, 4.0],
+  actors: [
+    em('SS', [114, 136]),
+    em('1B', [226, 166]),
+    em('2B', [158, 100]),
+    em('3B', [74, 168]),
+    F('P', [[0, ...SPOT.P], [EM_LEN, ...SPOT.P]]),
+    em('C', [252, 196], true),
+    em('RF', [276, 180]),
+    em('LF', [96, 82]),
+    em('CF', [150, 62]),
+    { kind: 'coach', label: '', fill: O, track: [[0, ...COACH_AT_HOME], [EM_LEN, ...COACH_AT_HOME]] },
+    // In the coach's hand for the walk-through, then hit to short, thrown to first, and tossed back.
+    { kind: 'ball', track: [[0, 128, 254], [8.0, 128, 254], [8.7, 114, 140], [9.0, 116, 136], [9.5, 222, 164], [11.6, 222, 164], [12.6, 128, 254], [EM_LEN, 128, 254]] },
+  ],
+  guides: [
+    { t0: 0.5, t1: 4.4, from: [124, 252], to: [114, 136] },
+    { t0: 2.4, t1: 5.6, from: [114, 136], to: [226, 166] },
+  ],
+  pops: [
+    { t0: 0.3, t1: 1.6, at: 9, text: 'Ground ball to short!' },
+    { t0: 1.8, t1: 2.8, at: 2, text: 'Cover 2nd' },
+    { t0: 2.6, t1: 3.8, at: 7, text: 'Back up short' },
+    { t0: 3.0, t1: 4.4, at: 5, text: 'Back up 1st', below: true },
+  ],
+  labels: [
+    { t0: 0, t1: 3.9, x: 10, y: 292, text: 'First, a walk-through' },
+    { t0: 4.0, t1: 6.0, x: 10, y: 292, text: 'Freeze! Check every spot' },
+    { t0: 7.8, t1: 10.8, x: 10, y: 292, text: 'Now with a real ball' },
+  ],
+}
+
+// ---------------------------------------------------------------- Pitcher covers first
+// Ball to the right side. The first baseman fields it; the pitcher breaks for a spot on the line a
+// few steps before the bag, runs up the line, takes the underhand toss, steps on the inside edge of
+// the bag and turns into the infield.
+const PC_LEN = 7.6
+const pitcherCoversFirst = {
+  len: PC_LEN,
+  bg: 'field',
+  at: [0.6, 1.5, 2.0],
+  actors: [
+    F('P', [[0, ...SPOT.P], [0.6, ...SPOT.P], [1.2, 180, 188], [1.6, 203, 197], [2.1, 216, 186], [2.4, 222, 180], [2.65, 228, 174], [3.2, 216, 164], [5.0, 216, 164], [6.4, ...SPOT.P], [PC_LEN, ...SPOT.P]]),
+    F('1B', [[0, ...SPOT['1B']], [0.6, ...SPOT['1B']], [1.3, 210, 144], [5.0, 210, 144], [6.2, ...SPOT['1B']], [PC_LEN, ...SPOT['1B']]]),
+    { kind: 'coach', label: '', fill: O, track: [[0, 140, 256], [PC_LEN, 140, 256]] },
+    { kind: 'ball', track: [[0, 144, 252], [0.6, 144, 252], [1.4, 208, 148], [2.0, 208, 148], [2.4, 220, 176], [2.65, 226, 170], [3.2, 214, 160], [5.0, 214, 160], [5.4, 214, 160], [6.4, 144, 252], [PC_LEN, 144, 252]] },
+  ],
+  trail: { actor: 0, from: 0.6, to: 2.65 },
+  extras: '<circle cx="203" cy="197" r="5" class="dg-spot"/>',
+  pops: [
+    { t0: 0.7, t1: 1.6, at: 0, text: 'Every ball right side: go' },
+    { t0: 1.65, t1: 2.3, at: 0, text: 'Then up the line' },
+    { t0: 2.0, t1: 2.5, at: 1, text: 'Toss', below: true },
+    { t0: 2.8, t1: 4.2, at: 0, text: 'Step on the inside edge' },
+  ],
+  labels: [{ t0: 3.4, t1: 5.2, x: 10, y: 292, text: 'Turn into the infield' }],
+}
+
+// ---------------------------------------------------------------- Bunt defense
+// Runner on first. The batter bunts toward third. Corners charge, the pitcher covers the middle, the
+// second baseman goes inside the baseline (behind the runner's path) to cover first, and the
+// shortstop covers second. The catcher calls "One!" and the third baseman takes the sure out.
+const BD_LEN = 9.6
+const bd = (label, track) => F(label, [...track, [BD_LEN, ...track[0].slice(1)]])
+const buntDefense = {
+  len: BD_LEN,
+  bg: 'field',
+  at: [0.95, 1.8, 2.9],
+  actors: [
+    bd('3B', [[0, 82, 160], [0.95, 82, 160], [1.95, 118, 206], [5.8, 118, 206], [7.0, 82, 160]]),
+    bd('1B', [[0, 222, 160], [0.95, 222, 160], [1.9, 184, 198], [7.2, 184, 198], [8.0, 222, 160]]),
+    bd('P', [[0, 150, 172], [0.95, 150, 172], [1.8, 148, 206], [5.8, 148, 206], [6.8, 150, 172]]),
+    bd('2B', [[0, 206, 110], [0.9, 206, 110], [1.15, 198, 140], [1.6, 200, 162], [1.9, 200, 162], [2.4, 220, 164], [7.0, 220, 164], [7.4, 206, 136], [7.8, 206, 110]]),
+    bd('SS', [[0, 112, 126], [0.95, 112, 126], [2.0, 140, 96], [6.0, 140, 96], [7.0, 112, 126]]),
+    bd('C', [[0, 150, 266]]),
+    { kind: 'runner', label: 'R', fill: Y, track: [[0, 240, 166], [1.1, 240, 166], [3.4, 160, 100], [6.0, 160, 100], [6.6, 220, 130], [7.0, 244, 156], [7.4, 240, 166], [BD_LEN, 240, 166]] },
+    { kind: 'runner', label: 'B', fill: Y, track: [[0, 136, 250], [1.0, 136, 250], [2.0, 186, 226], [2.8, 230, 182], [3.0, 238, 176], [6.8, 238, 176], [7.6, 186, 230], [8.4, 136, 250], [BD_LEN, 136, 250]] },
+    { kind: 'ball', track: [[0, 150, 166], [0.4, 150, 166], [0.9, 150, 244], [1.9, 118, 210], [2.15, 120, 204], [2.65, 218, 162], [7.0, 218, 162], [7.6, 150, 166], [BD_LEN, 150, 166]] },
+  ],
+  pops: [
+    { t0: 1.0, t1: 1.8, at: 0, text: 'Charge!' },
+    { t0: 1.9, t1: 2.8, at: 5, text: 'One!' },
+    { t0: 2.75, t1: 3.9, at: 7, text: 'Out' },
+  ],
+  labels: [
+    { t0: 0, t1: 0.9, x: 10, y: 292, text: 'Runner on first, bunt coming' },
+    { t0: 3.0, t1: 5.8, x: 10, y: 292, text: 'Sure out at first' },
+  ],
+}
+
+export const DIAGRAMS = { 'rounding-first': roundingFirst, pickle, 'tee-work': teeWork, 'star-drill': starDrill, 'front-toss': frontToss, 'cutoffs-relays': cutoffs, 'backing-up': everybodyMoves, 'pitcher-covers-first': pitcherCoversFirst, 'bunt-defense': buntDefense }

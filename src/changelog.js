@@ -1,6 +1,13 @@
-export const VERSION = '1.19.0'
+export const VERSION = '1.20.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.20.0',
+    date: '2026-11-11',
+    items: [
+      'Moving diagrams for Everybody moves, Pitcher covers first and Bunt defense: who goes where, step by step.',
+    ],
+  },
   {
     version: '1.19.0',
     date: '2026-11-11',
