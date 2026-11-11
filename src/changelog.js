@@ -1,6 +1,15 @@
-export const VERSION = '1.21.0'
+export const VERSION = '1.22.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.22.0',
+    date: '2026-11-11',
+    items: [
+      'Send feedback: a button in Settings, and "Was this plan right?" with Yes and Not quite on the plan page and the end of the timer. You see the exact message first, and nothing is sent until you press send in your email app. Player names, your name and your team name are never included.',
+      'The Log tab now starts with "Season so far": practices run, games logged, how often each skill area has been practised, and a nudge when a skill on your needs list has not been practised in three weeks.',
+      'Privacy notes in Settings are now a short, plain list that covers backups, the YouTube button and feedback.',
+    ],
+  },
   {
     version: '1.21.0',
     date: '2026-11-11',

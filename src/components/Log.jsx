@@ -9,6 +9,7 @@ import { AREAS, RATINGS, KINDS, areaLabel, sortEntries, weakAreas, strongAreas, 
 import { NeedPicker } from './Setup.jsx'
 import { TeamHeader } from './Header.jsx'
 import { planDate, sortPlans } from './Today.jsx'
+import { seasonSummary } from '../lib/season.js'
 
 export function dateLabel(date) {
   try {
@@ -43,15 +44,63 @@ export function SuggestionList({ suggestion }) {
   )
 }
 
+// Practices run, games logged, and how often each skill has come up in your plans.
+export function SeasonCard({ team, plans, entries, today }) {
+  const s = seasonSummary({ team, plans, debriefs: entries, today })
+  if (s.practices === 0 && s.games === 0) {
+    return (
+      <section className="card" aria-labelledby="season-title">
+        <h2 id="season-title">Season so far</h2>
+        <p className="muted small">Once you have run a practice or logged a game, your totals and what you have covered show up here.</p>
+      </section>
+    )
+  }
+  const shown = s.areas.filter((a) => a.onList || a.count > 0)
+  return (
+    <section className="card" aria-labelledby="season-title">
+      <h2 id="season-title">Season so far</h2>
+      <div className="season-nums">
+        <div>
+          <strong data-testid="season-practices">{s.practices}</strong>
+          <span>{s.practices === 1 ? 'practice run' : 'practices run'}</span>
+        </div>
+        <div>
+          <strong data-testid="season-games">{s.games}</strong>
+          <span>{s.games === 1 ? 'game logged' : 'games logged'}</span>
+        </div>
+      </div>
+      {shown.length > 0 && (
+        <ul className="plain-list season-areas" aria-label="Skills practised">
+          {shown.map((a) => (
+            <li key={a.id}>
+              <span>{a.label}</span>
+              <strong>{a.count === 0 ? 'not yet' : `${a.count} of ${s.practices}`}</strong>
+            </li>
+          ))}
+        </ul>
+      )}
+      {s.quiet && (
+        <p className="suggest" role="note">
+          {s.quiet.never
+            ? `${s.quiet.label} is on your list but has not come up in your practices yet. Try a drill for it at the next one.`
+            : `${s.quiet.label} has not come up in ${Math.floor(s.quiet.days / 7)} weeks. Try a drill for it at the next practice.`}
+        </p>
+      )}
+    </section>
+  )
+}
+
 export default function Log({ team }) {
   const { entries, suggestion } = useSuggestion(team)
-  if (!entries) return <TeamHeader team={team} title="Log" />
+  const plans = useLiveQuery(() => db.plans.where('teamId').equals(team.id).toArray(), [team.id])
+  if (!entries || !plans) return <TeamHeader team={team} title="Log" />
   const sorted = sortEntries(entries)
 
   return (
     <>
       <TeamHeader team={team} title="Log" />
       <main className="page">
+        <SeasonCard team={team} plans={plans} entries={entries} today={localDate()} />
         <section className="card">
           <h2>After the game or practice</h2>
           <p className="muted small">Jot down what you saw. AttaCoach uses it to suggest what to work on at your next practice.</p>

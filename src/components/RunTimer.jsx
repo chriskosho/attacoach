@@ -10,6 +10,7 @@ import { go, store } from '../lib/route.js'
 import { staffTag } from '../lib/practices.js'
 import { catchUp, behindSeconds, trimSegments } from '../lib/runMath.js'
 import { DrillPicture, hasPicture } from './DrillDiagram.jsx'
+import { PlanFeedback } from './Feedback.jsx'
 
 // Turns a plan into timed segments. Each station rotation is its own segment.
 export function segmentsFor(plan, sport = 'baseball') {
@@ -240,6 +241,7 @@ function Runner({ plan, team }) {
         <div className="run-now">Practice complete</div>
         <div className="run-title">Great work, Coach.</div>
         <p style={{ fontSize: 20, marginTop: 16 }}>{plan.closer}</p>
+        <PlanFeedback team={team} plan={plan} variant="run" />
         <div className="run-controls finish">
           <button className="main" onClick={() => go(`debrief/practice/${plan.id}`)}>
             2-minute recap

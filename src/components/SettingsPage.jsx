@@ -13,6 +13,8 @@ import TestTools from './TestTools.jsx'
 import { loadScenario } from '../lib/scenarios.js'
 import { VERSION, CHANGELOG } from '../changelog.js'
 import { TeamHeader } from './Header.jsx'
+import { SettingsFeedback } from './Feedback.jsx'
+import { feedbackAvailable } from '../lib/feedback.js'
 
 // App-wide settings: your name, how the app looks, backup, sharing and account. Everything about
 // one team (players, how you practice, rules) lives on the Team tab instead.
@@ -147,6 +149,8 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
           </div>
         </section>
 
+        <SettingsFeedback team={team} />
+
         <section className="card">
           <h2 className="sm-h">Share AttaCoach</h2>
           <p className="small muted">Know a coach who could use it? Send them the link.</p>
@@ -188,9 +192,14 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
 
         <section className="card">
           <h2 className="sm-h">Privacy</h2>
-          <p className="small">
-            AttaCoach has no ads or tracking.{AUTH_REQUIRED && ' You sign in with your email, which is used only to sign you in.'} Your teams and plans stay in this browser on this device, and nothing about them is sent to a server. Clearing your browser data deletes them, so keep a backup.
-          </p>
+          <ul className="small privacy-list">
+            <li>AttaCoach has no ads, tracking or analytics.{AUTH_REQUIRED && ' You sign in with your email, which is used only to sign you in.'}</li>
+            <li>Your teams, players, plans and log stay in this browser on this device. Nothing about them is sent to a server.</li>
+            <li>A backup is a file you save yourself. AttaCoach never uploads it; you decide where it goes.</li>
+            <li>The "Find a video on YouTube" button opens a YouTube search in a new tab. YouTube sees that search, not your team.</li>
+            {feedbackAvailable() && <li>Feedback is sent only if you tap Open my email app and press send there. It contains only what you see on the screen: no names.</li>}
+            <li>Clearing your browser data deletes everything here, so keep a backup.</li>
+          </ul>
         </section>
 
         <section className="card">

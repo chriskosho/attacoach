@@ -449,8 +449,9 @@ input[type='text'], input[type='search'], input[type='date'], input[type='email'
 .meta .sep { color: var(--ink-2); }
 
 /* ------------------------------------------------ Sheet */
-.sheet-backdrop { position: fixed; inset: 0; background: rgba(5, 20, 12, 0.55); z-index: 40; display: flex; align-items: flex-end; justify-content: center; }
+.sheet-backdrop { position: fixed; inset: 0; background: rgba(5, 20, 12, 0.55); z-index: 70; display: flex; align-items: flex-end; justify-content: center; }
 .sheet {
+  color: var(--ink);
   background: var(--bg);
   width: 100%;
   max-width: 680px;
@@ -538,7 +539,7 @@ summary { min-height: 44px; display: flex; align-items: center; }
 .update-bar .btn { min-height: 44px; padding: 4px 14px; font-size: 15px; background: var(--pole); border-color: var(--pole); color: var(--pole-ink); }
 .toast .btn { min-height: 44px; padding: 2px 14px; margin-left: 10px; font-size: 15px; background: var(--pole); border-color: var(--pole); color: var(--pole-ink); }
 .date-edit { border: 0; background: none; padding: 0; min-height: 44px; width: auto; font-weight: 600; font-size: 17px; color: var(--ink); }
-.toast { display: flex; align-items: center; position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom)); background: var(--bar-bg); color: var(--bg); padding: 10px 16px; border-radius: 999px; z-index: 60; font-size: 15px; }
+.toast { display: flex; align-items: center; position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(84px + env(safe-area-inset-bottom)); background: var(--bar-bg); color: var(--bg); padding: 10px 16px; border-radius: 999px; z-index: 80; font-size: 15px; }
 
 .empty { text-align: center; padding: 24px 12px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
 
@@ -770,3 +771,19 @@ textarea { font: inherit; width: 100%; border: 1.5px solid var(--line); border-r
 @media (max-width: 359px) {
   .stack > .row:has(select) { flex-direction: column; align-items: stretch; }
 }
+
+/* Feedback */
+.plan-feedback { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; justify-content: center; }
+.plan-feedback strong { flex: 1 0 100%; text-align: center; }
+.plan-feedback.on-run { margin-top: 16px; justify-content: flex-start; }
+.plan-feedback.on-run strong { text-align: left; }
+.feedback-preview { margin: 0; padding: 10px 12px; background: var(--card); border: 2px solid var(--line); border-radius: var(--radius-sm); font-family: var(--font); font-size: 14px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; max-height: 32dvh; overflow: auto; }
+
+/* Season so far */
+.season-nums { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.season-nums div { display: flex; flex-direction: column; background: var(--accent-soft); border-radius: var(--radius-sm); padding: 10px 12px; }
+.season-nums strong { font-family: var(--display); font-size: 34px; line-height: 1; }
+.season-nums span { font-size: 15px; color: var(--ink-2); }
+.season-areas li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-top: 1px solid var(--line); }
+.season-areas li:first-child { border-top: 0; }
+.privacy-list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }

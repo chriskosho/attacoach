@@ -16,3 +16,7 @@ export const SHARE_TEXT = 'AttaCoach builds baseball and softball practice plans
 // On for now so content is easy to review. Set VITE_TEST_TOOLS=false at build time (or change the
 // default) when onboarding should be required.
 export const TEST_TOOLS = import.meta.env.VITE_TEST_TOOLS !== 'false'
+
+// Where feedback goes. The coach's email app opens with a message they can read first; nothing is
+// sent by AttaCoach itself. Leave this empty to hide every feedback button.
+export const FEEDBACK_EMAIL = 'chriskosho@gmail.com'

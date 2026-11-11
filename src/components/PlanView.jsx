@@ -27,6 +27,7 @@ import { DrillText, LevelTag } from './DrillText.jsx'
 import { DrillFilters, DrillList, DrillPrefs, filterDrills } from './Drills.jsx'
 import Sheet from './Sheet.jsx'
 import { planDate } from './Today.jsx'
+import { PlanFeedback } from './Feedback.jsx'
 
 // Toast message, optionally with an Undo action.
 function useToast() {
@@ -461,6 +462,7 @@ export default function PlanView({ planId, team, coach = '' }) {
             {locked ? 'Rebuild the rest' : 'Build a new one'}
           </button>
         </div>
+        <PlanFeedback team={team} plan={plan} />
         <button className="link-btn quiet-delete no-print" onClick={remove}>
           Delete plan
         </button>

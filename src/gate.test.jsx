@@ -279,7 +279,8 @@ describe('settings page: account, share and donate', () => {
 
   it('tells people their email is used to sign in', async () => {
     render(<App />)
-    expect((await screen.findByText(/You sign in with your email/)).textContent).toMatch(/nothing about them is sent to a server/)
+    const card = (await screen.findByText(/You sign in with your email/)).closest('section')
+    expect(card.textContent).toMatch(/Nothing about them is sent to a server/)
   })
 })
 
