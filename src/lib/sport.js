@@ -40,8 +40,17 @@ export function sportSummary(team) {
   return sport === 'softball' ? `Softball, ${formatLabel(formatOf(team)).toLowerCase()}` : 'Baseball'
 }
 
-// Whether a drill fits the team's sport. Drills tagged for one sport are left out of the other.
-export const sportFits = (drill, team) => !drill.sport || drill.sport === sportOf(team)
+// Whether a drill fits the team's sport, and for softball its format. Drills tagged for one sport
+// are left out of the other; softball drills tagged for some formats are left out of the rest.
+export const sportFits = (drill, team) =>
+  (!drill.sport || drill.sport === sportOf(team)) && (!drill.formats || (sportOf(team) === 'softball' && drill.formats.includes(formatOf(team))))
+
+// "baseball" or "softball, fastpitch": who a drill is written for, for the note on its page.
+export function writtenFor(drill) {
+  const sport = sportLabel(drill.sport ?? 'baseball').toLowerCase()
+  if (!drill.formats) return sport
+  return `${sport}, ${drill.formats.map((f) => formatLabel(f).toLowerCase()).join(' or ')}`
+}
 
 // The drill as a team should read it: softball teams get the drill's softball wording where it has
 // any (name, equipment, setup, steps, points, easier, harder). Everything else is shared.

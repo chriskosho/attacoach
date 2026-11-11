@@ -117,6 +117,38 @@ export const TAGS = {
   'around-the-horn': { where: [F, O], staff: 'watch', cap: [4, 12] },
   pepper: { where: [F, O], staff: 'watch', cap: [4, 12], bat: true },
   'relay-race': { where: [F, O], staff: 'run', cap: [6, 14] },
+
+  // ---------------------------------------------------------------- Softball (drillsSoftball.js)
+  // fastpitch pitching
+  'fp-grip-snaps': { where: [F, O, G], staff: 'watch', cap: [2, 6] },
+  'fp-k-drill': { where: [F, O, G], staff: 'watch', cap: [2, 6] },
+  'fp-arm-circle': { where: [F, O, G], staff: 'watch', cap: [2, 6] },
+  'fp-walk-through': { where: [F, O, C], gear: ['net'], swap: 'No net? Pitch to a catcher or a partner with a glove.', staff: 'watch', cap: [2, 4] },
+  'fp-full-motion': { where: [F, C], gear: ['catcherGear'], swap: 'No catcher gear? Pitch to a net or strike target.', staff: 'run', cap: [2, 4] },
+  'fp-corners': { where: [F, C], gear: ['catcherGear'], swap: 'No catcher gear? Pitch to a net with tape marking the inside and outside.', staff: 'run', cap: [2, 4] },
+  'fp-sim-inning': { where: [F, C], gear: ['catcherGear'], swap: 'No catcher gear? Pitch to a net or strike target and keep the count out loud.', staff: 'run', cap: [2, 4] },
+  'fp-coach-eye': { where: [F, O, C], staff: 'run', cap: [1, 3] },
+  'fp-pitcher-fields': { where: [F], staff: 'run', cap: [4, 6] },
+  // softball base running
+  'sb-leave-on-release': { where: [F], staff: 'run', cap: [4, 9] },
+  'sb-read-first-second': { where: [F], staff: 'run', cap: [4, 10] },
+  'sb-read-third': { where: [F], staff: 'run', cap: [4, 8] },
+  // short game
+  'sb-bunt-and-run': { where: [F], staff: 'run', cap: [3, 6], bat: true },
+  'sb-short-game': { where: [F, C], gear: ['lscreen'], swap: 'No L-screen? Toss from the side, well out of the bunting line.', staff: 'run', cap: [3, 6], bat: true },
+  'sb-slap-intro': { where: [F, C, O], staff: 'run', cap: [2, 5], bat: true },
+  // softball defense
+  'sb-corners-crash': { where: [F], staff: 'run', cap: [4, 6] },
+  'sb-defend-slap': { where: [F], staff: 'run', cap: [5, 8] },
+  // coach pitch
+  'cp-quick-rhythm': { where: [F], gear: ['lscreen'], swap: 'No screen? After each pitch, turn your glove side to the hitter, and wear a fielder\'s mask if you have one.', staff: 'run', cap: [3, 8], bat: true },
+  'cp-timing': { where: [F, C, O], gear: ['net'], swap: 'No net? Hit into a fence.', staff: 'run', cap: [2, 4], bat: true },
+  'cp-coach-grounders': { where: [F, O], staff: 'run', cap: [3, 7] },
+  'cp-pitcher-spot': { where: [F], staff: 'run', cap: [3, 6] },
+  // tee ball
+  'tb-at-bat': { where: [F, O], gear: ['tee'], swap: 'No tee? Set the ball on a tall cone.', staff: 'run', cap: [3, 9], bat: true },
+  'tb-stay-or-go': { where: [F, O], staff: 'run', cap: [4, 12] },
+  'tb-big-target': { where: [F, O, G], staff: 'run', cap: [2, 4] },
 }
 
 // Drills for one sport only. Absent means both. Baseball-only drills teach baseball mechanics:
@@ -130,13 +162,66 @@ export const SPORT = {
   'steal-start': 'baseball', // crossover start from a lead
   'ball-in-dirt': 'baseball', // secondary lead off first as the pitch comes
   'pitcher-covers-first': 'baseball', // pitcher off the mound covering first: softball coverage differs
+  // Softball only: every drill in drillsSoftball.js.
+  'fp-grip-snaps': 'softball',
+  'fp-k-drill': 'softball',
+  'fp-arm-circle': 'softball',
+  'fp-walk-through': 'softball',
+  'fp-full-motion': 'softball',
+  'fp-corners': 'softball',
+  'fp-sim-inning': 'softball',
+  'fp-coach-eye': 'softball',
+  'fp-pitcher-fields': 'softball',
+  'sb-leave-on-release': 'softball',
+  'sb-read-first-second': 'softball',
+  'sb-read-third': 'softball',
+  'sb-bunt-and-run': 'softball',
+  'sb-short-game': 'softball',
+  'sb-slap-intro': 'softball',
+  'sb-corners-crash': 'softball',
+  'sb-defend-slap': 'softball',
+  'cp-quick-rhythm': 'softball',
+  'cp-timing': 'softball',
+  'cp-coach-grounders': 'softball',
+  'cp-pitcher-spot': 'softball',
+  'tb-at-bat': 'softball',
+  'tb-stay-or-go': 'softball',
+  'tb-big-target': 'softball',
 }
 
-// Fills in defaults so every drill has the same shape, plus its sport and softball wording.
+// Softball drills for some formats only. Absent means every format. Windmill pitching and the short
+// game are for fastpitch; coach-pitch and tee-ball drills are for those formats.
+const FP = ['fastpitch']
+export const FORMAT = {
+  'fp-grip-snaps': FP,
+  'fp-k-drill': FP,
+  'fp-arm-circle': FP,
+  'fp-walk-through': FP,
+  'fp-full-motion': FP,
+  'fp-corners': FP,
+  'fp-sim-inning': FP,
+  'fp-coach-eye': FP,
+  'fp-pitcher-fields': FP,
+  'sb-bunt-and-run': FP, // many coach-pitch leagues don't allow bunting
+  'sb-short-game': FP,
+  'sb-slap-intro': FP,
+  'sb-corners-crash': FP,
+  'sb-defend-slap': FP,
+  'cp-quick-rhythm': ['coach-pitch'],
+  'cp-timing': ['coach-pitch'],
+  'cp-coach-grounders': ['coach-pitch'],
+  'cp-pitcher-spot': ['coach-pitch'],
+  'tb-at-bat': ['tee-ball'],
+  'tb-stay-or-go': ['tee-ball'],
+  'tb-big-target': ['tee-ball'],
+}
+
+// Fills in defaults so every drill has the same shape, plus its sport, formats and softball wording.
 export function withTags(d) {
   const t = TAGS[d.id] ?? {}
   const sport = SPORT[d.id]
   const softball = SOFTBALL_TEXT[d.id]
+  const formats = FORMAT[d.id]
   return {
     where: ['field'],
     gear: [],
@@ -147,6 +232,7 @@ export function withTags(d) {
     ...t,
     ...d,
     ...(sport ? { sport } : {}),
+    ...(formats ? { formats } : {}),
     ...(softball ? { softball } : {}),
   }
 }

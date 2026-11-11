@@ -7,7 +7,7 @@ import SkillChips from './SkillChips.jsx'
 import { fitsDivision, rulesAllow } from '../lib/plan.js'
 import { go, store } from '../lib/route.js'
 import { TeamHeader } from './Header.jsx'
-import { sportFits, drillFor, sportOf, sportLabel } from '../lib/sport.js'
+import { sportFits, drillFor, sportOf, sportLabel, writtenFor } from '../lib/sport.js'
 import { DrillMeta, DrillText } from './DrillText.jsx'
 
 export function filterDrills(drills, { team, query = '', category = '', need = '', level = '', fitsTeam = true, show = '' }) {
@@ -190,7 +190,7 @@ export function DrillPage({ drillId, team }) {
       <main className="page">
         <div className="card">
           <DrillMeta drill={drill} />
-          {!sportOk && <p className="note">Written for {sportLabel(drill.sport).toLowerCase()}, so plans for your team leave it out.</p>}
+          {!sportOk && <p className="note">Written for {writtenFor(drill)}, so plans for your team leave it out.</p>}
           {!fits && <p className="note">Made for {drill.ages[0]}–{drill.ages[1]}, not {team.division}.</p>}
           {!allowed && <p className="note">Your game rules are set so this doesn't come up in games.</p>}
           {sportOk && fits && allowed && aboveLevel && (

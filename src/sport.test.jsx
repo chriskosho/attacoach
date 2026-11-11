@@ -3,7 +3,8 @@ import { describe, test, it, expect, beforeEach } from 'vitest'
 import { render, screen, within, cleanup } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DRILLS, drillById } from './data/drills.js'
-import { SPORT } from './data/drillTags.js'
+import { SPORT, FORMAT } from './data/drillTags.js'
+import { SOFTBALL_DRILLS } from './data/drillsSoftball.js'
 import { SCENARIOS } from './data/scenarios.js'
 import { defaultRules, RULES } from './data/constants.js'
 import { teamFromScenario } from './lib/scenarioTeam.js'
@@ -94,10 +95,11 @@ describe('softball wording', () => {
 })
 
 describe('the sport tag', () => {
-  test('every tagged drill exists and is baseball-only for a stated reason', () => {
+  test('every tagged drill exists, and softball-only drills are the softball pack', () => {
     for (const id of Object.keys(SPORT)) {
       expect(drillById(id), id).toBeTruthy()
-      expect(SPORT[id]).toBe('baseball')
+      expect(['baseball', 'softball']).toContain(SPORT[id])
+      if (SPORT[id] === 'softball') expect(SOFTBALL_DRILLS.some((d) => d.id === id), id).toBe(true)
     }
   })
 

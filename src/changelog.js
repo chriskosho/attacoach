@@ -1,6 +1,16 @@
-export const VERSION = '1.17.0'
+export const VERSION = '1.18.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.18.0',
+    date: '2026-11-11',
+    items: [
+      'A softball pack of 24 drills. Fastpitch teams get windmill pitching, from grip and wrist snaps through the K drill and the full motion to location work with a catcher, plus a guide for coaches who have never pitched.',
+      'Softball base running (leaving on the release, reading the ball from each base), bunting, push bunts and a first look at slap hitting, and softball bunt and slap defense.',
+      'Coach-pitch and tee-ball softball teams get their own drills, and never get windmill pitching.',
+      'Shared drills read right for softball: the softball strike zone, gripping a bigger ball, and the double first base. Softball video searches were each checked; drills without a good one have no video button.',
+    ],
+  },
   {
     version: '1.17.0',
     date: '2026-11-11',
