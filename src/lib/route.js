@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 // Hash routes so the phone's back button works: #/today, #/plan/<id>, #/drill/<id> ...
 export function parseRoute(hash) {
   const parts = (hash || '').replace(/^#\/?/, '').split('/').filter(Boolean)
-  return { name: parts[0] || 'today', id: parts[1] ? decodeURIComponent(parts[1]) : null }
+  return { name: parts[0] || 'today', id: parts[1] ? decodeURIComponent(parts[1]) : null, extra: parts[2] ? decodeURIComponent(parts[2]) : null }
 }
 
 export function useRoute() {

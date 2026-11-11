@@ -173,3 +173,15 @@ export function DrillVisual({ drill, compact = false, sport = 'baseball' }) {
     </>
   )
 }
+
+// Whether a drill has a diagram or body-position pictures to show.
+export const hasPicture = (drillId) => Boolean(DIAGRAMS[drillId] || POSES_FOR[drillId])
+
+// Just the picture (no video link), for places that should stay on the page, like the practice timer.
+export function DrillPicture({ drill }) {
+  const spec = DIAGRAMS[drill.id]
+  const set = POSES_FOR[drill.id]
+  if (spec) return <DrillDiagram drill={drill} spec={spec} />
+  if (set) return <PoseStrip set={set} />
+  return null
+}

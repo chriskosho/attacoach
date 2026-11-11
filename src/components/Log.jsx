@@ -106,22 +106,26 @@ export default function Log({ team }) {
   )
 }
 
-const blank = (kind, team, plans) => ({
+// planId: a practice the recap is for (the timer's finish screen), so its date and plan are filled in.
+const blank = (kind, team, plans, planId = null) => {
+  const linked = kind === 'practice' && planId ? plans?.find((p) => p.id === planId) : null
+  return {
   kind,
   teamId: team.id,
-  date: localDate(),
+  date: linked?.date ?? localDate(),
   opponent: '',
   ourScore: '',
   theirScore: '',
-  planId: kind === 'practice' ? plans?.[0]?.id ?? null : null,
+  planId: kind === 'practice' ? linked?.id ?? plans?.[0]?.id ?? null : null,
   ratings: {},
   wentWell: '',
   notes: '',
   next: [],
-})
+  }
+}
 
 // id is 'game' or 'practice' for a new entry, or the id of an existing one.
-export function DebriefForm({ team, id }) {
+export function DebriefForm({ team, id, planId = null }) {
   const isNew = id === 'game' || id === 'practice'
   const existing = useLiveQuery(() => (isNew ? null : db.debriefs.get(id)), [id])
   const plans = useLiveQuery(() => db.plans.where('teamId').equals(team.id).toArray().then(sortPlans), [team.id])
@@ -142,7 +146,7 @@ export function DebriefForm({ team, id }) {
     )
   }
   if (plans === undefined) return <TeamHeader team={team} title="Debrief" backTo="log" />
-  return <Form key={id} team={team} plans={plans} initial={isNew ? blank(id, team, plans) : existing} isNew={isNew} />
+  return <Form key={`${id}:${planId ?? ''}`} team={team} plans={plans} initial={isNew ? blank(id, team, plans, planId) : existing} isNew={isNew} />
 }
 
 function Form({ team, plans, initial, isNew }) {

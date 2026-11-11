@@ -121,6 +121,16 @@ const AUTH_ON = process.env.VITE_AUTH_REQUIRED === "true"
       await items.nth(3).locator('.slot-head').first().click()
       await shot('07-plan-open')
       await page.getByRole('button', { name: 'Start practice' }).click()
+      await page.getByRole('button', { name: 'Start' }).waitFor()
+      await shot('08a-timer-first')
+      // The first block shows its name, time, two steps and the Start button without scrolling.
+      const fit = await page.evaluate(() => {
+        const bottom = (el) => (el ? el.getBoundingClientRect().bottom : 9999)
+        const steps = document.querySelectorAll('.run-points li')
+        return { start: bottom(document.querySelector('.run-controls .main')), second: bottom(steps[1]), height: window.innerHeight }
+      })
+      console.log('first timer screen', JSON.stringify(fit))
+      if (fit.start > fit.height || fit.second > fit.height) throw new Error(`first timer screen does not fit: ${JSON.stringify(fit)}`)
       await page.getByRole('button', { name: 'Start' }).click()
       await page.waitForTimeout(1500)
       await shot('08-timer')
@@ -128,6 +138,25 @@ const AUTH_ON = process.env.VITE_AUTH_REQUIRED === "true"
       await page.getByRole('button', { name: 'Next block' }).click()
       await page.getByRole('button', { name: 'Next block' }).click()
       await shot('09-timer-stations')
+      const row = page.locator('.run-station-head').first()
+      if (await row.count()) {
+        await row.click()
+        await shot('09b-timer-station-open')
+        await row.click()
+      }
+      // Pretend practice started 50 minutes ago (after skipping ahead), to show the running-late line.
+      await page.evaluate(() => {
+        for (const k of Object.keys(localStorage)) {
+          if (!k.startsWith('run:')) continue
+          const v = JSON.parse(localStorage.getItem(k))
+          v.startedWall = Date.now() - 50 * 60 * 1000
+          localStorage.setItem(k, JSON.stringify(v))
+        }
+      })
+      await page.reload()
+      await page.getByRole('timer').waitFor()
+      await page.getByText(/behind/).waitFor()
+      await shot('09c-timer-late')
       page.once('dialog', (d) => d.accept())
       await page.getByRole('button', { name: 'Exit' }).click()
       await page.getByRole('button', { name: 'Drills' }).click()

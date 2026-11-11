@@ -87,7 +87,7 @@ export default function App() {
   let page
   if (route.name === 'plan' && route.id) page = <PlanView planId={route.id} team={team} coach={data.coach} />
   else if (route.name === 'drill' && route.id) page = <DrillPage drillId={route.id} team={team} />
-  else if (route.name === 'debrief' && route.id) page = <DebriefForm team={team} id={route.id} />
+  else if (route.name === 'debrief' && route.id) page = <DebriefForm team={team} id={route.id} planId={route.extra} />
   else if (route.name === 'log') page = <Log team={team} />
   else if (route.name === 'coach') page = <CoachCorner team={team} />
   else if (route.name === 'plans') page = <Plans team={team} />

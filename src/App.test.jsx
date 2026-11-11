@@ -296,7 +296,7 @@ describe('backup', () => {
 
 describe('routes', () => {
   it('parses hashes', () => {
-    expect(parseRoute('')).toEqual({ name: 'today', id: null })
-    expect(parseRoute('#/plan/abc')).toEqual({ name: 'plan', id: 'abc' })
+    expect(parseRoute('')).toEqual({ name: 'today', id: null, extra: null })
+    expect(parseRoute('#/plan/abc')).toEqual({ name: 'plan', id: 'abc', extra: null })
   })
 })

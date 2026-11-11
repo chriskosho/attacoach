@@ -1,6 +1,17 @@
-export const VERSION = '1.12.0'
+export const VERSION = '1.13.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.13.0',
+    date: '2026-11-11',
+    items: [
+      'The practice timer shows each group as "Group 1 \u2192 Line drive target" with who runs it. Tap a row to read how the station works, what to say and its picture, without leaving the timer or stopping the clock.',
+      'Drills with a picture get a quiet "Show picture" button. The huddle points on the first screen are one tap away, and the Start button now stays at the bottom of the screen.',
+      'Running late? "+1 min" adds a minute to the block you are in. When practice is more than 3 minutes behind, a quiet line offers "Trim the rest to finish on time", which shortens the drills still ahead (never below 60%) and leaves water breaks and the closing huddle alone. Your saved plan is not changed.',
+      'If the phone sleeps past the end of a block, the timer now catches up to the right block and the right time left.',
+      'When practice ends, the main button is "2-minute recap", which opens the recap for that practice with its date filled in.',
+    ],
+  },
   {
     version: '1.12.0',
     date: '2026-11-11',

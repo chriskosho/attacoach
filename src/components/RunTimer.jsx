@@ -7,6 +7,9 @@ import { drillById } from '../data/drills.js'
 import { blockTitle } from '../lib/share.js'
 import { drillFor, sportOf } from '../lib/sport.js'
 import { go, store } from '../lib/route.js'
+import { staffTag } from '../lib/practices.js'
+import { catchUp, behindSeconds, trimSegments } from '../lib/runMath.js'
+import { DrillPicture, hasPicture } from './DrillDiagram.jsx'
 
 // Turns a plan into timed segments. Each station rotation is its own segment.
 export function segmentsFor(plan, sport = 'baseball') {
@@ -101,13 +104,19 @@ export default function RunTimer({ planId, team }) {
 }
 
 function Runner({ plan, team }) {
-  const segs = useMemo(() => segmentsFor(plan, sportOf(team)), [plan, team])
+  const baseSegs = useMemo(() => segmentsFor(plan, sportOf(team)), [plan, team])
   const storeKey = `run:${plan.id}`
   const [state, setState] = useState(() => {
     const saved = store.get(storeKey)
-    if (saved && saved.index < segs.length) return saved
-    return { index: 0, startedAt: null, elapsed: 0 }
+    if (saved && saved.index < baseSegs.length) return { adj: {}, startedWall: null, ...saved }
+    return { index: 0, startedAt: null, elapsed: 0, adj: {}, startedWall: null }
   })
+  // The run's own lengths: +1 min and trimming change these, never the saved plan.
+  const segs = useMemo(() => baseSegs.map((x) => ({ ...x, base: x.seconds, seconds: state.adj[x.key] ?? x.seconds })), [baseSegs, state.adj])
+  const [note, setNote] = useState('')
+  const [openGroup, setOpenGroup] = useState(null)
+  const [showPic, setShowPic] = useState(false)
+  const [showOpen, setShowOpen] = useState(false)
   const [now, setNow] = useState(Date.now())
   const [finished, setFinished] = useState(false)
   const running = state.startedAt != null
@@ -124,21 +133,41 @@ function Runner({ plan, team }) {
   }, [state, finished, storeKey])
 
   useEffect(() => {
-    if (!running) return
-    const t = setInterval(() => setNow(Date.now()), 250)
+    if (state.startedWall == null && !running) return
+    const t = setInterval(() => setNow(Date.now()), running ? 250 : 5000)
     return () => clearInterval(t)
-  }, [running])
+  }, [running, state.startedWall])
+
+  // When the screen wakes, update the clock now instead of waiting for the next tick.
+  useEffect(() => {
+    const onVis = () => document.visibilityState === 'visible' && setNow(Date.now())
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [])
+
+  // A new block starts with its pictures and station details closed.
+  useEffect(() => {
+    setOpenGroup(null)
+    setShowPic(false)
+  }, [seg?.key])
+
+  // Notes ("Caught up", "Trimmed") fade on their own.
+  useEffect(() => {
+    if (!note) return
+    const t = setTimeout(() => setNote(''), 6000)
+    return () => clearTimeout(t)
+  }, [note])
 
   const goToIndex = useCallback(
     (i, keepRunning) => {
       if (i >= segs.length) {
         setFinished(true)
-        setState({ index: segs.length - 1, startedAt: null, elapsed: 0 })
+        setState((s) => ({ ...s, index: segs.length - 1, startedAt: null, elapsed: 0 }))
         return
       }
       const t = Date.now()
       setNow(t)
-      setState({ index: Math.max(0, i), startedAt: keepRunning ? t : null, elapsed: 0 })
+      setState((s) => ({ ...s, index: Math.max(0, i), startedAt: keepRunning ? t : null, elapsed: 0 }))
     },
     [segs.length],
   )
@@ -151,17 +180,28 @@ function Runner({ plan, team }) {
     }
     if (advanced.current) return
     advanced.current = true
+    // If the screen was off, more than one block may have passed: land on the right one.
+    const c = catchUp(segs.map((x) => x.seconds), state.index, 0, elapsed)
     beep(state.index + 1 < segs.length && segs[state.index + 1].kind === 'stations' && seg.kind === 'stations' ? 3 : 2)
-    goToIndex(state.index + 1, true)
-  }, [running, remaining, state.index, segs, seg, goToIndex])
+    if (c.done) {
+      goToIndex(segs.length, true)
+      return
+    }
+    const t = Date.now()
+    setNow(t)
+    setState((s) => ({ ...s, index: c.index, startedAt: t, elapsed: c.elapsed }))
+    if (-remaining > 3) setNote('Caught up after the screen was off')
+  }, [running, remaining, elapsed, state.index, segs, seg, goToIndex])
 
   const toggleRun = () => {
     unlockAudio()
     const t = Date.now()
     setNow(t)
     if (running) setState((s) => ({ ...s, startedAt: null, elapsed: s.elapsed + (t - s.startedAt) / 1000 }))
-    else setState((s) => ({ ...s, startedAt: t }))
+    else setState((s) => ({ ...s, startedAt: t, startedWall: s.startedWall ?? t }))
   }
+
+  const addMinute = () => setState((s) => ({ ...s, adj: { ...s.adj, [seg.key]: seg.seconds + 60 } }))
 
   const exit = () => {
     if (running && !window.confirm('Leave the timer? Practice time will pause here.')) return
@@ -173,22 +213,33 @@ function Runner({ plan, team }) {
   const doneSeconds = segs.slice(0, state.index).reduce((s, x) => s + x.seconds, 0) + Math.min(elapsed, seg?.seconds ?? 0)
   const next = segs[state.index + 1]
   const drill = seg?.drillId ? drillFor(drillById(seg.drillId), team) : null
+  const block = plan.blocks[seg?.blockIndex]
+
+  const planned = baseSegs.reduce((n, x) => n + x.seconds, 0)
+  const behind = behindSeconds({ startedWall: state.startedWall, now, totalNow: totalSeconds, doneNow: doneSeconds, totalPlanned: planned })
+  const trim = () => {
+    const t = trimSegments(segs, seg.blockIndex, behind)
+    if (!t.cut) {
+      setNote('Nothing left to trim. Water breaks and the huddle stay as planned.')
+      return
+    }
+    setState((s) => ({ ...s, adj: { ...s.adj, ...t.seconds } }))
+    const mins = Math.max(1, Math.round(t.cut / 60))
+    setNote(`Trimmed ${mins} min from the drills ahead${t.capped ? ' (each keeps at least 60% of its time)' : ''}. Water breaks and the closing huddle are unchanged.`)
+  }
 
   if (finished) {
     return (
       <div className="run" role="main">
-        <div className="run-top">
-          <span className="spacer" />
-          <button className="run-btn" onClick={() => go(`plan/${plan.id}`)}>
-            Done
-          </button>
-        </div>
         <div className="run-now">Practice complete</div>
         <div className="run-title">Great work, Coach.</div>
         <p style={{ fontSize: 20, marginTop: 16 }}>{plan.closer}</p>
-        <div className="run-controls" style={{ gridTemplateColumns: '1fr' }}>
-          <button className="main" onClick={() => go('today')}>
-            Plan the next practice
+        <div className="run-controls finish">
+          <button className="main" onClick={() => go(`debrief/practice/${plan.id}`)}>
+            2-minute recap
+          </button>
+          <button className="side" onClick={() => go(`plan/${plan.id}`)}>
+            Done
           </button>
         </div>
       </div>
@@ -219,18 +270,60 @@ function Runner({ plan, team }) {
       <div className={`clock${running ? '' : ' paused'}`} role="timer" aria-live="off">
         {fmtTime(remaining)}
       </div>
+      <div className="run-quiet">
+        <button className="run-btn" onClick={addMinute} aria-label="Add one minute to this block">
+          +1 min
+        </button>
+        {behind > 180 && !note.startsWith('Trimmed') && (
+          <span className="run-late">
+            Running {Math.round(behind / 60)} min behind
+            <button className="link-btn" onClick={trim}>
+              Trim the rest to finish on time
+            </button>
+          </span>
+        )}
+      </div>
+      {note && (
+        <p className="run-note" role="status">
+          {note}
+        </p>
+      )}
 
       {seg.kind === 'stations' && (
         <>
           <div className="run-stations">
             {seg.stations.map((_, g) => {
               const st = (g + seg.rotation) % seg.rotations
+              const sd = drillFor(drillById(seg.stations[st]), team)
+              const open = openGroup === g
+              const tag = staffTag(block?.staff?.[st])
               return (
-                <div key={g}>
-                  <b>{g + 1}</b>
-                  <span>
-                    Group {g + 1}: Station {st + 1}, {drillFor(drillById(seg.stations[st]), team)?.name}
-                  </span>
+                <div key={g} className="run-station">
+                  <button className="run-station-head" onClick={() => setOpenGroup(open ? null : g)} aria-expanded={open}>
+                    <b>{g + 1}</b>
+                    <span className="run-station-name">
+                      Group {g + 1} → {sd?.name}
+                      {tag && <small>{tag}</small>}
+                    </span>
+                    <span className="run-station-toggle">{open ? 'Hide' : 'Open'}</span>
+                  </button>
+                  {open && sd && (
+                    <div className="run-station-body">
+                      <ul className="run-points">
+                        {sd.steps.map((p, i) => (
+                          <li key={i}>{p}</li>
+                        ))}
+                      </ul>
+                      {cuesFor(sd)[0] && (
+                        <p className="run-cue">
+                          <strong>Say:</strong> “{cuesFor(sd)[0].say}”
+                        </p>
+                      )}
+                      <div className="run-picture">
+                        <DrillPicture drill={sd} />
+                      </div>
+                    </div>
+                  )}
                 </div>
               )
             })}
@@ -246,9 +339,21 @@ function Runner({ plan, team }) {
               <li key={i}>{p}</li>
             ))}
           </ul>
-          <button className="run-btn" style={{ alignSelf: 'flex-start', marginTop: 12 }} onClick={() => setShowSteps(!showSteps)}>
-            {showSteps ? 'Show coaching points' : 'Show how it works'}
-          </button>
+          <div className="run-quiet">
+            <button className="run-btn" onClick={() => setShowSteps(!showSteps)}>
+              {showSteps ? 'Show coaching points' : 'Show how it works'}
+            </button>
+            {hasPicture(drill.id) && (
+              <button className="run-btn" onClick={() => setShowPic(!showPic)} aria-expanded={showPic}>
+                {showPic ? 'Hide picture' : 'Show picture'}
+              </button>
+            )}
+          </div>
+          {showPic && (
+            <div className="run-picture">
+              <DrillPicture drill={drill} />
+            </div>
+          )}
         </>
       )}
       {drill && cuesFor(drill)[0] && (
@@ -265,8 +370,13 @@ function Runner({ plan, team }) {
         </p>
       )}
       {state.index === 0 && (
-        <HuddlePoints kind="practiceOpen" team={team} focus={plan.focus} />
+        <div className="run-quiet">
+          <button className="run-btn" onClick={() => setShowOpen(!showOpen)} aria-expanded={showOpen}>
+            {showOpen ? 'Hide huddle points' : 'Huddle points'}
+          </button>
+        </div>
       )}
+      {state.index === 0 && showOpen && <HuddlePoints kind="practiceOpen" team={team} focus={plan.focus} />}
 
       <div className="run-next">
         {next ? (
