@@ -1,6 +1,17 @@
-export const VERSION = '1.15.0'
+export const VERSION = '1.16.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.16.0',
+    date: '2026-11-11',
+    items: [
+      'Favorite a drill, or tell AttaCoach "Don\u2019t suggest this", from the drill page or a plan block\u2019s edit bar. Plans pick favorites a bit more often (still mixing things up) and never pick drills you hid. You can still add a hidden drill to a plan yourself.',
+      'Add your own drills on the Drills tab: name, category, minutes, what it works on, where it can be run, small group or whole team, and the steps. They get a "Yours" badge, plans can pick them, and you can edit or delete them. Plans that used a deleted drill still show its name.',
+      'Lock any block in a plan from its edit bar. "Build a new one" then becomes "Rebuild the rest": locked blocks keep their drill, minutes and place.',
+      'Save a plan you like as a template (under "Date and template" on the plan). On Today, "Start from a template" builds it again, fitted to today\u2019s kids and adults.',
+      'Backups now include favorites, hidden drills, your own drills and templates. Older backups still restore.',
+    ],
+  },
   {
     version: '1.15.0',
     date: '2026-11-11',

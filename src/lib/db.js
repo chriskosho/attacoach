@@ -43,6 +43,18 @@ db.version(4)
       }),
   )
 
+// Version 5: the coach's own drills, and plan templates. Favorite and hidden drills live on each
+// team (team.favorites, team.hidden).
+db.version(5).stores({
+  teams: 'id, updatedAt',
+  plans: 'id, teamId, createdAt',
+  settings: 'key',
+  debriefs: 'id, teamId, date',
+  players: 'id, teamId',
+  customDrills: 'id, updatedAt',
+  templates: 'id, teamId',
+})
+
 // Teams from older backups or installs have no sport: they are baseball teams.
 export const withSport = (t) => (t.sport ? t : { ...t, sport: 'baseball' })
 
@@ -65,7 +77,8 @@ export async function saveTeam(team) {
 }
 
 export async function deleteTeam(id) {
-  await db.transaction('rw', db.teams, db.plans, db.debriefs, db.players, db.settings, async () => {
+  await db.transaction('rw', db.teams, db.plans, db.debriefs, db.players, db.settings, db.templates, async () => {
+    await db.templates.where('teamId').equals(id).delete()
     await db.players.where('teamId').equals(id).delete()
     await db.plans.where('teamId').equals(id).delete()
     await db.debriefs.where('teamId').equals(id).delete()
@@ -102,11 +115,70 @@ export function deleteDebrief(id) {
   return db.debriefs.delete(id)
 }
 
+// ---------------------------------------------------------------- Favorites, hidden drills, own drills, templates
+
+// Adds or removes a drill id from one of a team's lists ('favorites' or 'hidden').
+export async function toggleTeamList(teamId, list, drillId) {
+  const t = await db.teams.get(teamId)
+  if (!t) return false
+  const cur = t[list] ?? []
+  const on = !cur.includes(drillId)
+  const next = on ? [...cur, drillId] : cur.filter((x) => x !== drillId)
+  // Favorite and hidden don't mix: marking one clears the other.
+  const other = list === 'favorites' ? 'hidden' : 'favorites'
+  const patch = { [list]: next }
+  if (on && (t[other] ?? []).includes(drillId)) patch[other] = t[other].filter((x) => x !== drillId)
+  await db.teams.update(teamId, patch)
+  return on
+}
+
+const newCustomId = () => `my-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
+
+export async function saveCustomDrill(row) {
+  const now = new Date().toISOString()
+  const saved = { ...row, id: row.id ?? newCustomId(), createdAt: row.createdAt ?? now, updatedAt: now, deleted: false }
+  await db.customDrills.put(saved)
+  return saved
+}
+
+// Kept as a "deleted drill" so saved plans that use it still show its name.
+export async function deleteCustomDrill(id) {
+  await db.customDrills.update(id, { deleted: true, updatedAt: new Date().toISOString() })
+}
+
+const newTemplateId = () => `tpl-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
+
+export async function saveTemplate(plan, name) {
+  const row = {
+    id: newTemplateId(),
+    teamId: plan.teamId,
+    name: name.trim(),
+    createdAt: new Date().toISOString(),
+    minutes: plan.minutes,
+    focus: plan.focus ?? [],
+    spaces: plan.spaces ?? ['field'],
+    athletic: !!plan.athletic,
+    blocks: plan.blocks.map(({ locked, ...b }) => b),
+  }
+  await db.templates.put(row)
+  return row
+}
+
+export const deleteTemplate = (id) => db.templates.delete(id)
+
 export const BACKUP_FORMAT = 'attacoach-backup'
 
 export async function exportBackup() {
-  const [teams, plans, debriefs, players, coachName] = await Promise.all([db.teams.toArray(), db.plans.toArray(), db.debriefs.toArray(), db.players.toArray(), getSetting('coachName', '')])
-  return { format: BACKUP_FORMAT, version: 4, exportedAt: new Date().toISOString(), coachName, teams, plans, debriefs, players }
+  const [teams, plans, debriefs, players, customDrills, templates, coachName] = await Promise.all([
+    db.teams.toArray(),
+    db.plans.toArray(),
+    db.debriefs.toArray(),
+    db.players.toArray(),
+    db.customDrills.toArray(),
+    db.templates.toArray(),
+    getSetting('coachName', ''),
+  ])
+  return { format: BACKUP_FORMAT, version: 5, exportedAt: new Date().toISOString(), coachName, teams, plans, debriefs, players, customDrills, templates }
 }
 
 /**
@@ -127,6 +199,8 @@ export async function describeBackup(data) {
     players: players.length,
     plans: data.plans.length,
     debriefs: debriefs.length,
+    customDrills: (Array.isArray(data.customDrills) ? data.customDrills : []).filter((d) => !d.deleted).length,
+    templates: Array.isArray(data.templates) ? data.templates.length : 0,
     firstDate: dates[0] ?? null,
     lastDate: dates[dates.length - 1] ?? null,
     exportedAt: data.exportedAt ?? null,
@@ -142,7 +216,12 @@ export async function importBackup(data) {
   }
   const debriefs = Array.isArray(data.debriefs) ? data.debriefs : []
   const players = Array.isArray(data.players) ? data.players : []
-  await db.transaction('rw', db.teams, db.plans, db.debriefs, db.players, db.settings, async () => {
+  // Version 5 and later: the coach's own drills and templates. Older backups have neither.
+  const customDrills = Array.isArray(data.customDrills) ? data.customDrills : []
+  const templates = Array.isArray(data.templates) ? data.templates : []
+  await db.transaction('rw', [db.teams, db.plans, db.debriefs, db.players, db.settings, db.customDrills, db.templates], async () => {
+    await db.customDrills.bulkPut(customDrills)
+    await db.templates.bulkPut(templates)
     await db.players.bulkPut(players)
     await db.teams.bulkPut(data.teams.map(withSport))
     await db.plans.bulkPut(data.plans)
@@ -151,11 +230,11 @@ export async function importBackup(data) {
     if (!current && data.teams[0]) await setSetting('currentTeamId', data.teams[0].id)
     if (typeof data.coachName === 'string' && data.coachName.trim() && !(await getSetting('coachName'))) await setSetting('coachName', data.coachName.trim())
   })
-  return { teams: data.teams.length, plans: data.plans.length, debriefs: debriefs.length, players: players.length }
+  return { teams: data.teams.length, plans: data.plans.length, debriefs: debriefs.length, players: players.length, customDrills: customDrills.length, templates: templates.length }
 }
 
 export async function clearEverything() {
-  await db.transaction('rw', db.teams, db.plans, db.debriefs, db.players, db.settings, async () => {
-    await Promise.all([db.teams.clear(), db.plans.clear(), db.debriefs.clear(), db.players.clear(), db.settings.clear()])
+  await db.transaction('rw', [db.teams, db.plans, db.debriefs, db.players, db.settings, db.customDrills, db.templates], async () => {
+    await Promise.all([db.teams.clear(), db.plans.clear(), db.debriefs.clear(), db.players.clear(), db.settings.clear(), db.customDrills.clear(), db.templates.clear()])
   })
 }

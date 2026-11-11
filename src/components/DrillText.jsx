@@ -7,15 +7,15 @@ export function LevelTag({ level }) {
   return <span className={`level ${level}`}>{label}</span>
 }
 
-export function DrillMeta({ drill }) {
+export function DrillMeta({ drill, favorite = false, hidden = false }) {
   return (
     <span className="meta">
       <span>{categoryLabel(drill.category)}</span>
-      <LevelTag level={drill.level} />
-      <span>
-        {drill.ages[0] === drill.ages[1] ? drill.ages[0] : `${drill.ages[0]}–${drill.ages[1]}`}
-      </span>
+      {drill.custom ? <span className="mark yours">Yours</span> : <LevelTag level={drill.level} />}
+      {!drill.custom && <span>{drill.ages[0] === drill.ages[1] ? drill.ages[0] : `${drill.ages[0]}–${drill.ages[1]}`}</span>}
       <span>{drill.minutes} min</span>
+      {favorite && <span className="mark fav">Favorite</span>}
+      {hidden && <span className="mark hid">Not suggested</span>}
     </span>
   )
 }
@@ -27,7 +27,7 @@ export function DrillText({ drill: base, compact = false, sport = 'baseball' }) 
   const rules = (drill.requires ?? []).map((r) => RULES.find((x) => x.id === r)).filter(Boolean).map((r) => ruleText(r, sport).label)
   return (
     <div className="drill-text stack">
-      {!compact && (
+      {!compact && drill.setup && (
         <section>
           <h4>Setup</h4>
           <p>{drill.setup}</p>
@@ -42,28 +42,36 @@ export function DrillText({ drill: base, compact = false, sport = 'baseball' }) 
           ))}
         </ol>
       </section>
-      <section>
-        <h4>Coaching points</h4>
-        <ul>
-          {drill.points.map((s, i) => (
-            <li key={i}>{s}</li>
-          ))}
-        </ul>
-      </section>
+      {drill.points.length > 0 && (
+        <section>
+          <h4>Coaching points</h4>
+          <ul>
+            {drill.points.map((s, i) => (
+              <li key={i}>{s}</li>
+            ))}
+          </ul>
+        </section>
+      )}
       {!compact && (
         <>
-          <section>
-            <h4>Make it easier</h4>
-            <p>{drill.easier}</p>
-          </section>
-          <section>
-            <h4>Make it harder</h4>
-            <p>{drill.harder}</p>
-          </section>
-          <section>
-            <h4>Equipment</h4>
-            <p>{drill.equipment.join(', ')}</p>
-          </section>
+          {drill.easier && (
+            <section>
+              <h4>Make it easier</h4>
+              <p>{drill.easier}</p>
+            </section>
+          )}
+          {drill.harder && (
+            <section>
+              <h4>Make it harder</h4>
+              <p>{drill.harder}</p>
+            </section>
+          )}
+          {drill.equipment.length > 0 && (
+            <section>
+              <h4>Equipment</h4>
+              <p>{drill.equipment.join(', ')}</p>
+            </section>
+          )}
         </>
       )}
       <div className="tags">

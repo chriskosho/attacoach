@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from './lib/db.js'
+import { setCustomDrills } from './data/drills.js'
 import { useRoute, go } from './lib/route.js'
 import { onUpdateReady, applyUpdate } from './lib/updates.js'
 import { useAuth } from './lib/auth.js'
@@ -10,7 +11,7 @@ import Setup from './components/Setup.jsx'
 import Today from './components/Today.jsx'
 import Plans from './components/Plans.jsx'
 import PlanView from './components/PlanView.jsx'
-import Drills, { DrillPage } from './components/Drills.jsx'
+import Drills, { DrillPage, MyDrillForm } from './components/Drills.jsx'
 import Log, { DebriefForm } from './components/Log.jsx'
 import CoachCorner from './components/CoachCorner.jsx'
 import TeamPage from './components/TeamPage.jsx'
@@ -29,20 +30,23 @@ const TABS = [
   { id: 'team', label: 'Team' },
 ]
 
-const TAB_FOR = { plan: 'plans', run: 'plans', drill: 'drills', debrief: 'log', setup: 'team' }
+const TAB_FOR = { plan: 'plans', run: 'plans', drill: 'drills', mydrill: 'drills', debrief: 'log', setup: 'team' }
 
 export default function App() {
   const route = useRoute()
   // AUTH_REQUIRED never changes while the app runs, so the hook order is stable.
   const auth = AUTH_REQUIRED ? useAuth() : { status: 'off' } // eslint-disable-line react-hooks/rules-of-hooks
   const data = useLiveQuery(async () => {
-    const [teams, current, theme, coach, players] = await Promise.all([
+    const [teams, current, theme, coach, players, custom] = await Promise.all([
       db.teams.toArray(),
       db.settings.get('currentTeamId'),
       db.settings.get('theme'),
       db.settings.get('coachName'),
       db.players.toArray(),
+      db.customDrills.toArray(),
     ])
+    // The coach's own drills, so every screen and the planner can look them up.
+    setCustomDrills(custom)
     return { teams, currentId: current?.value ?? null, theme: theme?.value ?? 'system', coach: coach?.value ?? '', players }
   }, [])
   const [updateReady, setUpdateReady] = useState(false)
@@ -94,6 +98,7 @@ export default function App() {
   let page
   if (route.name === 'plan' && route.id) page = <PlanView planId={route.id} team={team} coach={data.coach} />
   else if (route.name === 'drill' && route.id) page = <DrillPage drillId={route.id} team={team} />
+  else if (route.name === 'mydrill' && route.id) page = <MyDrillForm id={route.id} team={team} />
   else if (route.name === 'debrief' && route.id) page = <DebriefForm team={team} id={route.id} planId={route.extra} />
   else if (route.name === 'log') page = <Log team={team} />
   else if (route.name === 'coach') page = <CoachCorner team={team} />

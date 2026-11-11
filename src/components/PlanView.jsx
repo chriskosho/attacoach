@@ -4,14 +4,15 @@ import { db, savePlan } from '../lib/db.js'
 import {
   schedule, totalMinutes, fmtClock, alternatives, swapDrill, setBlockMinutes, moveBlock, removeBlock,
   addDrill, addBreak, hasPitching, eligibleDrills,
-  rebuildPlan,
+  rebuildPlan, hasLocked,
   missingGear,
 } from '../lib/plan.js'
+import { saveTemplate } from '../lib/db.js'
 import { staffText } from '../lib/practices.js'
 import CountStepper from './Stepper.jsx'
 import { HuddlePoints, SayThis } from './CoachCorner.jsx'
 import { cuesFor } from '../data/coaching.js'
-import { drillById, DRILLS } from '../data/drills.js'
+import { drillById, allDrills } from '../data/drills.js'
 import { drillFor, sportOf, sportCopy } from '../lib/sport.js'
 
 // A drill in the team's sport's wording.
@@ -23,7 +24,7 @@ import { blockTitle, planText, shareText } from '../lib/share.js'
 import { go } from '../lib/route.js'
 import { TeamHeader } from './Header.jsx'
 import { DrillText, LevelTag } from './DrillText.jsx'
-import { DrillFilters, DrillList, filterDrills } from './Drills.jsx'
+import { DrillFilters, DrillList, DrillPrefs, filterDrills } from './Drills.jsx'
 import Sheet from './Sheet.jsx'
 import { planDate } from './Today.jsx'
 
@@ -135,11 +136,29 @@ export default function PlanView({ planId, team, coach = '' }) {
     else if (result === 'failed') setToast('Sharing isn\'t available on this browser.')
   }
 
+  const locked = hasLocked(plan)
   const rebuild = async () => {
-    if (!window.confirm('Build a new plan with the same length, setup and focus? Your changes to this plan will be replaced.')) return
+    const ask = locked
+      ? 'Rebuild everything you have not locked? Locked blocks keep their drill, minutes and place.'
+      : 'Build a new plan with the same length, setup and focus? Your changes to this plan will be replaced.'
+    if (!window.confirm(ask)) return
     await update(rebuildPlan(team, plan, { seed: Date.now() }))
     setOpen(new Set())
-    setToast('New plan built.')
+    setToast(locked ? 'Rebuilt around your locked blocks.' : 'New plan built.')
+  }
+
+  const toggleLock = (b) => update({ ...plan, blocks: plan.blocks.map((x) => (x.id === b.id ? { ...x, locked: !x.locked } : x)) })
+
+  const prefsChanged = (list, on) => {
+    if (list === 'favorites') setToast(on ? 'Added to favorites. Plans will pick it a bit more often.' : 'Removed from favorites.')
+    else setToast(on ? "Plans won't suggest it again. It stays in this plan until you swap it." : 'Plans can suggest it again.')
+  }
+
+  const asTemplate = async () => {
+    const name = window.prompt('Name this template', plan.practiceName ? `${plan.practiceName} template` : 'My practice')
+    if (!name || !name.trim()) return
+    await saveTemplate(plan, name)
+    setToast(`Saved "${name.trim()}". Start from it on the Today tab.`)
   }
 
   // Helpers cancel and parents show up. Rebuild for the adults actually there, keeping most drills.
@@ -184,6 +203,9 @@ export default function PlanView({ planId, team, coach = '' }) {
 
   const blockControls = (b, i) => (
     <div className="edit-bar no-print">
+      <button className="btn quiet small" aria-pressed={!!b.locked} onClick={() => toggleLock(b)}>
+        {b.locked ? 'Unlock' : 'Lock'}
+      </button>
       {b.kind !== 'stations' && <Stepper label="Minutes" value={b.minutes} onChange={(m) => update(setBlockMinutes(plan, b.id, m))} />}
       {b.kind === 'drill' && (
         <button className="btn quiet small" onClick={() => setSwap({ blockId: b.id, stationIndex: null, drillId: b.drillId })}>
@@ -201,6 +223,7 @@ export default function PlanView({ planId, team, coach = '' }) {
           Add break after
         </button>
       )}
+      {b.kind === 'drill' && drillById(b.drillId) && !drillById(b.drillId).deleted && <DrillPrefs team={team} drillId={b.drillId} small onChange={prefsChanged} />}
       <button className="btn danger small" onClick={() => removeWithUndo(removeBlock(plan, b.id), blockTitle(b, sportOf(team)).toLowerCase())}>
         Remove
       </button>
@@ -236,7 +259,7 @@ export default function PlanView({ planId, team, coach = '' }) {
             </div>
             {coach && <div className="small muted">Prepared by {coachTitle(coach)}</div>}
             <details className="plan-details no-print">
-              <summary className="small">Change the date</summary>
+              <summary className="small">Date and template</summary>
               <label className="field">
                 Practice date
                 <input
@@ -246,6 +269,9 @@ export default function PlanView({ planId, team, coach = '' }) {
                   onChange={(e) => e.target.value && update({ ...plan, date: e.target.value })}
                 />
               </label>
+              <button className="btn quiet small" onClick={asTemplate}>
+                Save as a template
+              </button>
             </details>
           </div>
           <span className={`time-total${diff > 0 ? ' over' : ''}`} aria-live="polite">
@@ -322,7 +348,7 @@ export default function PlanView({ planId, team, coach = '' }) {
                     <br />
                     {drill && (
                       <span className="slot-sub">
-                        {categoryLabel(drill.category)} <LevelTag level={drill.level} />
+                        {categoryLabel(drill.category)} {drill.custom ? <span className="mark yours">Yours</span> : <LevelTag level={drill.level} />}
                       </span>
                     )}
                     {b.kind === 'stations' && (
@@ -332,6 +358,12 @@ export default function PlanView({ planId, team, coach = '' }) {
                     )}
                     {b.kind === 'break' && <span className="slot-sub">Water and shade</span>}
                     {b.kind === 'huddle' && <span className="slot-sub">Bring it in and close strong</span>}
+                    {b.locked && (
+                      <>
+                        {' '}
+                        <span className="mark locked">Locked</span>
+                      </>
+                    )}
                   </span>
                   <span className="slot-min">
                     {b.kind === 'stations' ? b.stationMinutes * b.stations.length : b.minutes}
@@ -375,7 +407,7 @@ export default function PlanView({ planId, team, coach = '' }) {
                                   <br />
                                   {sd && (
                                     <span className="slot-sub">
-                                      {categoryLabel(sd.category)} <LevelTag level={sd.level} />
+                                      {categoryLabel(sd.category)} {sd.custom ? <span className="mark yours">Yours</span> : <LevelTag level={sd.level} />}
                                     </span>
                                   )}
                                   {b.staff?.[si] && (
@@ -395,6 +427,7 @@ export default function PlanView({ planId, team, coach = '' }) {
                                     <button className="btn quiet small" onClick={() => setSwap({ blockId: b.id, stationIndex: si, drillId: id })}>
                                       Swap
                                     </button>
+                                    {sd && !sd.deleted && <DrillPrefs team={team} drillId={id} small onChange={prefsChanged} />}
                                     <button className="btn danger small" onClick={() => removeWithUndo(removeBlock(plan, b.id, si, team.division), 'the station')}>
                                       Remove station
                                     </button>
@@ -425,7 +458,7 @@ export default function PlanView({ planId, team, coach = '' }) {
             Print
           </button>
           <button className="btn quiet" onClick={rebuild}>
-            Build a new one
+            {locked ? 'Rebuild the rest' : 'Build a new one'}
           </button>
         </div>
         <button className="link-btn quiet-delete no-print" onClick={remove}>
@@ -534,13 +567,14 @@ function SwapSheet({ team, plan, swap, onPick, onClose }) {
 function AddSheet({ team, plan, onPick, onClose }) {
   const [filters, setFilters] = useState({ query: '', category: '', need: '', level: '', fitsTeam: true })
   const inPlan = new Set(plan.blocks.flatMap((b) => (b.kind === 'stations' ? b.stations : [b.drillId])))
-  const base = filters.fitsTeam ? eligibleDrills(team, { showAllLevels: true }) : DRILLS
+  // Adding by hand can use any drill, including ones the coach said not to suggest.
+  const base = filters.fitsTeam ? eligibleDrills(team, { showAllLevels: true, includeHidden: true }) : allDrills()
   const list = filterDrills(base, { team, ...filters }).filter((d) => !inPlan.has(d.id))
   return (
     <Sheet title="Add a drill" onClose={onClose}>
       <p className="muted small">It goes in just before the team huddle. Move it from there.</p>
       <DrillFilters team={team} value={filters} onChange={setFilters} />
-      <DrillList drills={list} onPick={onPick} />
+      <DrillList drills={list} team={team} onPick={onPick} />
     </Sheet>
   )
 }

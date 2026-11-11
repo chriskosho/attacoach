@@ -1,5 +1,5 @@
 // Goal-based practice plan engine. Pure functions, no UI or storage.
-import { DRILLS, drillById } from '../data/drills.js'
+import { allDrills, drillById } from '../data/drills.js'
 import { divIndex, levelIndex, MAX_LEVEL_FOR, MAX_BLOCK, SINGLE_GEAR } from '../data/constants.js'
 import { OPENERS, closerFor, bandFor, pick } from '../data/motivation.js'
 import { needLabel, starterNeeds } from '../data/constants.js'
@@ -33,11 +33,23 @@ export function levelAllowed(drill, experience, showAll = false) {
 }
 
 // Drills a team can use: its sport, right age, rules allow it, and within the coach's level.
-export function eligibleDrills(team, { showAllLevels = false } = {}) {
-  return DRILLS.filter(
-    (d) => sportFits(d, team) && fitsDivision(d, team.division) && rulesAllow(d, team.rules) && levelAllowed(d, team.experience, showAllLevels),
+// Drills the coach said not to suggest are left out unless asked for (adding one by hand).
+export function eligibleDrills(team, { showAllLevels = false, includeHidden = false } = {}) {
+  const hidden = includeHidden ? null : new Set(team.hidden ?? [])
+  return allDrills().filter(
+    (d) =>
+      !d.deleted &&
+      !(hidden && hidden.has(d.id)) &&
+      sportFits(d, team) &&
+      fitsDivision(d, team.division) &&
+      rulesAllow(d, team.rules) &&
+      levelAllowed(d, team.experience, showAllLevels),
   )
 }
+
+// A favorite gets a modest lift in the ranking. The variety rules still apply, so a favorite
+// from last practice still steps aside.
+export const FAVORITE_BONUS = 9
 
 // How well a drill serves today's focus. Earlier needs weigh more.
 export function needScore(drill, focus = []) {
@@ -224,7 +236,9 @@ export function buildPlan(team, options = {}) {
     (equipment && d.gear.length && d.gear.every((g) => equipment.includes(g)) && d.gear.some((g) => !COMMON_GEAR.includes(g)) ? 6 : 0)
   const weekPenalty = (d) => Math.min(8, d.needs.reduce((s, n) => s + (recentNeeds[n] ?? 0), 0) * 0.8)
 
-  const used = new Set()
+  const favorites = new Set(team.favorites ?? [])
+  const favoriteBonus = (d) => (favorites.has(d.id) ? FAVORITE_BONUS : 0)
+  const used = new Set(options.exclude ?? [])
   const take = (drill) => {
     used.add(drill.id)
     return drill
@@ -246,6 +260,7 @@ export function buildPlan(team, options = {}) {
           weekPenalty(d) -
           historyPenalty(d) +
           featureBonus(d) +
+          favoriteBonus(d) +
           extra(d),
       }))
       .sort((a, b) => b.s - a.s)
@@ -259,7 +274,7 @@ export function buildPlan(team, options = {}) {
   left -= huddle
 
   // 1. Warm-up: the athletic routine replaces the usual one when it is switched on.
-  const athleticWarm = athletic ? eligibleDrills(team, { showAllLevels: true }).find((d) => d.athletic) : null
+  const athleticWarm = athletic ? eligibleDrills(team, { showAllLevels: true }).find((d) => d.athletic && !used.has(d.id)) : null
   const warmups = ranked((d) => d.category === 'warmup')
   const firstWarm = athleticWarm ?? warmups.find((d) => d.group === 'team') ?? warmups[0]
   if (firstWarm) {
@@ -276,7 +291,7 @@ export function buildPlan(team, options = {}) {
 
   // 2. Throwing every practice from 8U up (catch play is the base of everything), where there is room.
   if (!young) {
-    const prog = pool.find((d) => d.id === 'throwing-progression' && spaceFits(d, avail))
+    const prog = pool.find((d) => d.id === 'throwing-progression' && !used.has(d.id) && spaceFits(d, avail))
     if (prog) {
       const m = minutes <= 45 ? 8 : blockLength(prog, division)
       blocks.push({ id: newId('b'), kind: 'drill', drillId: take(prog).id, minutes: m })
@@ -504,9 +519,10 @@ export function buildPlan(team, options = {}) {
 }
 
 // The same plan rebuilt for a different number of adults (or anything else), keeping its seed so
-// most of the drills stay put.
+// most of the drills stay put. Blocks the coach locked keep their drill, minutes and place, and
+// everything else is rebuilt around them.
 export function rebuildPlan(team, plan, changes = {}) {
-  const fresh = buildPlan(team, {
+  const opts = {
     minutes: plan.minutes,
     adults: plan.adults ?? plan.coaches,
     kids: plan.kids,
@@ -521,8 +537,85 @@ export function rebuildPlan(team, plan, changes = {}) {
     date: plan.date,
     seed: plan.seed,
     ...changes,
+  }
+  const locked = plan.blocks.map((b, i) => ({ b, i })).filter((x) => x.b.locked)
+  if (!locked.length) {
+    const fresh = buildPlan(team, opts)
+    return { ...fresh, id: plan.id, createdAt: plan.createdAt }
+  }
+  const lockedMinutes = locked.reduce((n, x) => n + blockMinutes(x.b), 0)
+  const target = opts.minutes ?? 60
+  const fresh = buildPlan(team, { ...opts, minutes: Math.max(10, target - lockedMinutes), exclude: locked.flatMap((x) => drillIdsInPlan({ blocks: [x.b] })) })
+  return { ...fresh, minutes: target, blocks: mergeLocked(fresh.blocks, locked, target), id: plan.id, createdAt: plan.createdAt }
+}
+
+export const hasLocked = (plan) => plan.blocks.some((b) => b.locked)
+
+// Puts locked blocks back at their places among freshly built ones, then evens out the minutes
+// using the unlocked drills only.
+export function mergeLocked(freshBlocks, locked, target) {
+  const isWarm = (b) => b.kind === 'drill' && drillById(b.drillId)?.category === 'warmup'
+  const lockedHuddle = locked.find((x) => x.b.kind === 'huddle')
+  const lockedWarm = locked.some((x) => isWarm(x.b))
+  let body = freshBlocks.filter((b) => b.kind !== 'huddle')
+  // One warm-up is enough: a locked one replaces the new one.
+  if (lockedWarm) body = body.filter((b) => !isWarm(b))
+  const freshHuddle = freshBlocks.find((b) => b.kind === 'huddle')
+  const out = [...body]
+  for (const { b, i } of [...locked].filter((x) => x.b.kind !== 'huddle').sort((a, c) => a.i - c.i)) out.splice(Math.min(i, out.length), 0, b)
+  const huddle = lockedHuddle?.b ?? freshHuddle
+  if (huddle) out.push(huddle)
+  // Even out to the practice length with the unlocked drill blocks, never below 3 minutes each.
+  let diff = target - out.reduce((n, b) => n + blockMinutes(b), 0)
+  const free = out.filter((b) => !b.locked && b.kind === 'drill')
+  if (diff > 0 && free.length) free[free.length - 1].minutes += diff
+  for (let k = free.length - 1; diff < 0 && k >= 0; k--) {
+    const take = Math.min(free[k].minutes - 3, -diff)
+    if (take > 0) {
+      free[k].minutes -= take
+      diff += take
+    }
+  }
+  return out
+}
+
+/**
+ * A plan made from a saved template: the template's blocks and minutes, re-fitted to today's kids
+ * and adults (station groups and who runs each station). options are the same as buildPlan's.
+ */
+export function planFromTemplate(team, template, options = {}) {
+  const base = buildPlan(team, {
+    ...options,
+    minutes: template.minutes ?? options.minutes,
+    focus: template.focus?.length ? template.focus : options.focus,
+    athletic: template.athletic ?? options.athletic,
   })
-  return { ...fresh, id: plan.id, createdAt: plan.createdAt }
+  const young = divIndex(team.division) <= divIndex('6U')
+  const st = staffingFor({ adults: base.adults, role: options.coachRole })
+  const blocks = template.blocks.map((b) => refitBlock({ ...b, id: newId('b') }, base.kids, st, young))
+  return { ...base, minutes: template.minutes ?? totalMinutes({ blocks }), blocks, templateId: template.id, templateName: template.name }
+}
+
+// Station groups and staff for today's numbers. Too few kids for every station: fewer stations,
+// each a little longer, so the block keeps its time.
+export function refitBlock(b, kids, st, young) {
+  if (b.kind !== 'stations') return b
+  const room = Math.max(1, Math.floor(kids / 2))
+  let stations = b.stations
+  let stationMinutes = b.stationMinutes
+  if (stations.length > room) {
+    stationMinutes = Math.round((b.stationMinutes * stations.length) / room)
+    stations = stations.slice(0, room)
+  }
+  if (stations.length === 1) return { id: b.id, kind: 'drill', drillId: stations[0], minutes: stationMinutes }
+  const drills = stations.map(drillById)
+  return {
+    ...b,
+    stations,
+    stationMinutes,
+    groups: groupSizes(kids, stations.length),
+    staff: drills.every(Boolean) ? assignStaff(drills, st, young) : b.staff,
+  }
 }
 
 function insertBreaks(blocks, count) {

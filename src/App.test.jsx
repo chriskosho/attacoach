@@ -285,7 +285,7 @@ describe('backup', () => {
     const data = await exportBackup()
     await clearEverything()
     const r = await importBackup(JSON.parse(JSON.stringify(data)))
-    expect(r).toEqual({ teams: 1, plans: 1, debriefs: 0, players: 0 })
+    expect(r).toEqual({ teams: 1, plans: 1, debriefs: 0, players: 0, customDrills: 0, templates: 0 })
     expect((await db.settings.get('currentTeamId')).value).toBe(team.id)
   })
 

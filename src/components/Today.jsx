@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, savePlan, setSetting } from '../lib/db.js'
-import { buildPlan, totalMinutes, localDate, recentPlans } from '../lib/plan.js'
+import { buildPlan, planFromTemplate, totalMinutes, localDate, recentPlans } from '../lib/plan.js'
 import { go, store } from '../lib/route.js'
 import { lengthsFor, focusSummary, greeting, starterNeeds, divIndex, athleticDefault, SPACES, EQUIPMENT, WEEKDAYS, spaceLabel } from '../data/constants.js'
 import { teamPractices, nextPractice, practiceOn, staffingText } from '../lib/practices.js'
@@ -55,6 +55,9 @@ export default function Today({ team, coach = '', players = [] }) {
   const teamFocus = team.needs?.length ? team.needs : starterNeeds(team.division)
   const [focus, setFocus] = useState(teamFocus)
   const [building, setBuilding] = useState(false)
+  const templates = useLiveQuery(() => db.templates.where('teamId').equals(team.id).toArray(), [team.id])
+  const [templateId, setTemplateId] = useState('')
+  const template = templates?.find((t) => t.id === templateId) ?? null
 
   const plans = useLiveQuery(() => db.plans.where('teamId').equals(team.id).toArray().then(sortPlans), [team.id])
   const latest = plans?.[0] ?? null
@@ -89,7 +92,8 @@ export default function Today({ team, coach = '', players = [] }) {
     store.set('kids', kids)
     // The last few plans before this practice, so practices vary and the week stays balanced.
     const recent = recentPlans(plans, date)
-    const plan = buildPlan(team, {
+    const make = template ? (t, o) => planFromTemplate(t, template, o) : buildPlan
+    const plan = make(team, {
       minutes,
       adults,
       kids,
@@ -170,6 +174,20 @@ export default function Today({ team, coach = '', players = [] }) {
                 <span className="small muted">Today's focus matches.</span>
               )}
             </div>
+          )}
+
+          {templates?.length > 0 && (
+            <label className="field">
+              Start from a template
+              <select value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
+                <option value="">No, build a new plan</option>
+                {templates.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name} ({t.minutes} min)
+                  </option>
+                ))}
+              </select>
+            </label>
           )}
 
           <button className="btn big" onClick={build} disabled={building || focus.length === 0}>

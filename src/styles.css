@@ -276,7 +276,7 @@ textarea {
   resize: vertical;
 }
 label.field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 15px; }
-input[type='text'], input[type='search'], input[type='date'], input[type='email'], select {
+input[type='text'], input[type='search'], input[type='date'], input[type='email'], input[type='number'], select {
   border: 2px solid var(--line);
   background: var(--card);
   border-radius: 10px;
@@ -637,3 +637,16 @@ a.btn { text-decoration: none; }
 .error-screen { max-width: 560px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 32px) 20px 32px; display: flex; flex-direction: column; gap: 14px; color: var(--ink); background: var(--bg); min-height: 100vh; }
 .error-screen h1 { font-family: var(--display); margin: 0; }
 .error-text { font-size: 12px; line-height: 1.4; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px; white-space: pre-wrap; word-break: break-word; user-select: all; max-height: 40vh; overflow: auto; margin: 0; }
+
+/* Favorites, hidden, your own drills, locked blocks */
+.mark { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 1px 8px; border: 1.5px solid currentColor; line-height: 1.5; }
+.mark.yours { color: var(--accent); }
+.mark.fav { color: #b7791f; }
+.mark.hid { color: var(--ink-2); }
+.mark.locked { color: var(--accent); }
+:root[data-theme='dark'] .mark.fav { color: var(--pole); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .mark.fav { color: var(--pole); } }
+.btn[aria-pressed='true'].quiet { background: var(--accent-soft); border-color: var(--accent); }
+.drill-row-wrap { display: flex; align-items: center; gap: 8px; padding-right: 10px; }
+.drill-row-wrap .drill-row { flex: 1; }
+textarea { font: inherit; width: 100%; border: 1.5px solid var(--line); border-radius: var(--radius-sm); padding: 10px; background: var(--card); color: var(--ink); }

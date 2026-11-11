@@ -1471,4 +1471,56 @@ const BASE_DRILLS = [
 export const DRILLS = [...BASE_DRILLS, ...MORE_DRILLS].map(withTags)
 
 const BY_ID = new Map(DRILLS.map((d) => [d.id, d]))
-export const drillById = (id) => BY_ID.get(id)
+
+// ---------------------------------------------------------------- The coach's own drills
+// Stored in the database (customDrills) and registered here so every screen and the planner can
+// look them up like any other drill. A deleted one stays registered under its name with
+// "(deleted drill)", so saved plans that use it still read properly; nothing new picks it.
+
+export const CUSTOM_PREFIX = 'my-'
+
+// A saved custom drill row in the same shape as a library drill.
+export function customToDrill(row) {
+  const team = row.group === 'team'
+  return {
+    id: row.id,
+    custom: true,
+    deleted: !!row.deleted,
+    name: row.deleted ? `${row.name} (deleted drill)` : row.name,
+    baseName: row.name,
+    category: row.category || 'team',
+    ages: ['4U', '14U'],
+    level: 'beginner',
+    minutes: Math.max(2, Math.min(30, Math.round(row.minutes || 10))),
+    group: team ? 'team' : 'small',
+    needs: row.needs ?? [],
+    where: row.where?.length ? row.where : ['field'],
+    gear: [],
+    staff: 'run',
+    cap: team ? [4, 30] : [2, 6],
+    bat: row.category === 'hitting',
+    athletic: false,
+    equipment: [],
+    setup: '',
+    steps: (row.steps ?? []).filter((x) => x && x.trim()),
+    points: [],
+    easier: '',
+    harder: '',
+  }
+}
+
+let CUSTOM = []
+const CUSTOM_BY_ID = new Map()
+
+// Replaces the registered custom drills with these saved rows.
+export function setCustomDrills(rows = []) {
+  CUSTOM = rows.map(customToDrill)
+  CUSTOM_BY_ID.clear()
+  for (const d of CUSTOM) CUSTOM_BY_ID.set(d.id, d)
+}
+
+// Every drill a plan can use: the library plus the coach's own (not deleted).
+export const allDrills = () => (CUSTOM.length ? [...DRILLS, ...CUSTOM.filter((d) => !d.deleted)] : DRILLS)
+export const customDrills = () => CUSTOM.filter((d) => !d.deleted)
+
+export const drillById = (id) => BY_ID.get(id) ?? CUSTOM_BY_ID.get(id)
