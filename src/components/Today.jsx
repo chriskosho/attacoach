@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, savePlan, setSetting } from '../lib/db.js'
-import { buildPlan, totalMinutes, localDate } from '../lib/plan.js'
+import { buildPlan, totalMinutes, localDate, recentPlans } from '../lib/plan.js'
 import { go, store } from '../lib/route.js'
 import { lengthsFor, focusSummary, greeting, starterNeeds, divIndex, athleticDefault, SPACES, EQUIPMENT, WEEKDAYS, spaceLabel } from '../data/constants.js'
 import { teamPractices, nextPractice, practiceOn, staffingText } from '../lib/practices.js'
@@ -82,9 +82,8 @@ export default function Today({ team, coach = '', players = [] }) {
     store.set('minutes', minutes)
     store.set('adults', adults)
     store.set('kids', kids)
-    // Other plans from the week before this practice, so the week stays balanced.
-    const weekAgo = localDate(new Date(new Date(`${date}T12:00:00`).getTime() - 6 * 86400000))
-    const recent = (plans ?? []).filter((p) => p.date && p.date >= weekAgo && p.date < date)
+    // The last few plans before this practice, so practices vary and the week stays balanced.
+    const recent = recentPlans(plans, date)
     const plan = buildPlan(team, {
       minutes,
       adults,

@@ -1,6 +1,17 @@
-export const VERSION = '1.10.0'
+export const VERSION = '1.11.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.11.0',
+    date: '2026-11-11',
+    items: [
+      'Every practice on a field, in a cage or on open grass now includes hitting, at least about 15% of the time. Teams whose players pitch get pitching or catcher work in practices of 75 minutes or more. You can still remove or swap any of it.',
+      'Practices change from week to week. The planner looks back at your last four practices and steps away from drills you just ran, rotates the warm-up, and never closes with the same game twice in a row when another one fits. Throwing progression and arm care still come every time.',
+      'Lower-ranked needs now get their turn across practices instead of the top needs filling every short practice.',
+      'The first plan after setup uses what you entered: your first practice\u2019s length and space, your equipment and your roster size.',
+      'The closing talk fits the day: a hitting practice no longer ends with "ten minutes of catch at home", and a cage day opens on hitting.',
+    ],
+  },
   {
     version: '1.10.0',
     date: '2026-11-09',

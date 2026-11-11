@@ -64,7 +64,7 @@ describe('buildPlan', () => {
     const rules = { kidPitch: true, stealing: false, leadoff: false, droppedThird: false }
     for (let i = 0; i < 15; i++) {
       const plan = buildPlan(team({ rules, experience: 'experienced', needs: ['baserunning', 'catcher', 'awareness'] }), { minutes: 120, coaches: 3, seed: i })
-      drillIdsInPlan(plan).forEach((id) => expect(drillById(id).requires ?? []).toEqual([]))
+      drillIdsInPlan(plan).forEach((id) => (drillById(id).requires ?? []).forEach((r) => expect(rules[r], `${id} needs ${r}`).toBe(true)))
     }
   })
 

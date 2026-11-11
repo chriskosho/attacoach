@@ -128,14 +128,18 @@ describe('space and gear', () => {
     expect(machine).toBeLessThan(4)
   })
 
-  it('balances the week: a field day after a cage day does less hitting', () => {
+  it('balances the week: a field day after a cage day does less hitting, but never none', () => {
+    // A hitting-first team, so the field day has hitting beyond the every-practice minimum.
+    const hitters = team({ needs: ['contact', 'grounders', 'flyballs'] })
     let after = 0
     let before = 0
     for (let seed = 1; seed <= 20; seed++) {
-      const cage = buildPlan(team(), { minutes: 60, adults: 3, spaces: ['cage'], equipment: ['tee', 'machine'], seed })
+      const cage = buildPlan(hitters, { minutes: 60, adults: 3, spaces: ['cage'], equipment: ['tee', 'machine'], seed })
       const count = (p) => drillIdsInPlan(p).filter((id) => drillById(id).category === 'hitting').length
-      before += count(buildPlan(team(), { minutes: 75, adults: 3, seed }))
-      after += count(buildPlan(team(), { minutes: 75, adults: 3, recent: [cage], seed }))
+      before += count(buildPlan(hitters, { minutes: 75, adults: 3, seed }))
+      const next = buildPlan(hitters, { minutes: 75, adults: 3, recent: [cage], seed })
+      expect(count(next)).toBeGreaterThan(0)
+      after += count(next)
     }
     expect(after).toBeLessThan(before)
   })

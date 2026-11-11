@@ -31,8 +31,51 @@ export const CLOSERS = {
     'Shout out a teammate who made a great play or picked someone up today.',
     'Effort and attitude are the two things you control. You controlled them today.',
     'Next game, trust what we practiced. Be loud, be ready, be a good teammate.',
-    'Ten minutes of catch at home this week makes a real difference. See you next practice.',
   ],
+}
+
+// Closing lines tied to what the practice worked on. Keyed by the needs they fit.
+const FOCUS_CLOSERS = [
+  {
+    needs: ['throwing', 'catching'],
+    young: ['Who can play catch with a grown-up before next practice? Two hands, eyes on the ball!'],
+    older: ['Ten minutes of catch at home this week makes a real difference. See you next practice.'],
+  },
+  {
+    needs: ['contact', 'approach', 'bunting'],
+    young: ['Great swings today! Show someone at home your batting stance before next practice.'],
+    older: ['Twenty good dry swings at home this week, nice and slow, and your swing will thank you.'],
+  },
+  {
+    needs: ['grounders', 'flyballs'],
+    young: ['You got in front of a lot of balls today. Ready position! Show me one more time.'],
+    older: ['Roll yourself some grounders or throw a ball off a wall this week. Soft hands, every rep.'],
+  },
+  {
+    needs: ['baserunning'],
+    young: ['Fast feet today! Who remembers: run all the way through first base?'],
+    older: ['Next game, run hard out of the box every time. Effort on the bases wins close games.'],
+  },
+  {
+    needs: ['awareness'],
+    young: ['Who can tell me where we throw the ball when nobody is on base?'],
+    older: ['Before every pitch next game, know the outs and where the ball is going. Talk it out loud.'],
+  },
+  {
+    needs: ['pitching', 'catcher'],
+    young: ['Great work today. Who can show me their ready position one more time?'],
+    older: ['Pitchers and catchers: rest your arm, then a little easy catch is all you need before next time.'],
+  },
+]
+
+/**
+ * A closing line for today's focus: one tied to the day's top needs when there is one, mixed with
+ * the general lines so the same words do not close every practice.
+ */
+export function closerFor(band, focus = [], seed = '') {
+  const top = focus.slice(0, 2)
+  const tied = FOCUS_CLOSERS.filter((c) => c.needs.some((n) => top.includes(n))).flatMap((c) => c[band])
+  return pick([...tied, ...tied, ...CLOSERS[band]], seed)
 }
 
 export const COACH_TIPS = [
