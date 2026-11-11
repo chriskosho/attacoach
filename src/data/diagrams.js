@@ -353,4 +353,141 @@ const buntDefense = {
   ],
 }
 
-export const DIAGRAMS = { 'rounding-first': roundingFirst, pickle, 'tee-work': teeWork, 'star-drill': starDrill, 'front-toss': frontToss, 'cutoffs-relays': cutoffs, 'backing-up': everybodyMoves, 'pitcher-covers-first': pitcherCoversFirst, 'bunt-defense': buntDefense }
+// ---------------------------------------------------------------- First and third defense
+// Runners on first and third. The coach calls the cut play. The runner at first steals; the catcher
+// throws toward second, the shortstop cuts in front of the bag and the second baseman covers behind
+// it. The runner at third breaks, so the shortstop throws home.
+const FT_LEN = 9.4
+const firstAndThird = {
+  len: FT_LEN,
+  bg: 'field',
+  at: [0.2, 0.8, 1.7],
+  actors: [
+    F('P', [[0, 150, 172], [1.1, 150, 172], [1.4, 172, 186], [5.8, 172, 186], [6.4, 150, 172], [FT_LEN, 150, 172]]),
+    F('C', [[0, 150, 262], [FT_LEN, 150, 262]]),
+    F('1B', [[0, 218, 178], [FT_LEN, 218, 178]]),
+    F('2B', [[0, 188, 122], [0.9, 188, 122], [1.3, 170, 96], [1.6, 152, 80], [5.8, 152, 80], [6.2, 176, 82], [6.6, 188, 122], [FT_LEN, 188, 122]]),
+    F('SS', [[0, 112, 126], [0.9, 112, 126], [1.6, 148, 124], [5.8, 148, 124], [6.6, 112, 126], [FT_LEN, 112, 126]]),
+    F('3B', [[0, 78, 162], [FT_LEN, 78, 162]]),
+    { kind: 'runner', label: 'R', fill: Y, track: [[0, 240, 168], [0.8, 240, 168], [3.2, 160, 98], [6.6, 160, 98], [6.9, 196, 96], [7.3, 236, 128], [7.6, 244, 156], [7.9, 240, 168], [FT_LEN, 240, 168]] },
+    { kind: 'runner', label: 'R', fill: Y, track: [[0, 62, 180], [1.7, 62, 180], [2.9, 132, 240], [6.0, 132, 240], [7.2, 62, 180], [FT_LEN, 62, 180]] },
+    { kind: 'coach', label: '', fill: O, track: [[0, 34, 230], [FT_LEN, 34, 230]] },
+    { kind: 'ball', track: [[0, 150, 166], [0.8, 150, 166], [1.2, 150, 256], [1.4, 150, 256], [1.85, 148, 120], [2.0, 148, 120], [2.5, 150, 256], [6.6, 150, 256], [7.2, 150, 166], [FT_LEN, 150, 166]] },
+  ],
+  pops: [
+    { t0: 0.2, t1: 1.2, at: 8, text: 'Cut play!' },
+    { t0: 1.85, t1: 2.5, at: 4, text: 'Cut! Home!' },
+    { t0: 2.8, t1: 4.2, at: 7, text: 'Out' },
+  ],
+  labels: [{ t0: 0, t1: 0.75, x: 10, y: 292, text: 'Runners on 1st and 3rd' }],
+}
+
+// ---------------------------------------------------------------- Double play feeds
+// The coach rolls to the shortstop, who feeds the second baseman at the bag; the pivot goes across
+// the bag and throws to first. Then the reverse: a roll to the second baseman, who feeds the shortstop.
+const DP_LEN = 10
+const dpFeeds = {
+  len: DP_LEN,
+  bg: 'field',
+  at: [0.5, 1.85, 5.0],
+  actors: [
+    F('SS', [[0, 112, 126], [0.5, 112, 126], [1.25, 124, 126], [3.2, 124, 126], [3.8, 112, 126], [5.1, 112, 126], [5.9, 144, 100], [6.35, 144, 100], [6.55, 154, 98], [7.8, 154, 98], [8.6, 112, 126], [DP_LEN, 112, 126]]),
+    F('2B', [[0, 188, 122], [0.6, 188, 122], [1.4, 156, 100], [1.85, 156, 100], [2.05, 148, 96], [3.2, 148, 96], [4.0, 188, 122], [5.0, 188, 122], [5.7, 182, 128], [7.8, 182, 128], [8.2, 188, 122], [DP_LEN, 188, 122]]),
+    F('1B', [[0, 226, 166], [DP_LEN, 226, 166]]),
+    { kind: 'coach', label: '', fill: O, track: [[0, 140, 222], [DP_LEN, 140, 222]] },
+    { kind: 'ball', track: [[0, 136, 216], [0.5, 136, 216], [1.3, 126, 130], [1.5, 126, 130], [1.85, 154, 98], [2.05, 150, 94], [2.6, 222, 164], [3.0, 222, 164], [4.0, 136, 216], [5.0, 136, 216], [5.8, 180, 132], [6.0, 180, 132], [6.35, 146, 100], [6.55, 152, 96], [7.1, 222, 164], [7.6, 222, 164], [8.6, 136, 216], [DP_LEN, 136, 216]] },
+  ],
+  pops: [
+    { t0: 1.4, t1: 1.9, at: 0, text: 'Feed' },
+    { t0: 1.9, t1: 2.7, at: 1, text: 'Across the bag, throw' },
+    { t0: 5.9, t1: 6.4, at: 1, text: 'Feed', below: true },
+    { t0: 6.4, t1: 7.2, at: 0, text: 'Across the bag, throw' },
+  ],
+  labels: [
+    { t0: 0, t1: 4.6, x: 10, y: 292, text: 'Short to second to first' },
+    { t0: 5.0, t1: 9.6, x: 10, y: 292, text: 'Second to short to first' },
+  ],
+}
+
+// ---------------------------------------------------------------- I got it, you take it
+// Two lines facing the coach; the right-hand line is "center". A fly ball between the front players:
+// center calls it and catches; the other answers "Take it!" and backs up behind the catch. Both go to
+// the back of their lines and the next two step up.
+const FC_LEN = 7.4
+const line = (x, i) => [x, 200 + 26 * i]
+const fcFront = (x, catchAt, outside) => {
+  const [, y0] = line(x, 0)
+  const back = line(x, 2)
+  return F('', [[0, x, y0], [0.9, x, y0], [1.85, ...catchAt], [4.2, ...catchAt], [4.6, outside, catchAt[1]], [5.4, outside, back[1]], [5.8, ...back], [FC_LEN, ...back]])
+}
+const fcStep = (x, i) => F('', [[0, ...line(x, i)], [4.6, ...line(x, i)], [5.2, ...line(x, i - 1)], [FC_LEN, ...line(x, i - 1)]])
+const flyballComm = {
+  len: FC_LEN,
+  bg: 'grass',
+  extras: '<text x="210" y="290" text-anchor="middle" class="dg-lab">Center line</text><text x="90" y="290" text-anchor="middle" class="dg-lab">Other line</text>',
+  at: [0.4, 0.9, 3.0],
+  actors: [
+    fcFront(210, [152, 150], 244),
+    fcFront(90, [156, 186], 56),
+    fcStep(210, 1),
+    fcStep(210, 2),
+    fcStep(90, 1),
+    fcStep(90, 2),
+    { kind: 'coach', label: '', fill: O, track: [[0, 150, 40], [FC_LEN, 150, 40]] },
+    { kind: 'ball', track: [[0, 150, 48], [0.4, 150, 48], [1.85, 150, 144], [2.6, 150, 144], [3.4, 150, 48], [FC_LEN, 150, 48]] },
+  ],
+  pops: [
+    { t0: 0.9, t1: 1.9, at: 0, text: 'I got it! I got it!' },
+    { t0: 1.5, t1: 2.4, at: 1, text: 'Take it!', below: true },
+  ],
+  labels: [{ t0: 3.0, t1: 4.6, x: 10, y: 110, text: 'Center has priority' }],
+}
+
+// ---------------------------------------------------------------- First to third
+// Two reps. A single to right: the runner goes hard, rounds second, picks up the third-base coach and
+// is waved to third. Then a single to left: the runner rounds second hard and the coach stops them.
+// Runners go to the back of the line behind first after each rep.
+const FT3_LEN = 15
+const WAIT = [262, 184]
+const firstToThird = {
+  len: FT3_LEN,
+  bg: 'field',
+  at: [0.6, 8.0, 10.6],
+  actors: [
+    // Rep 1, then back to the line behind first, walking around behind home while nobody is hitting.
+    { kind: 'runner', label: 'R', fill: Y, curve: [0.6, 4.0], track: [[0, 238, 166], [0.6, 238, 166], [1.8, 190, 126], [2.6, 162, 100], [3.0, 146, 94], [3.4, 120, 116], [4.0, 64, 168], [5.2, 64, 168], [5.8, 58, 214], [6.4, 104, 262], [6.9, 150, 288], [7.4, 200, 268], [8.0, ...WAIT], [12.2, ...WAIT], [12.8, 238, 166], [FT3_LEN, 238, 166]] },
+    { kind: 'runner', label: 'R', fill: Y, curve: [8.0, 11.0], track: [[0, ...WAIT], [6.4, ...WAIT], [7.0, 238, 166], [8.0, 238, 166], [9.2, 190, 126], [10.0, 162, 100], [10.4, 146, 92], [10.9, 132, 104], [11.6, 152, 94], [12.6, 152, 94], [13.2, 200, 114], [13.8, 264, 148], [14.4, ...WAIT], [FT3_LEN, ...WAIT]] },
+    F('RF', [[0, 236, 50], [0.6, 236, 50], [1.7, 228, 80], [5.4, 228, 80], [6.2, 236, 50], [FT3_LEN, 236, 50]]),
+    F('LF', [[0, 64, 50], [8.0, 64, 50], [9.1, 82, 80], [12.2, 82, 80], [13.0, 64, 50], [FT3_LEN, 64, 50]]),
+    F('CF', [[0, 150, 28], [FT3_LEN, 150, 28]]),
+    F('3B', [[0, 82, 184], [FT3_LEN, 82, 184]]),
+    { kind: 'coach', label: '', fill: O, track: [[0, 36, 206], [FT3_LEN, 36, 206]] },
+    { kind: 'coach', label: '', fill: O, track: [[0, 138, 246], [FT3_LEN, 138, 246]] },
+    { kind: 'ball', track: [[0, 144, 244], [0.6, 144, 244], [1.6, 226, 84], [2.9, 226, 84], [3.9, 84, 178], [5.4, 84, 178], [6.2, 144, 244], [8.0, 144, 244], [9.0, 84, 84], [10.3, 84, 84], [11.1, 84, 178], [12.4, 84, 178], [13.2, 144, 244], [FT3_LEN, 144, 244]] },
+  ],
+  pops: [
+    { t0: 2.2, t1: 3.4, at: 6, text: 'Go! Go!' },
+    { t0: 4.0, t1: 5.0, at: 0, text: 'Safe' },
+    { t0: 10.6, t1: 11.6, at: 6, text: 'Stop! Back!' },
+  ],
+  labels: [
+    { t0: 0, t1: 4.2, x: 10, y: 292, text: 'Single to right' },
+    { t0: 7.8, t1: 11.8, x: 10, y: 292, text: 'Single to left' },
+  ],
+}
+
+// Holds a diagram still for `by` seconds at time `from`, so a step has time to be read.
+function delay(spec, from, by) {
+  const m = (t) => (t >= from && t > 0 ? t + by : t)
+  return {
+    ...spec,
+    len: spec.len + by,
+    at: spec.at.map(m),
+    actors: spec.actors.map((a) => ({ ...a, track: a.track.map(([t, ...v]) => (a.kind === 'bat' ? [m(t), ...v] : [m(t), ...v])), ...(a.vis ? { vis: a.vis.map(m) } : {}), ...(a.curve ? { curve: a.curve.map(m) } : {}) })),
+    pops: (spec.pops ?? []).map((p) => ({ ...p, t0: m(p.t0), t1: m(p.t1) })),
+    labels: (spec.labels ?? []).map((l) => ({ ...l, t0: m(l.t0), t1: m(l.t1) })),
+    guides: (spec.guides ?? []).map((g) => ({ ...g, t0: m(g.t0), t1: m(g.t1) })),
+  }
+}
+
+export const DIAGRAMS = { 'rounding-first': roundingFirst, pickle, 'tee-work': teeWork, 'star-drill': starDrill, 'front-toss': frontToss, 'cutoffs-relays': cutoffs, 'backing-up': everybodyMoves, 'pitcher-covers-first': pitcherCoversFirst, 'bunt-defense': buntDefense, 'first-and-third': delay(firstAndThird, 0.75, 1.4), 'dp-feeds': dpFeeds, 'flyball-communication': flyballComm, 'first-to-third': firstToThird }

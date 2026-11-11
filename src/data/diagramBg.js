@@ -63,4 +63,7 @@ const toss = () => {
   return s
 }
 
-export const BG = { field: field(), basepath: basepath(), cage: cage(), star: star(), toss: toss() }
+// Open grass with nothing on it, for drills run in the outfield or any open space.
+const grass = () => `<rect width="300" height="300" class="dg-turf"/>${stripes()}`
+
+export const BG = { field: field(), basepath: basepath(), cage: cage(), star: star(), toss: toss(), grass: grass() }
