@@ -55,7 +55,7 @@ export default function App() {
 
   useEffect(() => {
     const t = data?.theme
-    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t
+    if (t === 'light' || t === 'dark' || t === 'sun') document.documentElement.dataset.theme = t
     else delete document.documentElement.dataset.theme
   }, [data?.theme])
 

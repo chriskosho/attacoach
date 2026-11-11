@@ -21,7 +21,7 @@ export default function SafetyCards({ players = 0, plans = 0 }) {
         <span className="small muted">Your teams and plans live only on this phone. A backup file is the safe copy.</span>
         <div className="action-row">
           <button
-            className="btn"
+            className="btn ghost"
             onClick={async () => {
               await saveBackupFile()
               setSaved(true)
@@ -51,7 +51,7 @@ export default function SafetyCards({ players = 0, plans = 0 }) {
         )}
         <div className="action-row">
           {kind === 'prompt' && (
-            <button className="btn" onClick={runInstallPrompt}>
+            <button className="btn ghost" onClick={runInstallPrompt}>
               Add to home screen
             </button>
           )}

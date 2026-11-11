@@ -69,7 +69,7 @@ export default function Log({ team }) {
           <section className="card" aria-labelledby="next-title">
             <h3 id="next-title">Work on next</h3>
             <SuggestionList suggestion={suggestion} />
-            <button className="btn" onClick={() => go('today')}>
+            <button className="btn ghost" onClick={() => go('today')}>
               Plan next practice
             </button>
           </section>
@@ -78,7 +78,10 @@ export default function Log({ team }) {
         {sorted.length === 0 ? (
           <div className="card empty">
             <h2>Nothing logged yet</h2>
-            <p className="muted">After your next game, tap Game debrief. It takes about two minutes.</p>
+            <p className="muted">Your games and practices will show up here, newest first. A debrief takes about two minutes.</p>
+            <button className="btn ghost" onClick={() => go('debrief/game')}>
+              Log your first game
+            </button>
           </div>
         ) : (
           <div className="card flat">
@@ -228,7 +231,7 @@ function Form({ team, plans, initial, isNew }) {
         </section>
 
         <section className="card">
-          <h3>How did it go?</h3>
+          <h2 className="sm-h">How did it go?</h2>
           <p className="muted small">Tap a rating for each area. Skip anything you did not see. Tap again to clear.</p>
           {AREAS.map((a) => (
             <div className="stack" key={a.id}>
@@ -258,7 +261,7 @@ function Form({ team, plans, initial, isNew }) {
         </section>
 
         <section className="card">
-          <h3>Work on at the next practice</h3>
+          <h2 className="sm-h">Work on at the next practice</h2>
           <p className="muted small">Optional. Pick up to three. These count the most when AttaCoach suggests a focus.</p>
           <NeedPicker division={team.division} value={e.next ?? []} onChange={(next) => set({ next })} />
         </section>

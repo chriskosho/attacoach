@@ -7,35 +7,47 @@ export function LevelTag({ level }) {
   return <span className={`level ${level}`}>{label}</span>
 }
 
+// Category, level, ages and time on one wrapping line, with a dot between the items.
 export function DrillMeta({ drill, favorite = false, hidden = false }) {
+  const items = [
+    <span key="cat">{categoryLabel(drill.category)}</span>,
+    drill.custom ? <span key="lvl" className="mark yours">Yours</span> : <LevelTag key="lvl" level={drill.level} />,
+    !drill.custom && <span key="ages">{drill.ages[0] === drill.ages[1] ? drill.ages[0] : `${drill.ages[0]}–${drill.ages[1]}`}</span>,
+    <span key="min">{drill.minutes} min</span>,
+    favorite && <span key="fav" className="mark fav">Favorite</span>,
+    hidden && <span key="hid" className="mark hid">Not suggested</span>,
+  ].filter(Boolean)
   return (
     <span className="meta">
-      <span>{categoryLabel(drill.category)}</span>
-      {drill.custom ? <span className="mark yours">Yours</span> : <LevelTag level={drill.level} />}
-      {!drill.custom && <span>{drill.ages[0] === drill.ages[1] ? drill.ages[0] : `${drill.ages[0]}–${drill.ages[1]}`}</span>}
-      <span>{drill.minutes} min</span>
-      {favorite && <span className="mark fav">Favorite</span>}
-      {hidden && <span className="mark hid">Not suggested</span>}
+      {items.map((el, i) => [
+        i > 0 && (
+          <span key={`s${i}`} className="sep" aria-hidden="true">
+            {' · '}
+          </span>
+        ),
+        el,
+      ])}
     </span>
   )
 }
 
 // Full drill write-up. New coaches see everything; experienced coaches get the short version
 // unless they ask for more. `sport` picks the wording: softball teams see the drill's softball text.
-export function DrillText({ drill: base, compact = false, sport = 'baseball' }) {
+export function DrillText({ drill: base, compact = false, sport = 'baseball', level = 2 }) {
+  const H = `h${level}`
   const drill = drillFor(base, sport)
   const rules = (drill.requires ?? []).map((r) => RULES.find((x) => x.id === r)).filter(Boolean).map((r) => ruleText(r, sport).label)
   return (
     <div className="drill-text stack">
       {!compact && drill.setup && (
         <section>
-          <h4>Setup</h4>
+          <H>Setup</H>
           <p>{drill.setup}</p>
         </section>
       )}
       <DrillVisual drill={drill} compact={compact} sport={sport} />
       <section>
-        <h4>How it works</h4>
+        <H>How it works</H>
         <ol>
           {drill.steps.map((s, i) => (
             <li key={i}>{s}</li>
@@ -44,7 +56,7 @@ export function DrillText({ drill: base, compact = false, sport = 'baseball' }) 
       </section>
       {drill.points.length > 0 && (
         <section>
-          <h4>Coaching points</h4>
+          <H>Coaching points</H>
           <ul>
             {drill.points.map((s, i) => (
               <li key={i}>{s}</li>
@@ -56,19 +68,19 @@ export function DrillText({ drill: base, compact = false, sport = 'baseball' }) 
         <>
           {drill.easier && (
             <section>
-              <h4>Make it easier</h4>
+              <H>Make it easier</H>
               <p>{drill.easier}</p>
             </section>
           )}
           {drill.harder && (
             <section>
-              <h4>Make it harder</h4>
+              <H>Make it harder</H>
               <p>{drill.harder}</p>
             </section>
           )}
           {drill.equipment.length > 0 && (
             <section>
-              <h4>Equipment</h4>
+              <H>Equipment</H>
               <p>{drill.equipment.join(', ')}</p>
             </section>
           )}

@@ -38,7 +38,7 @@ export default function Roster({ division, players, onChange }) {
 
   return (
     <div className="stack">
-      <button type="button" className="btn" onClick={() => setAdding(true)}>
+      <button type="button" className={`btn${players.length === 0 ? '' : ' ghost'}`} onClick={() => setAdding(true)}>
         {players.length === 0 ? 'Add a player' : 'Add another player'}
       </button>
 

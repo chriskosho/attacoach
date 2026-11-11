@@ -125,6 +125,7 @@ function Runner({ plan, team }) {
   const remaining = seg ? seg.seconds - elapsed : 0
   const advanced = useRef(false)
   const [showSteps, setShowSteps] = useState(team.experience === 'new')
+  const [showAll, setShowAll] = useState(false)
 
   useWakeLock(running)
 
@@ -149,6 +150,7 @@ function Runner({ plan, team }) {
   useEffect(() => {
     setOpenGroup(null)
     setShowPic(false)
+    setShowAll(false)
   }, [seg?.key])
 
   // Notes ("Caught up", "Trimmed") fade on their own.
@@ -214,6 +216,10 @@ function Runner({ plan, team }) {
   const next = segs[state.index + 1]
   const drill = seg?.drillId ? drillFor(drillById(seg.drillId), team) : null
   const block = plan.blocks[seg?.blockIndex]
+  // At most three lines to read at first; the rest sit behind More.
+  const allLines = drill ? (showSteps ? drill.steps : drill.points) : []
+  const shown = showAll ? allLines : allLines.slice(0, 3)
+  const more = allLines.length - 3 > 0 ? allLines.length - 3 : 0
 
   const planned = baseSegs.reduce((n, x) => n + x.seconds, 0)
   const behind = behindSeconds({ startedWall: state.startedWall, now, totalNow: totalSeconds, doneNow: doneSeconds, totalPlanned: planned })
@@ -335,12 +341,17 @@ function Runner({ plan, team }) {
       {drill && (
         <>
           <ul className="run-points">
-            {(showSteps ? drill.steps : drill.points).map((p, i) => (
+            {shown.map((p, i) => (
               <li key={i}>{p}</li>
             ))}
           </ul>
           <div className="run-quiet">
-            <button className="run-btn" onClick={() => setShowSteps(!showSteps)}>
+            {more > 0 && (
+              <button className="run-btn" onClick={() => setShowAll(!showAll)} aria-expanded={showAll}>
+                {showAll ? 'Fewer' : `More (${more})`}
+              </button>
+            )}
+            <button className="run-btn" onClick={() => { setShowSteps(!showSteps); setShowAll(false) }}>
               {showSteps ? 'Show coaching points' : 'Show how it works'}
             </button>
             {hasPicture(drill.id) && (

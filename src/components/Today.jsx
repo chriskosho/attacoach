@@ -167,7 +167,7 @@ export default function Today({ team, coach = '', players = [] }) {
               <strong>From your recent games and practices</strong>
               <SuggestionList suggestion={suggestion} />
               {useSuggested ? (
-                <button className="btn small" onClick={applySuggestion}>
+                <button className="btn ghost small" onClick={applySuggestion}>
                   Use this focus
                 </button>
               ) : (
@@ -190,7 +190,7 @@ export default function Today({ team, coach = '', players = [] }) {
             </label>
           )}
 
-          <button className="btn big" onClick={build} disabled={building || focus.length === 0}>
+          <button className={`btn big${upcoming ? ' ghost' : ''}`} onClick={build} disabled={building || focus.length === 0}>
             Build practice plan
           </button>
           {focus.length === 0 && <span className="muted small">Pick at least one thing to work on.</span>}
@@ -202,7 +202,7 @@ export default function Today({ team, coach = '', players = [] }) {
             <div className="stack">
               <div className="stack">
                 <strong className="small">How long is practice?</strong>
-                <div className="seg" role="group" aria-label="Practice length in minutes">
+                <div className="seg many" role="group" aria-label="Practice length in minutes">
                   {lengths.map((m) => (
                     <button key={m} type="button" aria-pressed={minutes === m} onClick={() => setMinutes(m)}>
                       {m}

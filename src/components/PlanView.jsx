@@ -239,7 +239,7 @@ export default function PlanView({ planId, team, coach = '' }) {
             <strong>This is a starter plan on the fundamentals for {team.division}.</strong>
             <span>Add your players or choose your team's skills and the next plan will be built around them.</span>
             <span className="action-row" style={{ width: '100%' }}>
-              <button className="btn small" onClick={() => go('team')}>
+              <button className="btn ghost small" onClick={() => go('team')}>
                 Add players
               </button>
               <button className="btn quiet small" onClick={() => go(`setup/${team.id}`)}>
@@ -308,7 +308,7 @@ export default function PlanView({ planId, team, coach = '' }) {
               <span key={l}>{l}</span>
             ))}
             <span className="action-row" style={{ width: '100%' }}>
-              <button className="btn small" onClick={undoChange}>
+              <button className="btn ghost small" onClick={undoChange}>
                 Undo
               </button>
               <button className="btn quiet small" onClick={() => setChanged(null)}>
@@ -521,7 +521,7 @@ function ChangeSheet({ team, plan, onApply, onClose }) {
       </div>
       <div className="stack">
         <strong className="small">Minutes</strong>
-        <div className="seg" role="group" aria-label="Minutes today">
+        <div className="seg many" role="group" aria-label="Minutes today">
           {lengths.map((m) => (
             <button key={m} type="button" aria-pressed={minutes === m} onClick={() => setMinutes(m)}>
               {m}

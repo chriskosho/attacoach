@@ -95,11 +95,11 @@ export function DrillDiagram({ drill, spec }) {
       </svg>
       {spec.poses && <PoseStrip set={spec.poses} active={pose} />}
       <div className="dg-controls no-print">
-        <button type="button" className="btn small" onClick={() => setPlaying((p) => !p)} aria-label={playing ? 'Pause' : 'Play'}>
+        <button type="button" className="btn quiet small" onClick={() => setPlaying((p) => !p)} aria-label={playing ? 'Pause' : 'Play'}>
           {playing ? 'Pause' : 'Play'}
         </button>
         <input type="range" min="0" max={spec.len} step="0.05" value={t} aria-label="Move through the drill" onChange={(e) => { setPlaying(false); setT(Number(e.target.value)) }} />
-        <button type="button" className="btn small" aria-pressed={slow} onClick={() => setSlow((s) => !s)}>
+        <button type="button" className="btn quiet small" aria-pressed={slow} aria-label="Half speed" onClick={() => setSlow((s) => !s)}>
           ½×
         </button>
       </div>
@@ -161,7 +161,7 @@ export function VideoLink({ id, sport = 'baseball' }) {
   if (!url) return null
   return (
     <p className="no-print">
-      <a className="btn small" href={url} target="_blank" rel="noopener noreferrer">
+      <a className="btn quiet small" href={url} target="_blank" rel="noopener noreferrer">
         Find a video on YouTube
       </a>
     </p>

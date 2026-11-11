@@ -213,9 +213,9 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
           <>
             {first && (
               <div className="hero-welcome">
-                <h1>
+                <h2>
                   Atta<span>Coach</span>
-                </h1>
+                </h2>
                 <p>Practice plans built around what your team needs to work on. A few quick questions, and you can skip most of them.</p>
               </div>
             )}
@@ -278,7 +278,7 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
             </div>
             {first && TEST_TOOLS && (
               <div className="card">
-                <h3>Just looking around?</h3>
+                <h2 className="sm-h">Just looking around?</h2>
                 <p className="small muted">Skip the questions, or load a ready-made team to see plans, the timer and Coach Corner.</p>
                 <button className="btn quiet" disabled={saving} onClick={skipSetup}>
                   Skip setup
@@ -391,7 +391,7 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
             </button>
           )}
           {step < LAST ? (
-            <button className="btn" disabled={!canNext} onClick={() => goTo(step + 1)}>
+            <button className={`btn${(step === 2 && players.length === 0) || (step === 3 && needs.length === 0) ? ' ghost' : ''}`} disabled={!canNext} onClick={() => goTo(step + 1)}>
               {(step === 2 && players.length === 0) || (step === 3 && needs.length === 0) ? 'Skip for now' : 'Next'}
             </button>
           ) : (

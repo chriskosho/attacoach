@@ -102,7 +102,7 @@ export default function TeamPage({ team, teams, players = [] }) {
           {needsDiffer && (
             <div className="suggest">
               <span>Your players point to: {suggestedNeeds.map(needLabel).join(', ')}.</span>
-              <button className="btn small" onClick={useRoster}>
+              <button className="btn ghost small" onClick={useRoster}>
                 Update team needs
               </button>
             </div>

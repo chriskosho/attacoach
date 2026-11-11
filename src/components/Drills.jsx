@@ -28,8 +28,19 @@ export function filterDrills(drills, { team, query = '', category = '', need = '
   })
 }
 
-export function DrillList({ drills, onPick, team = null, action = null }) {
-  if (!drills.length) return <p className="muted empty">No drills match. Try clearing a filter.</p>
+export function DrillList({ drills, onPick, team = null, action = null, empty = null }) {
+  if (!drills.length) {
+    return (
+      <div className="card empty">
+        <p className="muted">{empty?.text ?? 'No drills match. Try clearing a filter.'}</p>
+        {empty?.action && (
+          <button className="btn ghost" onClick={empty.action.onClick}>
+            {empty.action.label}
+          </button>
+        )}
+      </div>
+    )
+  }
   const favorites = new Set(team?.favorites ?? [])
   const hidden = new Set(team?.hidden ?? [])
   return (
@@ -139,6 +150,15 @@ export default function Drills({ team }) {
         Suggest again
       </button>
     ) : null
+  const showAll = () => update({ ...filters, show: '' })
+  const emptyFor =
+    filters.show === 'favorites'
+      ? { text: 'Drills you star will appear here. Open any drill and tap Favorite.', action: { label: 'Show all drills', onClick: showAll } }
+      : filters.show === 'hidden'
+        ? { text: 'Drills you tell AttaCoach not to suggest will appear here.', action: { label: 'Show all drills', onClick: showAll } }
+        : filters.show === 'yours'
+          ? { text: 'Drills you add will appear here.', action: { label: 'Add your own drill', onClick: () => go('mydrill/new') } }
+          : { text: 'No drills match these filters.', action: { label: 'Clear filters', onClick: () => update({ ...emptyFilters }) } }
   return (
     <>
       <TeamHeader team={team} title="Drills" />
@@ -152,7 +172,7 @@ export default function Drills({ team }) {
             Add your own drill
           </button>
         </div>
-        <DrillList drills={list} team={team} onPick={(d) => go(`drill/${d.id}`)} action={filters.show === 'hidden' ? unhide : null} />
+        <DrillList drills={list} team={team} onPick={(d) => go(`drill/${d.id}`)} action={filters.show === 'hidden' ? unhide : null} empty={emptyFor} />
       </main>
     </>
   )

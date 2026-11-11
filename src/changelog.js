@@ -1,6 +1,17 @@
-export const VERSION = '1.20.3'
+export const VERSION = '1.21.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.21.0',
+    date: '2026-11-11',
+    items: [
+      'New High contrast (bright sun) choice in Settings: white background, black text, heavier type, and a white timer with black digits.',
+      'Easier to read and tap: every button, chip, arrow and plus or minus is at least 44 pixels, the Today greeting and the paused timer digits are clearer, and keyboard focus is easy to see.',
+      'The drill page header now reads "Warm-up · Beginner · 8U–14U · 8 min" instead of running together.',
+      'The practice timer shows three lines at a time with a More button, and the clock stays in view while you scroll.',
+      'Where two big buttons competed, the lesser one is now outlined. Empty lists say what will appear and offer one action. Small phones (320 pixels wide) fit every screen.',
+    ],
+  },
   {
     version: '1.20.3',
     date: '2026-11-11',

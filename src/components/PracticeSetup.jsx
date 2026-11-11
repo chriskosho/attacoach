@@ -39,7 +39,7 @@ export default function PracticeSetup({ division, value, onChange }) {
             </div>
             <div className="stack">
               <strong className="small">Usual length</strong>
-              <div className="seg" role="group" aria-label={`Length for ${p.name || 'practice'}`}>
+              <div className="seg many" role="group" aria-label={`Length for ${p.name || 'practice'}`}>
                 {lengths.map((m) => (
                   <button key={m} type="button" aria-pressed={p.minutes === m} onClick={() => setPractice(p.id, { minutes: m })}>
                     {m}

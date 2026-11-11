@@ -104,7 +104,7 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
       <TeamHeader team={team} title="Settings" backTo="team" />
       <main className="page">
         <section className="card">
-          <h3>Coach profile</h3>
+          <h2 className="sm-h">Coach profile</h2>
           {nameDraft === null ? (
             <div className="row">
               <span className="spacer">{coach ? coachTitle(coach) : <span className="muted">No name yet</span>}</span>
@@ -131,23 +131,24 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
         </section>
 
         <section className="card">
-          <h3>Display</h3>
-          <div className="seg" role="group" aria-label="Theme">
+          <h2 className="sm-h">Display</h2>
+          <div className="choices" role="group" aria-label="Theme">
             {[
-              ['system', 'Auto'],
-              ['light', 'Light'],
-              ['dark', 'Dark'],
-            ].map(([id, label]) => (
-              <button key={id} aria-pressed={theme === id} onClick={() => setSetting('theme', id)}>
-                {label}
+              ['system', 'Auto', 'Follows your phone'],
+              ['light', 'Light', null],
+              ['dark', 'Dark', null],
+              ['sun', 'High contrast (bright sun)', 'White background, black text, heavier type'],
+            ].map(([id, label, help]) => (
+              <button key={id} type="button" className="choice" aria-pressed={theme === id} onClick={() => setSetting('theme', id)}>
+                <strong>{label}</strong>
+                {help && <span>{help}</span>}
               </button>
             ))}
           </div>
-          <p className="small muted">Light is easiest to read in bright sun.</p>
         </section>
 
         <section className="card">
-          <h3>Share AttaCoach</h3>
+          <h2 className="sm-h">Share AttaCoach</h2>
           <p className="small muted">Know a coach who could use it? Send them the link.</p>
           <button className="btn quiet" onClick={shareApp}>
             Share AttaCoach
@@ -155,7 +156,7 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
         </section>
 
         <section className="card">
-          <h3>Support AttaCoach</h3>
+          <h2 className="sm-h">Support AttaCoach</h2>
           <p className="small muted">AttaCoach is free and has no ads. If it helps your team, you can chip in.</p>
           <a className="btn quiet" href={DONATE_URL} target="_blank" rel="noopener noreferrer">
             Donate with PayPal
@@ -163,7 +164,7 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
         </section>
 
         <section className="card">
-          <h3>Backup</h3>
+          <h2 className="sm-h">Backup</h2>
           <p className="small muted">
             Your teams and plans are saved only on this device. Save a backup file to keep them safe or move them to a new phone.
           </p>
@@ -186,14 +187,14 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
         </section>
 
         <section className="card">
-          <h3>Privacy</h3>
+          <h2 className="sm-h">Privacy</h2>
           <p className="small">
             AttaCoach has no ads or tracking.{AUTH_REQUIRED && ' You sign in with your email, which is used only to sign you in.'} Your teams and plans stay in this browser on this device, and nothing about them is sent to a server. Clearing your browser data deletes them, so keep a backup.
           </p>
         </section>
 
         <section className="card">
-          <h3>About</h3>
+          <h2 className="sm-h">About</h2>
           <p className="small">AttaCoach {VERSION}. Drills are original to AttaCoach. Check your league's rulebook for local rules and pitch limits.</p>
           {CHANGELOG.slice(0, 2).map((c) => (
             <div key={c.version} className="small">
@@ -211,7 +212,7 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
 
         {auth?.email && (
           <section className="card">
-            <h3>Account</h3>
+            <h2 className="sm-h">Account</h2>
             <p className="small">
               Signed in as <strong>{auth.email}</strong>
             </p>
@@ -229,7 +230,7 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
 
         {TEST_TOOLS && (
           <section className="card" aria-labelledby="test-title">
-            <h3 id="test-title">Testing tools</h3>
+            <h2 className="sm-h" id="test-title">Testing tools</h2>
             <p className="small muted">Add a ready-made team to try different situations. It becomes your current team; your other teams stay.</p>
             <TestTools
               label="Add a ready-made team"
