@@ -1,6 +1,17 @@
-export const VERSION = '1.14.0'
+export const VERSION = '1.15.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.15.0',
+    date: '2026-11-11',
+    items: [
+      'AttaCoach now asks your browser to keep your teams and plans. Settings says plainly whether it agreed, and when your last backup was.',
+      'If you have players or a few plans and no backup for 2 weeks, Today shows a small "Save a backup (takes 10 seconds)" card. Tap Not now and it stays away for 2 weeks.',
+      'On a phone browser, a one-time card shows how to add AttaCoach to your home screen. It never shows in the installed app, and never at the same time as the backup card.',
+      'If the app ever hits an error, you now get a calm screen with Reload and Save a backup first, instead of a blank page.',
+      'Restoring a backup now shows what is in it (teams, players, plans and dates) and asks before adding it.',
+    ],
+  },
   {
     version: '1.14.0',
     date: '2026-11-11',

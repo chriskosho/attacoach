@@ -216,6 +216,64 @@ const AUTH_ON = process.env.VITE_AUTH_REQUIRED === "true"
       await page.getByRole('button', { name: 'Coach', exact: true }).click()
       await page.getByRole('heading', { name: 'Game day huddles' }).waitFor()
       await shot('12f-coach-tab')
+
+      // Safety cards. This team has a roster and no backup, so the backup card leads.
+      await page.getByRole('button', { name: 'Today', exact: true }).click()
+      await page.getByRole('region', { name: 'Backup reminder' }).waitFor()
+      await shot('13a-backup-card')
+      // Never both: dismissing the backup card lets the home screen hint show (Android prompt, then iPhone steps).
+      await page.getByRole('region', { name: 'Backup reminder' }).getByRole('button', { name: 'Not now' }).click()
+      await page.evaluate(() => {
+        const ev = new Event('beforeinstallprompt', { cancelable: true })
+        ev.prompt = () => Promise.resolve()
+        ev.userChoice = Promise.resolve({ outcome: 'dismissed' })
+        window.dispatchEvent(ev)
+      })
+      await page.getByRole('region', { name: 'Add to home screen' }).waitFor()
+      await shot('13b-home-screen-android')
+      await page.addInitScript(() => Object.defineProperty(navigator, 'userAgent', { value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1', configurable: true }))
+      await page.reload()
+      await page.getByRole('region', { name: 'Add to home screen' }).waitFor()
+      await shot('13c-home-screen-iphone')
+      await page.getByRole('button', { name: 'Settings' }).click()
+      await page.getByTestId('storage-line').waitFor()
+      console.log('storage line:', await page.getByTestId('storage-line').textContent())
+      await shot('13d-settings-storage')
+
+      // The error screen: a damaged plan crashes its page (the console errors are expected); the backup button still works.
+      const before = errors.length
+      await page.evaluate(
+        () =>
+          new Promise((resolve, reject) => {
+            const open = indexedDB.open('attacoach')
+            open.onsuccess = () => {
+              const tx = open.result.transaction('plans', 'readwrite')
+              tx.objectStore('plans').put({ id: 'bad-plan', teamId: 'x', createdAt: '2026-11-01T00:00:00Z', blocks: null })
+              tx.oncomplete = () => (open.result.close(), resolve())
+              tx.onerror = () => reject(tx.error)
+            }
+            open.onerror = () => reject(open.error)
+          }),
+      )
+      await page.goto(URL + '#/plan/bad-plan')
+      await page.reload()
+      await page.getByRole('alert').waitFor()
+      const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Save a backup first' }).click()])
+      console.log('error screen backup:', download.suggestedFilename())
+      await page.getByText(/Saved a backup of/).waitFor()
+      await shot('13e-error-screen')
+      errors.length = before
+      await page.evaluate(
+        () =>
+          new Promise((resolve) => {
+            const open = indexedDB.open('attacoach')
+            open.onsuccess = () => {
+              const tx = open.result.transaction('plans', 'readwrite')
+              tx.objectStore('plans').delete('bad-plan')
+              tx.oncomplete = () => (open.result.close(), resolve())
+            }
+          }),
+      )
       await ctx.close()
     }
   } finally {

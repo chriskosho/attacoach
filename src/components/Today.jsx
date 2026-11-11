@@ -13,6 +13,7 @@ import NeedsRanker from './NeedsRanker.jsx'
 import { TeamHeader } from './Header.jsx'
 import { useSuggestion, SuggestionList } from './Log.jsx'
 import { nextPlan, planNeedingRecap } from '../lib/todayRules.js'
+import SafetyCards from './SafetyCards.jsx'
 
 // Friendly practice date: "Today", "Tomorrow" or "Sat, Nov 14".
 export function planDate(plan) {
@@ -132,6 +133,8 @@ export default function Today({ team, coach = '', players = [] }) {
             </div>
           </section>
         )}
+
+        {plans && <SafetyCards players={players.length} plans={plans.length} />}
 
         <section className="card" aria-labelledby="build-title">
           <h2 id="build-title">{upcoming ? 'Plan another practice' : 'Plan a practice'}</h2>

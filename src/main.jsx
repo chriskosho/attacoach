@@ -6,11 +6,14 @@ import '@fontsource/barlow-condensed/latin-600.css'
 import '@fontsource/barlow-condensed/latin-700.css'
 import './styles.css'
 import App from './App.jsx'
+import ErrorBoundary from './components/ErrorScreen.jsx'
 import { registerServiceWorker } from './lib/updates.js'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 )
 

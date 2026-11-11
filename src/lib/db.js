@@ -109,6 +109,32 @@ export async function exportBackup() {
   return { format: BACKUP_FORMAT, version: 4, exportedAt: new Date().toISOString(), coachName, teams, plans, debriefs, players }
 }
 
+/**
+ * What a backup file holds, for showing before a restore: counts, team names, the span of plan
+ * dates, when it was saved, and how much of it is already on this device (those rows get replaced).
+ */
+export async function describeBackup(data) {
+  if (!data || data.format !== BACKUP_FORMAT || !Array.isArray(data.teams) || !Array.isArray(data.plans)) {
+    throw new Error('This file is not an AttaCoach backup.')
+  }
+  const players = Array.isArray(data.players) ? data.players : []
+  const debriefs = Array.isArray(data.debriefs) ? data.debriefs : []
+  const dates = data.plans.map((p) => p.date ?? (p.createdAt ?? '').slice(0, 10)).filter(Boolean).sort()
+  const [teamsHere, plansHere] = await Promise.all([db.teams.bulkGet(data.teams.map((t) => t.id)), db.plans.bulkGet(data.plans.map((p) => p.id))])
+  return {
+    teams: data.teams.length,
+    teamNames: data.teams.map((t) => t.name).filter(Boolean),
+    players: players.length,
+    plans: data.plans.length,
+    debriefs: debriefs.length,
+    firstDate: dates[0] ?? null,
+    lastDate: dates[dates.length - 1] ?? null,
+    exportedAt: data.exportedAt ?? null,
+    replacesTeams: teamsHere.filter(Boolean).length,
+    replacesPlans: plansHere.filter(Boolean).length,
+  }
+}
+
 // Merges a backup into this device. Rows with the same id are replaced.
 export async function importBackup(data) {
   if (!data || data.format !== BACKUP_FORMAT || !Array.isArray(data.teams) || !Array.isArray(data.plans)) {

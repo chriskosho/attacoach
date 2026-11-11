@@ -18,6 +18,7 @@ import SettingsPage from './components/SettingsPage.jsx'
 import RunTimer from './components/RunTimer.jsx'
 import { TabIcon } from './components/Icons.jsx'
 import { createFirstPlan } from './lib/starter.js'
+import { requestPersist } from './lib/safety.js'
 
 const TABS = [
   { id: 'today', label: 'Today' },
@@ -53,6 +54,12 @@ export default function App() {
     if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t
     else delete document.documentElement.dataset.theme
   }, [data?.theme])
+
+  // Once a team exists, ask the browser to keep the data (and ask again on later starts until it says yes).
+  const hasTeam = !!data?.teams.length
+  useEffect(() => {
+    if (hasTeam) requestPersist()
+  }, [hasTeam])
 
   // Sign-in gate: nothing else shows until someone has signed in at least once on this device.
   if (auth.status === 'loading') return <Splash />

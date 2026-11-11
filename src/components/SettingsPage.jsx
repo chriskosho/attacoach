@@ -1,6 +1,10 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { coachTitle } from '../data/constants.js'
-import { exportBackup, importBackup, setSetting, clearEverything } from '../lib/db.js'
+import { importBackup, describeBackup, setSetting, clearEverything, getSetting } from '../lib/db.js'
+import { saveBackupFile, backupMessage, plural } from '../lib/backupFile.js'
+import { storageState, storageLine, LAST_BACKUP } from '../lib/safety.js'
+import Sheet from './Sheet.jsx'
 import { go } from '../lib/route.js'
 import { shareText } from '../lib/share.js'
 import { signOut, deleteAccount, friendlyAuthError } from '../lib/auth.js'
@@ -23,18 +27,17 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
     setNameDraft(null)
   }
 
+  const [storage, setStorage] = useState(null)
+  useEffect(() => {
+    storageState().then(setStorage)
+  }, [])
+  const lastBackup = useLiveQuery(() => getSetting(LAST_BACKUP, null), [])
+  // A backup the coach picked, waiting for a yes.
+  const [pending, setPending] = useState(null)
+
   const download = async () => {
-    const data = await exportBackup()
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `attacoach-backup-${new Date().toISOString().slice(0, 10)}.json`
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
-    setMsg(`Saved a backup of ${data.teams.length} ${data.teams.length === 1 ? 'team' : 'teams'} and ${data.plans.length} plans${data.debriefs?.length ? ` and ${data.debriefs.length} log ${data.debriefs.length === 1 ? 'entry' : 'entries'}` : ''}.`)
+    const data = await saveBackupFile()
+    setMsg(backupMessage(data))
   }
 
   const restore = async (e) => {
@@ -43,8 +46,18 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
     if (!file) return
     try {
       const data = JSON.parse(await file.text())
+      setPending({ data, info: await describeBackup(data) })
+    } catch (err) {
+      setMsg(err.message?.includes('AttaCoach') ? err.message : 'That file could not be read. Choose an AttaCoach backup (.json).')
+    }
+  }
+
+  const confirmRestore = async () => {
+    const { data } = pending
+    setPending(null)
+    try {
       const r = await importBackup(data)
-      setMsg(`Restored ${r.teams} ${r.teams === 1 ? 'team' : 'teams'} and ${r.plans} plans${r.debriefs ? ` and ${r.debriefs} log ${r.debriefs === 1 ? 'entry' : 'entries'}` : ''}.`)
+      setMsg(`Restored ${plural(r.teams, 'team')} and ${plural(r.plans, 'plan')}${r.debriefs ? ` and ${plural(r.debriefs, 'log entry', 'log entries')}` : ''}.`)
     } catch (err) {
       setMsg(err.message?.includes('AttaCoach') ? err.message : 'That file could not be read. Choose an AttaCoach backup (.json).')
     }
@@ -154,6 +167,8 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
           <p className="small muted">
             Your teams and plans are saved only on this device. Save a backup file to keep them safe or move them to a new phone.
           </p>
+          {storageLine(storage) && <p className="small" data-testid="storage-line">{storageLine(storage)}</p>}
+          <p className="small muted">{lastBackup ? `Last backup: ${new Date(lastBackup).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}.` : 'No backup saved yet.'}</p>
           <div className="action-row">
             <button className="btn quiet" onClick={download}>
               Save backup
@@ -232,6 +247,41 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
           Delete everything on this device
         </button>
       </main>
+      {pending && <RestoreSheet info={pending.info} onYes={confirmRestore} onClose={() => setPending(null)} />}
     </>
+  )
+}
+
+const niceDate = (iso) => (iso ? new Date(iso.length > 10 ? iso : `${iso}T12:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '')
+
+// What a backup holds, shown before it is added to this device.
+function RestoreSheet({ info, onYes, onClose }) {
+  return (
+    <Sheet title="Restore this backup?" onClose={onClose}>
+      <ul className="restore-list">
+        <li>
+          <strong>{plural(info.teams, 'team')}</strong>
+          {info.teamNames.length > 0 && `: ${info.teamNames.join(', ')}`}
+        </li>
+        <li>{plural(info.players, 'player')}</li>
+        <li>
+          {plural(info.plans, 'plan')}
+          {info.firstDate && (info.firstDate === info.lastDate ? ` (${niceDate(info.firstDate)})` : ` (${niceDate(info.firstDate)} to ${niceDate(info.lastDate)})`)}
+        </li>
+        <li>{plural(info.debriefs, 'log entry', 'log entries')}</li>
+        {info.exportedAt && <li>Saved {niceDate(info.exportedAt)}</li>}
+      </ul>
+      <p className="small muted">
+        Restoring adds these to what is on this device. {info.replacesTeams + info.replacesPlans > 0 ? `${plural(info.replacesTeams, 'team')} and ${plural(info.replacesPlans, 'plan')} here already match the backup and will be replaced by its version.` : 'Nothing on this device is replaced.'} Other teams and plans stay.
+      </p>
+      <div className="action-row">
+        <button className="btn" onClick={onYes}>
+          Restore
+        </button>
+        <button className="btn quiet" onClick={onClose}>
+          Cancel
+        </button>
+      </div>
+    </Sheet>
   )
 }
