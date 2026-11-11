@@ -9,6 +9,7 @@
 //   requires  game rules that must be on for the drill to be relevant (optional)
 
 import { MORE_DRILLS } from './drillsMore.js'
+import { YOUNG_DRILLS } from './drillsYoung.js'
 import { withTags } from './drillTags.js'
 
 const BASE_DRILLS = [
@@ -67,7 +68,7 @@ const BASE_DRILLS = [
     steps: [
       'Play Simon Says with baseball positions: "Coach says ready position", "Coach says alligator", "Coach says run to first".',
       'Mix in moves without "Coach says" to keep them listening.',
-      'Players who get caught do five jumping jacks and rejoin. Nobody sits out.',
+      'Nobody is ever out. If someone gets caught, the coach gets a point, and the team tries to win the next call.',
     ],
     points: ['Ready position: feet wide, knees bent, glove out front.', 'Use the same words you use in drills, so they learn the language.'],
     easier: 'Demonstrate each position before calling it.',
@@ -1369,7 +1370,8 @@ const BASE_DRILLS = [
     id: 'flyball-500',
     name: '500',
     category: 'game',
-    ages: ['6U', '12U'],
+    // Hit fly balls from 10U, when most players can track one. Younger teams play Toss 500.
+    ages: ['10U', '14U'],
     level: 'beginner',
     minutes: 10,
     group: 'small',
@@ -1468,7 +1470,7 @@ const BASE_DRILLS = [
 ]
 
 // Every drill, with space, gear and staffing tags filled in.
-export const DRILLS = [...BASE_DRILLS, ...MORE_DRILLS].map(withTags)
+export const DRILLS = [...BASE_DRILLS, ...MORE_DRILLS, ...YOUNG_DRILLS].map(withTags)
 
 const BY_ID = new Map(DRILLS.map((d) => [d.id, d]))
 

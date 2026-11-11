@@ -1,6 +1,16 @@
-export const VERSION = '1.16.0'
+export const VERSION = '1.17.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.17.0',
+    date: '2026-11-11',
+    items: [
+      '19 new drills and games. 4U and 6U teams get 12 new drills built for four- and five-year-olds: catching, throwing, ground balls, balls in the air, tee hitting, base running and warm-up games, with tennis, foam or wiffle balls and an adult at each station.',
+      'Seven new closing games: Beat the ball and Fill the bucket for 4U to 6U, Toss 500 for 6U to 8U, Workup and Around the horn for 8U to 12U, and Pepper and Relay race for the older teams.',
+      '500 with hit fly balls is now for 10U and up. Younger teams play Toss 500: a coach calls one player\u2019s name before each soft toss, so nobody crowds under the ball.',
+      'Coach says no longer uses jumping jacks as a penalty. Nobody is out: the coach just gets a point.',
+    ],
+  },
   {
     version: '1.16.0',
     date: '2026-11-11',

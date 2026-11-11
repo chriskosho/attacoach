@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { DRILLS } from './drills.js'
+import { YOUNG_DRILLS } from './drillsYoung.js'
+import { TAGS } from './drillTags.js'
 import { DIVISIONS, NEEDS, CATEGORIES, LEVELS, RULES, divIndex } from './constants.js'
 
 const needIds = NEEDS.map((n) => n.id)
@@ -51,5 +53,46 @@ describe('drill library', () => {
         expect(ok, `${div} ${need}`).toBe(true)
       }
     }
+  })
+})
+
+describe('young teams and closing games', () => {
+  const fits = (div) => DRILLS.filter((d) => divIndex(div) >= divIndex(d.ages[0]) && divIndex(div) <= divIndex(d.ages[1]))
+
+  it('gives 4U at least 24 drills and 6U at least 40, covering what a T-ball practice needs', () => {
+    expect(fits('4U').length).toBeGreaterThanOrEqual(24)
+    expect(fits('6U').length).toBeGreaterThanOrEqual(40)
+    for (const cat of ['warmup', 'throwing', 'infield', 'outfield', 'hitting', 'baserunning', 'game']) {
+      expect(fits('4U').filter((d) => d.category === cat).length, `4U ${cat}`).toBeGreaterThanOrEqual(3)
+    }
+  })
+
+  it('has at least 12 closing games, and at least 3 for every age', () => {
+    expect(DRILLS.filter((d) => d.category === 'game').length).toBeGreaterThanOrEqual(12)
+    for (const div of DIVISIONS) expect(fits(div).filter((d) => d.category === 'game').length, div).toBeGreaterThanOrEqual(3)
+  })
+
+  it('keeps hit fly balls in 500 for ages that can track them; younger teams toss', () => {
+    const d = DRILLS.find((x) => x.id === 'flyball-500')
+    expect(divIndex(d.ages[0])).toBeGreaterThanOrEqual(divIndex('10U'))
+    const toss = DRILLS.find((x) => x.id === 'toss-500')
+    expect(toss.ages).toEqual(['6U', '8U'])
+  })
+
+  it('uses soft balls in every 4U drill with a ball in the air or on a bat', () => {
+    for (const d of YOUNG_DRILLS.filter((x) => x.ages[0] === '4U' && !['warmup', 'baserunning'].includes(x.category))) {
+      expect(d.equipment.join(' '), d.id).toMatch(/tennis|foam|wiffle|soft/i)
+      expect(d.minutes, d.id).toBeLessThanOrEqual(8)
+    }
+  })
+
+  it('no player is ever put out of Coach says, and nobody exercises as a penalty', () => {
+    const d = DRILLS.find((x) => x.id === 'coach-says')
+    expect(d.steps.join(' ')).not.toMatch(/jumping jacks|push-?ups|laps/i)
+    for (const x of DRILLS) expect([...x.steps, ...x.points].join(' '), x.id).not.toMatch(/jumping jacks as|run a lap as|push-?ups for/i)
+  })
+
+  it('tags every new drill', () => {
+    for (const d of YOUNG_DRILLS) expect(TAGS[d.id], d.id).toBeTruthy()
   })
 })

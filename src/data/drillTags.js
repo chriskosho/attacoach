@@ -89,6 +89,34 @@ export const TAGS = {
   'clean-the-yard': { where: [F, O, G], staff: 'run' },
   scrimmage: { where: [F], staff: 'run' },
   'hit-all-fields': { where: [F], gear: ['tee'], swap: 'No tee? Use front toss.', staff: 'run', cap: [3, 6], bat: true },
+
+  // ---------------------------------------------------------------- Young teams and closing games (drillsYoung.js)
+  // warm-ups
+  'follow-the-leader': { where: [F, O, G], staff: 'run', cap: [4, 14] },
+  'sharks-minnows': { where: [F, O, G], gear: ['cones'], swap: 'No cones? Use gloves or hats to mark the box.', staff: 'run', cap: [4, 14] },
+  // throwing and catching
+  'point-step-throw': { where: [F, O, G], staff: 'run', cap: [2, 6] },
+  'bounce-catch': { where: [F, O, G], staff: 'run', cap: [2, 6] },
+  // ground balls
+  'goalie-grounders': { where: [F, O, G], gear: ['cones'], swap: 'No cones? Two gloves on the ground make the goal.', staff: 'run', cap: [2, 4] },
+  'field-and-run': { where: [F, O, G], staff: 'run', cap: [2, 5] },
+  // balls in the air
+  'self-toss-catch': { where: [F, O, G], staff: 'run', cap: [2, 12] },
+  'rainbow-catch': { where: [F, O, G], staff: 'run', cap: [2, 6] },
+  // hitting
+  'wiffle-tee': { where: [F, O, C, G], gear: ['tee'], swap: 'No tee? Set the ball on a tall cone.', staff: 'run', cap: [2, 4], bat: true },
+  'swing-and-freeze': { where: [F, O, C, G], gear: ['tee'], swap: 'No tee? Set the ball on a tall cone.', staff: 'run', cap: [2, 4], bat: true },
+  // base running
+  'red-light-bases': { where: [F, O], staff: 'run', cap: [4, 14] },
+  'run-to-the-base': { where: [F, O], staff: 'run', cap: [4, 14] },
+  // closing games
+  'beat-the-ball': { where: [F, O], gear: ['tee'], swap: 'No tee? A coach tosses soft pitches.', staff: 'run', cap: [6, 14], bat: true },
+  'fill-the-bucket': { where: [F, O, G], staff: 'run', cap: [6, 14] },
+  'toss-500': { where: [F, O], staff: 'run', cap: [6, 14] },
+  workup: { where: [F], staff: 'run', cap: [7, 14], bat: true },
+  'around-the-horn': { where: [F, O], staff: 'watch', cap: [4, 12] },
+  pepper: { where: [F, O], staff: 'watch', cap: [4, 12], bat: true },
+  'relay-race': { where: [F, O], staff: 'run', cap: [6, 14] },
 }
 
 // Drills for one sport only. Absent means both. Baseball-only drills teach baseball mechanics:

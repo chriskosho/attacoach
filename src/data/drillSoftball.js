@@ -7,7 +7,7 @@ export const SOFTBALL_TEXT = {
     steps: [
       'Play Simon Says with softball positions: "Coach says ready position", "Coach says alligator", "Coach says run to first".',
       'Mix in moves without "Coach says" to keep them listening.',
-      'Players who get caught do five jumping jacks and rejoin. Nobody sits out.',
+      'Nobody is ever out. If someone gets caught, the coach gets a point, and the team tries to win the next call.',
     ],
   },
   alligator: { equipment: ['Soft training balls or softballs', 'Gloves'] },
