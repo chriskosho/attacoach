@@ -12,6 +12,7 @@ import { COACH_TIPS, pick } from '../data/motivation.js'
 import NeedsRanker from './NeedsRanker.jsx'
 import { TeamHeader } from './Header.jsx'
 import { useSuggestion, SuggestionList } from './Log.jsx'
+import { nextPlan, planNeedingRecap } from '../lib/todayRules.js'
 
 // Friendly practice date: "Today", "Tomorrow" or "Sat, Nov 14".
 export function planDate(plan) {
@@ -45,8 +46,8 @@ export default function Today({ team, coach = '', players = [] }) {
   const [minutes, setMinutes] = useState(fitLength(start.practice.minutes ?? store.get('minutes', 60)))
   const [spaces, setSpaces] = useState(start.practice.spaces ?? ['field'])
   const [adults, setAdults] = useState(store.get('adults', store.get('coaches', 2)))
-  // A full-looking roster sets the kid count; a partly entered one does not.
-  const [kids, setKids] = useState(players.length >= 8 ? players.length : store.get('kids', 12))
+  // Kids expected starts from the roster when there is one, and from the last count otherwise.
+  const [kids, setKids] = useState(players.length > 0 ? players.length : store.get('kids', 12))
   const [role, setRole] = useState('auto')
   const [equipment, setEquipment] = useState(team.equipment ?? null)
   const [athletic, setAthletic] = useState(team.athletic ?? athleticDefault(team.division))
@@ -56,6 +57,9 @@ export default function Today({ team, coach = '', players = [] }) {
 
   const plans = useLiveQuery(() => db.plans.where('teamId').equals(team.id).toArray().then(sortPlans), [team.id])
   const latest = plans?.[0] ?? null
+  const debriefs = useLiveQuery(() => db.debriefs.where('teamId').equals(team.id).toArray(), [team.id])
+  const upcoming = plans ? nextPlan(plans) : null
+  const needsRecap = plans && debriefs ? planNeedingRecap(plans, debriefs) : null
 
   const choosePractice = (p) => {
     setPracticeId(p.id)
@@ -102,15 +106,35 @@ export default function Today({ team, coach = '', players = [] }) {
     go(`plan/${plan.id}`)
   }
 
-  const setupSummary = [spaces.map(spaceLabel).join(' + '), `${kids} kids`, athletic ? 'athletic warm-up' : null].filter(Boolean).join(', ')
+  const setupSummary = [`${minutes} min`, `${adults} ${adults === 1 ? 'adult' : 'adults'}`, `${kids} ${kids === 1 ? 'kid' : 'kids'}`, spaces.map(spaceLabel).join(' + '), athletic ? 'athletic warm-up' : null].filter(Boolean).join(', ')
 
   return (
     <>
       <TeamHeader team={team} />
       <main className="page">
         {coach ? <p className="greeting">{greeting(coach)}</p> : <NamePrompt coach={coach} />}
+        {upcoming && (
+          <section className="card next-card" aria-labelledby="next-title">
+            <span className="muted small">Next practice</span>
+            <h2 id="next-title">
+              {planDate(upcoming)}, {totalMinutes(upcoming)} minutes
+            </h2>
+            <span className="small muted">
+              {upcoming.practiceName ? `${upcoming.practiceName}. ` : ''}Focus: {focusSummary(upcoming.focus)}
+            </span>
+            <div className="action-row">
+              <button className="btn big" onClick={() => go(`run/${upcoming.id}`)}>
+                Start practice
+              </button>
+              <button className="btn quiet" onClick={() => go(`plan/${upcoming.id}`)}>
+                Open plan
+              </button>
+            </div>
+          </section>
+        )}
+
         <section className="card" aria-labelledby="build-title">
-          <h2 id="build-title">Plan a practice</h2>
+          <h2 id="build-title">{upcoming ? 'Plan another practice' : 'Plan a practice'}</h2>
 
           {practices.length > 1 && (
             <div className="stack">
@@ -131,33 +155,50 @@ export default function Today({ team, coach = '', players = [] }) {
             <input type="date" value={date} onChange={(e) => changeDate(e.target.value || localDate())} />
           </label>
 
-          <div className="stack">
-            <strong className="small">How long is practice?</strong>
-            <div className="seg" role="group" aria-label="Practice length in minutes">
-              {lengths.map((m) => (
-                <button key={m} type="button" aria-pressed={minutes === m} onClick={() => setMinutes(m)}>
-                  {m}
+          {suggestion && (
+            <div className="suggest" role="region" aria-label="Suggested focus">
+              <strong>From your recent games and practices</strong>
+              <SuggestionList suggestion={suggestion} />
+              {useSuggested ? (
+                <button className="btn small" onClick={applySuggestion}>
+                  Use this focus
                 </button>
-              ))}
+              ) : (
+                <span className="small muted">Today's focus matches.</span>
+              )}
             </div>
-            <span className="muted small">Minutes</span>
-          </div>
+          )}
 
-          <div className="stack">
-            <div className="row">
-              <strong className="small spacer" id="adults-label">
-                Adults at practice, counting you
-              </strong>
-              <Stepper label="Adults at practice" value={adults} onChange={setAdults} min={1} max={10} />
-            </div>
-            <span className="muted small">{staffingText({ adults, kids, role, young })}</span>
-          </div>
+          <button className="btn big" onClick={build} disabled={building || focus.length === 0}>
+            Build practice plan
+          </button>
+          {focus.length === 0 && <span className="muted small">Pick at least one thing to work on.</span>}
 
           <details className="day-setup">
             <summary>
-              Today's setup <span className="small muted">{setupSummary}</span>
+              Change today's setup <span className="small muted">{setupSummary}</span>
             </summary>
             <div className="stack">
+              <div className="stack">
+                <strong className="small">How long is practice?</strong>
+                <div className="seg" role="group" aria-label="Practice length in minutes">
+                  {lengths.map((m) => (
+                    <button key={m} type="button" aria-pressed={minutes === m} onClick={() => setMinutes(m)}>
+                      {m}
+                    </button>
+                  ))}
+                </div>
+                <span className="muted small">Minutes</span>
+              </div>
+              <div className="stack">
+                <div className="row">
+                  <strong className="small spacer" id="adults-label">
+                    Adults at practice, counting you
+                  </strong>
+                  <Stepper label="Adults at practice" value={adults} onChange={setAdults} min={1} max={10} />
+                </div>
+                <span className="muted small">{staffingText({ adults, kids, role, young })}</span>
+              </div>
               <div className="stack">
                 <strong className="small">Where is practice?</strong>
                 <SkillChips options={SPACES} value={spaces} onChange={(v) => setSpaces(v.length ? v : spaces)} label="Spaces today" />
@@ -187,55 +228,45 @@ export default function Today({ team, coach = '', players = [] }) {
                 <SkillChips options={EQUIPMENT} value={equipment ?? []} onChange={setEquipment} label="Equipment today" />
               </div>
               <AthleticToggle checked={athletic} onChange={setAthletic} />
+
+              {!team.needs?.length && (
+                <p className="small muted" style={{ margin: 0 }}>
+                  Using a starter focus on the basics. Choose your team's skills in Edit team, or add players on the Team tab.
+                </p>
+              )}
+              <div className="stack">
+                <div className="row">
+                  <strong className="small spacer">Today's focus</strong>
+                  {changedFocus && (
+                    <button className="btn ghost small" onClick={() => setFocus(teamFocus)}>
+                      Use team needs
+                    </button>
+                  )}
+                </div>
+                <NeedsRanker division={team.division} value={focus} onChange={setFocus} />
+              </div>
             </div>
           </details>
-
-          {suggestion && (
-            <div className="suggest" role="region" aria-label="Suggested focus">
-              <strong>From your recent games and practices</strong>
-              <SuggestionList suggestion={suggestion} />
-              {useSuggested ? (
-                <button className="btn small" onClick={applySuggestion}>
-                  Use this focus
-                </button>
-              ) : (
-                <span className="small muted">Today's focus matches.</span>
-              )}
-            </div>
-          )}
-
-          {!team.needs?.length && (
-            <p className="small muted" style={{ margin: 0 }}>
-              Using a starter focus on the basics. Choose your team's skills in Edit team, or add players on the Team tab.
-            </p>
-          )}
-
-          <div className="stack">
-            <div className="row">
-              <strong className="small spacer">Today's focus</strong>
-              {changedFocus && (
-                <button className="btn ghost small" onClick={() => setFocus(teamFocus)}>
-                  Use team needs
-                </button>
-              )}
-            </div>
-            <NeedsRanker division={team.division} value={focus} onChange={setFocus} />
-          </div>
-
-          <button className="btn big" onClick={build} disabled={building || focus.length === 0}>
-            Build practice plan
-          </button>
-          {focus.length === 0 && <span className="muted small">Pick at least one thing to work on.</span>}
         </section>
 
-        {latest && (
-          <button className="card" style={{ textAlign: 'left', cursor: 'pointer' }} onClick={() => go(`plan/${latest.id}`)}>
-            <span className="muted small">Latest plan</span>
-            <strong>
-              {planDate(latest)}, {totalMinutes(latest)} minutes
-            </strong>
-            <span className="small muted">Focus: {focusSummary(latest.focus)}</span>
-          </button>
+        {latest && !upcoming && (
+          <>
+            <button className="card" style={{ textAlign: 'left', cursor: 'pointer' }} onClick={() => go(`plan/${latest.id}`)}>
+              <span className="muted small">Latest plan</span>
+              <strong>
+                {planDate(latest)}, {totalMinutes(latest)} minutes
+              </strong>
+              <span className="small muted">Focus: {focusSummary(latest.focus)}</span>
+            </button>
+            {needsRecap?.id === latest.id && (
+              <p className="small muted recap-line">
+                How did it go?{' '}
+                <button className="link-btn" onClick={() => go(`debrief/practice/${latest.id}`)}>
+                  2-minute recap
+                </button>
+              </p>
+            )}
+          </>
         )}
 
         <section className="card" aria-labelledby="coach-corner">

@@ -1,6 +1,17 @@
-export const VERSION = '1.13.0'
+export const VERSION = '1.14.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.14.0',
+    date: '2026-11-11',
+    items: [
+      'Today now leads with your next practice (today or later): the day, length and focus, with Start practice and Open plan. Building a new plan is just the practice, the date and one button; length, adults, kids, space, equipment, warm-up and focus are under "Change today\u2019s setup", which shows the current choices in one line.',
+      'If your latest practice has passed and has no recap yet, Today asks "How did it go?" with a link to the 2-minute recap.',
+      'New "Change of plans" on the plan page: set kids, adults, minutes and space, or tap "Short on kids", "I\u2019m the only adult" or "Moved indoors". Drills that still fit stay, and the app tells you what it swapped and why. One tap on Undo brings the old plan back.',
+      'The plan page opens with a summary line. The date is behind "Change the date", and Delete plan is a quiet link at the very bottom.',
+      'Kids expected on Today now starts from your roster, even a small one.',
+    ],
+  },
   {
     version: '1.13.0',
     date: '2026-11-11',

@@ -16,7 +16,9 @@ import { drillFor, sportOf, sportCopy } from '../lib/sport.js'
 
 // A drill in the team's sport's wording.
 const drillIn = (team) => (id) => drillFor(drillById(id), team)
-import { categoryLabel, focusSummary, coachTitle, spaceLabel } from '../data/constants.js'
+import { categoryLabel, focusSummary, coachTitle, spaceLabel, lengthsFor, SPACES } from '../data/constants.js'
+import { describeChanges } from '../lib/changes.js'
+import SkillChips from './SkillChips.jsx'
 import { blockTitle, planText, shareText } from '../lib/share.js'
 import { go } from '../lib/route.js'
 import { TeamHeader } from './Header.jsx'
@@ -74,6 +76,9 @@ export default function PlanView({ planId, team, coach = '' }) {
   const [adding, setAdding] = useState(false)
   const [printing, setPrinting] = useState(false)
   const [toast, setToast] = useToast()
+  const [changing, setChanging] = useState(false)
+  // What the last change of plans did, with one Undo.
+  const [changed, setChanged] = useState(null)
 
   useEffect(() => {
     if (!printing) return
@@ -144,6 +149,21 @@ export default function PlanView({ planId, team, coach = '' }) {
     setToast(`Reworked for ${n} ${n === 1 ? 'adult' : 'adults'}.`, () => savePlan(before))
   }
 
+  const applyChange = async (changes) => {
+    const before = plan
+    const after = rebuildPlan(team, plan, changes)
+    await savePlan(after)
+    setOpen(new Set())
+    setChanging(false)
+    setChanged({ lines: describeChanges(team, before, after).lines, before })
+  }
+
+  const undoChange = async () => {
+    await savePlan(changed.before)
+    setChanged(null)
+    setToast('Back to the earlier plan.')
+  }
+
   const remove = async () => {
     if (!window.confirm('Delete this plan? This cannot be undone.')) return
     await db.plans.delete(plan.id)
@@ -207,22 +227,26 @@ export default function PlanView({ planId, team, coach = '' }) {
         )}
         <div className="row wrap">
           <div className="spacer">
-            <label>
-              <span className="sr-only">Practice date</span>
-              <strong>{planDate(plan)}</strong>{' '}
-              <input
-                type="date"
-                className="date-edit no-print"
-                aria-label="Practice date"
-                value={plan.date ?? plan.createdAt.slice(0, 10)}
-                onChange={(e) => e.target.value && update({ ...plan, date: e.target.value })}
-              />
-            </label>
-            <div className="small muted">
-              {[plan.practiceName, (plan.spaces ?? ['field']).map(spaceLabel).join(' + '), plan.kids ? `${plan.kids} kids` : null].filter(Boolean).join(', ')}. Focus:{' '}
-              {focusSummary(plan.focus)}
+            <div>
+              <strong>{planDate(plan)}</strong>
+              <span className="muted small">
+                {' '}
+                {[`${plan.minutes} min`, plan.practiceName, (plan.spaces ?? ['field']).map(spaceLabel).join(' + '), plan.kids ? `${plan.kids} kids` : null].filter(Boolean).join(', ')}. Focus: {focusSummary(plan.focus)}
+              </span>
             </div>
             {coach && <div className="small muted">Prepared by {coachTitle(coach)}</div>}
+            <details className="plan-details no-print">
+              <summary className="small">Change the date</summary>
+              <label className="field">
+                Practice date
+                <input
+                  type="date"
+                  className="date-edit"
+                  value={plan.date ?? plan.createdAt.slice(0, 10)}
+                  onChange={(e) => e.target.value && update({ ...plan, date: e.target.value })}
+                />
+              </label>
+            </details>
           </div>
           <span className={`time-total${diff > 0 ? ' over' : ''}`} aria-live="polite">
             {total} of {plan.minutes} min
@@ -248,6 +272,25 @@ export default function PlanView({ planId, team, coach = '' }) {
         <button className="btn big no-print" onClick={() => go(`run/${plan.id}`)}>
           Start practice
         </button>
+        <button className="btn quiet no-print" onClick={() => setChanging(true)}>
+          Change of plans
+        </button>
+
+        {changed && (
+          <div className="suggest no-print" role="status">
+            {changed.lines.map((l) => (
+              <span key={l}>{l}</span>
+            ))}
+            <span className="action-row" style={{ width: '100%' }}>
+              <button className="btn small" onClick={undoChange}>
+                Undo
+              </button>
+              <button className="btn quiet small" onClick={() => setChanged(null)}>
+                OK
+              </button>
+            </span>
+          </div>
+        )}
 
         <div className="talk">
           <div className="who">Open practice with</div>
@@ -385,11 +428,12 @@ export default function PlanView({ planId, team, coach = '' }) {
             Build a new one
           </button>
         </div>
-        <button className="btn danger no-print" onClick={remove}>
+        <button className="link-btn quiet-delete no-print" onClick={remove}>
           Delete plan
         </button>
       </main>
 
+      {changing && <ChangeSheet team={team} plan={plan} onApply={applyChange} onClose={() => setChanging(false)} />}
       {swap && <SwapSheet team={team} plan={plan} swap={swap} onPick={pickSwap} onClose={() => setSwap(null)} />}
       {adding && <AddSheet team={team} plan={plan} onPick={pickAdd} onClose={() => setAdding(false)} />}
       {toast && (
@@ -409,6 +453,58 @@ export default function PlanView({ planId, team, coach = '' }) {
         </div>
       )}
     </>
+  )
+}
+
+// Half the team is out, a helper cancelled, or it rained: set the day as it is now and rebuild.
+function ChangeSheet({ team, plan, onApply, onClose }) {
+  const [kids, setKids] = useState(plan.kids ?? 12)
+  const [adults, setAdults] = useState(plan.adults ?? plan.coaches ?? 1)
+  const [minutes, setMinutes] = useState(plan.minutes)
+  const [spaces, setSpaces] = useState(plan.spaces?.length ? plan.spaces : ['field'])
+  const lengths = [...new Set([...lengthsFor(team.division), plan.minutes])].sort((a, b) => a - b)
+  const changed = kids !== (plan.kids ?? 12) || adults !== (plan.adults ?? plan.coaches ?? 1) || minutes !== plan.minutes || spaces.join() !== (plan.spaces ?? ['field']).join()
+  return (
+    <Sheet title="Change of plans" onClose={onClose}>
+      <p className="muted small">Set the day as it is now. Drills that still fit stay in the plan.</p>
+      <div className="chips" role="group" aria-label="Shortcuts">
+        <button type="button" className="chip" onClick={() => setKids(Math.max(1, Math.min(kids, Math.round((plan.kids ?? kids) / 2))))}>
+          Short on kids
+        </button>
+        <button type="button" className="chip" onClick={() => setAdults(1)}>
+          I'm the only adult
+        </button>
+        <button type="button" className="chip" onClick={() => setSpaces(['gym'])}>
+          Moved indoors
+        </button>
+      </div>
+      <div className="row">
+        <strong className="small spacer">Kids today</strong>
+        <CountStepper label="Kids today" value={kids} onChange={setKids} min={1} max={30} />
+      </div>
+      <div className="row">
+        <strong className="small spacer">Adults today</strong>
+        <CountStepper label="Adults today in the sheet" value={adults} onChange={setAdults} min={1} max={10} />
+      </div>
+      <div className="stack">
+        <strong className="small">Minutes</strong>
+        <div className="seg" role="group" aria-label="Minutes today">
+          {lengths.map((m) => (
+            <button key={m} type="button" aria-pressed={minutes === m} onClick={() => setMinutes(m)}>
+              {m}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="stack">
+        <strong className="small">Where is practice?</strong>
+        <SkillChips options={SPACES} value={spaces} onChange={(v) => setSpaces(v.length ? v : spaces)} label="Space today" />
+      </div>
+      <p className="muted small">Drills you swapped in by hand may change too. You can undo this right after.</p>
+      <button className="btn big" onClick={() => onApply({ kids, adults, minutes, spaces })} disabled={!changed}>
+        Apply changes
+      </button>
+    </Sheet>
   )
 }
 

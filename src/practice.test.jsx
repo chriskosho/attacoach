@@ -207,7 +207,7 @@ describe('practice setup in the app', () => {
     render(<App />)
     await user.click(await screen.findByRole('button', { name: 'Cage day' }))
     expect(screen.getByRole('button', { name: '60' }).getAttribute('aria-pressed')).toBe('true')
-    expect(screen.getByText(/Batting cage \+ Open grass, 13 kids, athletic warm-up/)).toBeTruthy()
+    expect(screen.getByText(/60 min, \d adults?, 13 kids, Batting cage \+ Open grass, athletic warm-up/)).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'More: Adults at practice' }))
     expect(screen.getByText(/you float and manage/)).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Build practice plan' }))

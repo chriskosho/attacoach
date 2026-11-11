@@ -620,3 +620,12 @@ a.btn { text-decoration: none; }
 .dg-strip .dg-pose { border-radius: 10px; padding: 4px 0; }
 .dg-pose.on { background: var(--accent-soft); }
 @media print { .dg-controls { display: none; } }
+
+/* Today and plan page: next practice card, recap line, quiet delete */
+.next-card h2 { margin: 2px 0; }
+.next-card .action-row .btn { flex: 1 1 140px; }
+.recap-line { margin: -4px 4px 0; }
+.recap-line .link-btn { color: var(--accent); min-height: 40px; }
+.plan-details { margin-top: 6px; }
+.plan-details summary { cursor: pointer; color: var(--ink-2); }
+.quiet-delete { align-self: center; color: var(--warn); font-weight: 600; margin-top: 18px; }
