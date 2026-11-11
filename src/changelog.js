@@ -1,11 +1,13 @@
-export const VERSION = '1.20.2'
+export const VERSION = '1.20.3'
 
 export const CHANGELOG = [
   {
-    version: '1.20.2',
+    version: '1.20.3',
     date: '2026-11-11',
     items: [
       'Moving diagrams for Everybody moves, Pitcher covers first, Bunt defense, First and third defense, Double play feeds, I got it, you take it, First to third, Team rundowns, Beat the ball and Pop-up priority: who goes where, step by step.',
+      'Body-position pictures for throwing, bunting, catcher stance, blocking, the pitching balance point, backhands and forehands, ready position for the youngest, and the swing.',
+      '25 more drills have a "Find a video on YouTube" button, and 13 more for softball teams. Every search was checked first; drills without a good one have none.',
     ],
   },
   {

@@ -4,8 +4,9 @@ import { DIAGRAMS } from './data/diagrams.js'
 import { POSE_SETS, POSES_FOR } from './data/poses.js'
 import { VIDEO_QUERY, videoUrl } from './data/video.js'
 import { drillById } from './data/drills.js'
-import { sample, stepAt, poseAt } from './lib/diagram.js'
+import { sample, samplePos, stepAt, poseAt } from './lib/diagram.js'
 import { DrillText } from './components/DrillText.jsx'
+import { drillFor } from './lib/sport.js'
 
 describe('drill diagrams', () => {
   it.each(Object.entries(DIAGRAMS))('%s is well formed', (id, spec) => {
@@ -50,5 +51,35 @@ describe('drill diagrams', () => {
   it('shows pose cards for funnel grounders', () => {
     const { container } = render(<DrillText drill={drillById('funnel-grounders')} />)
     expect(container.querySelectorAll('.dg-strip .dg-pose')).toHaveLength(3)
+  })
+})
+
+describe('drill pictures rollout', () => {
+  const vis = (a, t) => !a.vis || (t >= a.vis[0] && t <= a.vis[1])
+
+  it('has about 18 diagrams and 10 body-position strips, no more', () => {
+    const n = Object.keys(DIAGRAMS).length
+    expect(n).toBeGreaterThanOrEqual(14)
+    expect(n).toBeLessThanOrEqual(20)
+    expect(Object.keys(POSES_FOR).length).toBeGreaterThanOrEqual(10)
+    Object.values(POSES_FOR).forEach((set) => expect(POSE_SETS[set], set).toBeTruthy())
+  })
+
+  it.each(Object.entries(DIAGRAMS))('%s always shows a ball and keeps people inside the picture', (id, spec) => {
+    for (let t = 0; t <= spec.len; t += 0.1) {
+      const balls = spec.actors.filter((a) => a.kind === 'ball' && vis(a, t))
+      // The first three diagrams hide the ball between swings or reps on purpose.
+      if (!['rounding-first', 'tee-work', 'front-toss'].includes(id)) expect(balls.length, `${id} t=${t.toFixed(1)}`).toBeGreaterThan(0)
+      for (const a of spec.actors) {
+        if (a.kind === 'bat' || !vis(a, t)) continue
+        const [x, y] = samplePos(a, t)
+        expect(x > 4 && x < 296 && y > 4 && y < 296, `${id} ${a.label ?? a.kind} at t=${t.toFixed(1)}`).toBe(true)
+      }
+    }
+  })
+
+  it.each(Object.keys(DIAGRAMS))('%s matches the softball wording of the drill too', (id) => {
+    const d = drillById(id)
+    expect(drillFor(d, 'softball').steps.length).toBe(DIAGRAMS[id].at.length)
   })
 })

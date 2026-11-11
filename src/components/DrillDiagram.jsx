@@ -129,6 +129,13 @@ function PoseFigure({ pose }) {
       ) : (
         L(j.neck, j.hand)
       )}
+      {/* An optional second arm: the glove arm, or the top hand on a bunt. */}
+      {j.elbow2 && (
+        <>
+          {L(j.neck, j.elbow2)}
+          {L(j.elbow2, j.hand2)}
+        </>
+      )}
       {j.glove && <path d={`M${j.glove[0] - 6} ${j.glove[1] - 4} q6 10 12 0`} strokeWidth="3.5" />}
       {j.ball && <circle cx={j.ball[0]} cy={j.ball[1]} r="3" fill="#fff" stroke="#c33" strokeWidth="1.2" />}
     </svg>
