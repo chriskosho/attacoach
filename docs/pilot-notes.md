@@ -16,7 +16,7 @@ It then opens like an app from your home screen.
 - Settings, then Send feedback.
 - On any plan, tap "Was this plan right?" (Yes or Not quite), with an optional note.
 
-Each one shows you the exact message before anything happens. Tapping "Open my email app" opens a draft to me; nothing is sent until you press send there. Names of players, coaches and teams are never included. Please leave names out of notes too.
+Each one shows you the exact message before anything happens. Tapping "Open my email app" opens a draft to me; nothing is sent until you press send there. Names of players, coaches and teams are never included. The drill names in the plan are included, but drills you wrote yourself show only as "One of the coach's own drills". Please leave names out of notes too.
 
 **What is not built yet**
 - Syncing between phones or with a computer. Use a backup file to move your data.
