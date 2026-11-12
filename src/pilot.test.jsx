@@ -1,6 +1,6 @@
 // Stage 8: feedback by email, the season card and the pilot settings.
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, within, waitFor } from '@testing-library/react'
+import { render, screen, within, waitFor, cleanup } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App.jsx'
 import { db, saveTeam, savePlayers, clearEverything, setSetting } from './lib/db.js'
@@ -188,16 +188,36 @@ describe('season so far', () => {
   it('shows on the Log tab: the numbers and the one suggestion', async () => {
     await clearEverything()
     await saveTeam({ ...team })
-    for (const p of plans) await db.plans.put(p)
+    // The app uses the real date, so add enough clearly-past practices for the breakdown to show.
+    for (const p of [...plans, plan('x1', '2026-08-01', [hit.id]), plan('x2', '2026-08-08', [field.id]), plan('x3', '2026-08-15', [hit.id])]) await db.plans.put(p)
     for (const d of debriefs) await db.debriefs.put({ ...d, createdAt: `${d.date}T10:00:00Z` })
     window.location.hash = '#/log'
     render(<App />)
     const card = (await screen.findByRole('heading', { name: 'Season so far' })).closest('section')
-    // The app uses the real date, so only check the structure and the games count here.
+    // Only check the structure and the games count here.
     expect(within(card).getByTestId('season-games').textContent).toBe('2')
     expect(within(card).getByTestId('season-practices').textContent).toMatch(/^\d+$/)
     expect(within(card).getByRole('list', { name: 'Skills practised' })).toBeTruthy()
     expect(card.querySelectorAll('[role=note]').length).toBeLessThanOrEqual(1)
+  })
+
+  it('shows one plain line until three practices are in, then the skill breakdown', async () => {
+    await clearEverything()
+    await saveTeam({ ...team })
+    await db.plans.put(plan('y1', '2026-08-01', [hit.id]))
+    await db.debriefs.put({ id: 'gg', teamId: 't1', kind: 'game', date: '2026-08-02', createdAt: '2026-08-02T10:00:00Z' })
+    window.location.hash = '#/log'
+    render(<App />)
+    const card = (await screen.findByRole('heading', { name: 'Season so far' })).closest('section')
+    expect(card.textContent).toContain('1 practice and 1 game so far. The skill breakdown appears after 3.')
+    expect(within(card).queryByRole('list', { name: 'Skills practised' })).toBeNull()
+    cleanup()
+    await db.plans.put(plan('y2', '2026-08-08', [field.id]))
+    await db.plans.put(plan('y3', '2026-08-15', [hit.id]))
+    render(<App />)
+    const full = (await screen.findByRole('heading', { name: 'Season so far' })).closest('section')
+    expect(await within(full).findByRole('list', { name: 'Skills practised' })).toBeTruthy()
+    expect(full.textContent).not.toMatch(/appears after 3/)
   })
 
   it('has a quiet empty state before anything is logged', async () => {
@@ -215,16 +235,40 @@ describe('pilot settings', () => {
     expect(TEST_TOOLS).toBe(true)
   })
 
-  it('About shows the version and the two newest changelog entries', async () => {
+  it('About is one line with the version; opening it shows the latest release only', async () => {
     await clearEverything()
     await saveTeam({ ...team })
     window.location.hash = '#/settings'
     render(<App />)
     const about = (await screen.findByRole('heading', { name: 'About' })).closest('section')
-    expect(about.textContent).toContain(`AttaCoach ${VERSION}`)
+    const fold = about.querySelector('details')
+    expect(fold.open).toBe(false)
+    expect(within(about).getByText(`AttaCoach ${VERSION} · What's new`)).toBeTruthy()
     expect(about.textContent).toContain(`What's new in ${CHANGELOG[0].version}`)
-    expect(about.textContent).toContain(`What's new in ${CHANGELOG[1].version}`)
-    expect(about.textContent).not.toContain(`What's new in ${CHANGELOG[2].version}`)
+    expect(about.textContent).not.toContain(`What's new in ${CHANGELOG[1].version}`)
+    await userEvent.setup().click(about.querySelector('summary'))
+    expect(fold.open).toBe(true)
+  })
+
+  it('Privacy and Backup are folded to one line each, with the full text one tap away', async () => {
+    await clearEverything()
+    await saveTeam({ ...team })
+    window.location.hash = '#/settings'
+    const user = userEvent.setup()
+    render(<App />)
+    const privacy = (await screen.findByRole('heading', { name: 'Privacy' })).closest('section')
+    expect(privacy.querySelector('details').open).toBe(false)
+    expect(within(privacy).getByText('No ads, no tracking. Your data stays on this phone.')).toBeTruthy()
+    await user.click(privacy.querySelector('summary'))
+    expect(privacy.querySelector('details').open).toBe(true)
+    expect(privacy.textContent).toMatch(/never uploads it/)
+    const backup = screen.getByRole('heading', { name: 'Backup' }).closest('section')
+    expect(backup.textContent).toContain('Saved only on this phone. Last backup: never.')
+    expect(backup.querySelector('details').open).toBe(false)
+    expect(within(backup).getByRole('button', { name: 'Save backup' })).toBeTruthy()
+    expect(within(backup).getByRole('button', { name: 'Restore' })).toBeTruthy()
+    await user.click(within(backup).getByText('About backups'))
+    expect(backup.textContent).toMatch(/Save a backup file to keep them safe/)
   })
 
   it('privacy text covers device storage, backups, YouTube and feedback', async () => {

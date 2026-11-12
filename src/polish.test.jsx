@@ -120,14 +120,13 @@ describe('empty states', () => {
     await saveTeam(team)
   })
 
-  it('Log says what will appear and offers the one action', async () => {
+  it('Log says what will appear, and the Game debrief button above is the one action', async () => {
     window.location.hash = '#/log'
     const user = userEvent.setup()
     render(<App />)
     const card = (await screen.findByRole('heading', { name: 'Nothing logged yet' })).closest('.empty')
     expect(card.textContent).toMatch(/will show up here/)
-    await user.click(within(card).getByRole('button', { name: 'Log your first game' }))
-    expect(window.location.hash).toBe('#/debrief/game')
+    expect(within(card).queryByRole('button')).toBeNull()
   })
 
   it('Plans says what will appear and offers one action', async () => {

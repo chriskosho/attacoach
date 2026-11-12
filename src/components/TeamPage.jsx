@@ -13,6 +13,12 @@ import { ruleText, sportOf, sportSummary } from '../lib/sport.js'
 
 // Everything about one team: who is on it, how it practices, its needs and rules. App-wide things
 // (your name, backup, display, account) live under Settings.
+// The rules that are on, in one line: "Rules: kids pitch, stealing, leading off".
+function rulesLine(team) {
+  const on = RULES.filter((r) => team.rules?.[r.id]).map((r) => ruleText(r, sportOf(team)).label.toLowerCase())
+  return on.length ? `Rules: ${on.join(', ')}` : 'Rules: standard'
+}
+
 export default function TeamPage({ team, teams, players = [] }) {
   const [msg, setMsg] = useState(null)
   const [practiceDraft, setPracticeDraft] = useState(null)
@@ -84,14 +90,7 @@ export default function TeamPage({ team, teams, players = [] }) {
               </dd>
             </div>
             <div>
-              <dt className="small muted">Game rules</dt>
-              <dd style={{ margin: 0 }}>
-                {RULES.map((r) => (
-                  <div key={r.id}>
-                    {ruleText(r, sportOf(team)).label}: {team.rules?.[r.id] ? 'on' : 'off'}
-                  </div>
-                ))}
-              </dd>
+              <dd style={{ margin: 0 }}>{rulesLine(team)}</dd>
             </div>
           </dl>
         </section>

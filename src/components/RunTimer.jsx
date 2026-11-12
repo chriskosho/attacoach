@@ -224,6 +224,7 @@ function Runner({ plan, team }) {
 
   const planned = baseSegs.reduce((n, x) => n + x.seconds, 0)
   const behind = behindSeconds({ startedWall: state.startedWall, now, totalNow: totalSeconds, doneNow: doneSeconds, totalPlanned: planned })
+  const late = behind > 180 && !note.startsWith('Trimmed')
   const trim = () => {
     const t = trimSegments(segs, seg.blockIndex, behind)
     if (!t.cut) {
@@ -282,14 +283,12 @@ function Runner({ plan, team }) {
         <button className="run-btn" onClick={addMinute} aria-label="Add one minute to this block">
           +1 min
         </button>
-        {behind > 180 && !note.startsWith('Trimmed') && (
-          <span className="run-late">
-            Running {Math.round(behind / 60)} min behind
-            <button className="link-btn" onClick={trim}>
-              Trim the rest to finish on time
-            </button>
-          </span>
+        {late && (
+          <button className="run-btn" onClick={trim}>
+            Trim the rest to finish on time
+          </button>
         )}
+        {late && <span className="run-late">Running {Math.round(behind / 60)} min behind</span>}
       </div>
       {note && (
         <p className="run-note" role="status">

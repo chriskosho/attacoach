@@ -1,6 +1,16 @@
-export const VERSION = '1.27.0'
+export const VERSION = '1.28.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.28.0',
+    date: '2026-11-12',
+    items: [
+      'Less to read. Today\'s Coach Corner card is now just the tip of the day with a small link. The drill page has one short caption under the picture, and coaching points come before the steps.',
+      'Log: until you have run 3 practices, Season so far is one line instead of a list of "1 of 1". The skill breakdown shows up after that.',
+      'Settings: About, Privacy and Backup are one line each. Tap to read the rest. Nothing was removed.',
+      'On the timer, when you are running late, "Trim the rest to finish on time" is now a button next to +1 min, with the minutes behind in color. The Team page lists your game rules on one line.',
+    ],
+  },
   {
     version: '1.27.0',
     date: '2026-11-12',

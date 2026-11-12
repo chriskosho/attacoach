@@ -144,7 +144,7 @@ describe('asking the browser from the app', () => {
     fakeStorage(false)
     render(<App />)
     expect((await screen.findByTestId('storage-line')).textContent).toMatch(/may clear this data/)
-    expect(screen.getByText('No backup saved yet.')).toBeTruthy()
+    expect(screen.getByText(/Last backup: never\./)).toBeTruthy()
   })
 })
 

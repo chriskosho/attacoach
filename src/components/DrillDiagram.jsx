@@ -107,8 +107,8 @@ export function DrillDiagram({ drill, spec }) {
           ½×
         </button>
       </div>
-      <p className="small muted dg-now">{cur >= 0 ? `Step ${cur + 1}: ${drill.steps[cur]}` : 'Press Play to watch the drill.'}</p>
-      <p className="small muted">Drawn from above, not to scale.</p>
+      {cur >= 0 && <p className="small muted dg-now">{`Step ${cur + 1}: ${drill.steps[cur]}`}</p>}
+      <p className="small muted">Top view, not to scale.</p>
     </div>
   )
 }

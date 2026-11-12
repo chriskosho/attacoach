@@ -533,7 +533,7 @@ summary { min-height: 44px; display: flex; align-items: center; }
 .run-picture:empty { display: none; }
 .run-quiet { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px; }
 .run-quiet .run-btn { padding: 4px 14px; min-height: 44px; font-size: 15px; }
-.run-late { font-size: 15px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+.run-late { font-size: 16px; font-weight: 700; color: var(--run-accent); flex-basis: 100%; }
 .run-note { margin: 8px 0 0; font-size: 15px; background: var(--run-soft); border-radius: 10px; padding: 8px 12px; }
 .link-btn { background: none; border: 0; padding: 10px 4px; color: inherit; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; min-height: 44px; }
 .run-controls.finish { grid-template-columns: 1.6fr 1fr; }
@@ -792,3 +792,10 @@ textarea { font: inherit; width: 100%; border: 1.5px solid var(--line); border-r
 .season-areas li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-top: 1px solid var(--line); }
 .season-areas li:first-child { border-top: 0; }
 .privacy-list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+
+/* A one-line fold: the summary is what most coaches need, the rest is a tap away. */
+.fold summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; gap: 8px; align-items: center; }
+.fold summary::-webkit-details-marker { display: none; }
+.fold summary::after { content: '›'; color: var(--ink-2); margin-left: auto; transition: transform 0.15s; }
+.fold[open] summary::after { transform: rotate(90deg); }
+.fold[open] summary { margin-bottom: 6px; }

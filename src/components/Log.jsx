@@ -11,6 +11,9 @@ import { TeamHeader } from './Header.jsx'
 import { planDate, sortPlans } from './Today.jsx'
 import { seasonSummary } from '../lib/season.js'
 
+// Practices needed before the per-skill breakdown shows.
+export const SEASON_BREAKDOWN_AT = 3
+
 export function dateLabel(date) {
   try {
     return new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
@@ -52,6 +55,21 @@ export function SeasonCard({ team, plans, entries, today }) {
       <section className="card" aria-labelledby="season-title">
         <h2 id="season-title">Season so far</h2>
         <p className="muted small">Once you have run a practice or logged a game, your totals and what you have covered show up here.</p>
+      </section>
+    )
+  }
+  // The skill breakdown means little until a few practices are in: one plain line until then.
+  if (s.practices < SEASON_BREAKDOWN_AT) {
+    const parts = [
+      s.practices > 0 && `${s.practices} ${s.practices === 1 ? 'practice' : 'practices'}`,
+      s.games > 0 && `${s.games} ${s.games === 1 ? 'game' : 'games'}`,
+    ].filter(Boolean)
+    return (
+      <section className="card" aria-labelledby="season-title">
+        <h2 id="season-title">Season so far</h2>
+        <p className="muted small">
+          {parts.join(' and ')} so far. The skill breakdown appears after {SEASON_BREAKDOWN_AT}.
+        </p>
       </section>
     )
   }
@@ -127,10 +145,7 @@ export default function Log({ team }) {
         {sorted.length === 0 ? (
           <div className="card empty">
             <h2>Nothing logged yet</h2>
-            <p className="muted">Your games and practices will show up here, newest first. A debrief takes about two minutes.</p>
-            <button className="btn ghost" onClick={() => go('debrief/game')}>
-              Log your first game
-            </button>
+            <p className="muted">Your games and practices will show up here, newest first.</p>
           </div>
         ) : (
           <div className="card flat">

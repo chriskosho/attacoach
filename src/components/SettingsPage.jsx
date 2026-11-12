@@ -143,11 +143,16 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
 
         <section className="card">
           <h2 className="sm-h">Backup</h2>
-          <p className="small muted">
-            Your teams and plans are saved only on this device. Save a backup file to keep them safe or move them to a new phone.
+          <p className="small">
+            Saved only on this phone. Last backup: {lastBackup ? `${new Date(lastBackup).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}.` : 'never.'}
           </p>
-          {storageLine(storage) && <p className="small" data-testid="storage-line">{storageLine(storage)}</p>}
-          <p className="small muted">{lastBackup ? `Last backup: ${new Date(lastBackup).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}.` : 'No backup saved yet.'}</p>
+          <details className="fold">
+            <summary>About backups</summary>
+            <p className="small muted">
+              Your teams and plans are saved only on this device. Save a backup file to keep them safe or move them to a new phone.
+            </p>
+            {storageLine(storage) && <p className="small" data-testid="storage-line">{storageLine(storage)}</p>}
+          </details>
           <div className="action-row">
             <button className="btn quiet" onClick={download}>
               Save backup
@@ -163,31 +168,35 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
 
         <section className="card">
           <h2 className="sm-h">Privacy</h2>
-          <ul className="small privacy-list">
-            <li>AttaCoach has no ads, tracking or analytics.{AUTH_REQUIRED && ' You sign in with your email, which is used only to sign you in.'}</li>
-            <li>Your teams, players, plans and log stay in this browser on this device. Nothing about them is sent to a server.</li>
-            <li>A backup is a file you save yourself. AttaCoach never uploads it; you decide where it goes.</li>
-            <li>The "Find a video on YouTube" button opens a YouTube search in a new tab. YouTube sees that search, not your team.</li>
-            {feedbackAvailable() && <li>Feedback is sent only if you tap Open my email app and press send there. It contains only what you see on the screen: no names.</li>}
-            <li>Clearing your browser data deletes everything here, so keep a backup.</li>
-          </ul>
+          <details className="fold">
+            <summary>No ads, no tracking. Your data stays on this phone.</summary>
+            <ul className="small privacy-list">
+              <li>AttaCoach has no ads, tracking or analytics.{AUTH_REQUIRED && ' You sign in with your email, which is used only to sign you in.'}</li>
+              <li>Your teams, players, plans and log stay in this browser on this device. Nothing about them is sent to a server.</li>
+              <li>A backup is a file you save yourself. AttaCoach never uploads it; you decide where it goes.</li>
+              <li>The "Find a video on YouTube" button opens a YouTube search in a new tab. YouTube sees that search, not your team.</li>
+              {feedbackAvailable() && <li>Feedback is sent only if you tap Open my email app and press send there. It contains only what you see on the screen: no names.</li>}
+              <li>Clearing your browser data deletes everything here, so keep a backup.</li>
+            </ul>
+          </details>
         </section>
 
         <section className="card">
           <h2 className="sm-h">About</h2>
-          <p className="small">AttaCoach {VERSION}. Drills are original to AttaCoach. Check your league's rulebook for local rules and pitch limits.</p>
-          {CHANGELOG.slice(0, 2).map((c) => (
-            <div key={c.version} className="small">
-              <strong>
-                What's new in {c.version}
-              </strong>
+          <details className="fold">
+            <summary>
+              AttaCoach {VERSION} · What's new
+            </summary>
+            <div className="small">
+              <strong>What's new in {CHANGELOG[0].version}</strong>
               <ul style={{ margin: '4px 0 0', paddingLeft: 20 }}>
-                {c.items.map((it) => (
+                {CHANGELOG[0].items.map((it) => (
                   <li key={it}>{it}</li>
                 ))}
               </ul>
             </div>
-          ))}
+            <p className="small muted">Drills are original to AttaCoach. Check your league's rulebook for local rules and pitch limits.</p>
+          </details>
         </section>
 
         {auth?.email && (

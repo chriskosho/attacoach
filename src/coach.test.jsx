@@ -49,10 +49,18 @@ describe('coach corner in the app', () => {
     await saveTeam({ name: 'Hawks', division: '12U', experience: 'new', needs: ['pitching', 'contact'], rules: defaultRules('12U') })
   })
 
+  it('Today shows the tip on one line and a small link to Coach Corner', async () => {
+    render(<App />)
+    const section = (await screen.findByRole('button', { name: 'More in Coach Corner ›' })).closest('section')
+    expect(section.textContent).toMatch(/Today’s tip:/)
+    expect(section.textContent).not.toMatch(/Game day huddles, what to say when a kid strikes out/)
+    expect(screen.queryByRole('button', { name: 'Open Coach Corner' })).toBeNull()
+  })
+
   it('opens from Today with game day huddles and tough moments', async () => {
     const user = userEvent.setup()
     render(<App />)
-    await user.click(await screen.findByRole('button', { name: 'Open Coach Corner' }))
+    await user.click(await screen.findByRole('button', { name: 'More in Coach Corner ›' }))
     expect(await screen.findByRole('heading', { name: 'Game day huddles' })).toBeTruthy()
     await user.click(screen.getByText('Pre-game huddle'))
     expect(screen.getByText(/Control what you can control/)).toBeTruthy()

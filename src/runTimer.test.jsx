@@ -137,7 +137,12 @@ describe('running late', () => {
     await open(plan())
     // 6 minutes after the start with nothing done: 6 minutes behind.
     expect(screen.getByText(/Running 6 min behind/)).toBeTruthy()
-    await user.click(screen.getByRole('button', { name: 'Trim the rest to finish on time' }))
+    // Trim is a button next to +1 min, and the lateness is its own line.
+    const trimBtn = screen.getByRole('button', { name: 'Trim the rest to finish on time' })
+    expect(trimBtn.className).toContain('run-btn')
+    expect(trimBtn.parentElement).toBe(screen.getByRole('button', { name: 'Add one minute to this block' }).parentElement)
+    expect(screen.getByText(/Running 6 min behind/).className).toContain('run-late')
+    await user.click(trimBtn)
     expect(screen.getByRole('status').textContent).toMatch(/Trimmed 6 min from the drills ahead/)
     expect(screen.getByRole('status').textContent).toMatch(/Water breaks and the closing huddle are unchanged/)
     const saved = JSON.parse(window.localStorage.getItem('run:p1'))

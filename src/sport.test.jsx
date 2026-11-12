@@ -178,6 +178,19 @@ describe('saving and restoring', () => {
     window.location.hash = '#/team'
     render(<App />)
     expect(await screen.findByText('Softball, fastpitch')).toBeTruthy()
-    expect(screen.getByText('Leaving on the pitch: on')).toBeTruthy()
+    expect(screen.getByText(/^Rules: .*leaving on the pitch/)).toBeTruthy()
+  })
+
+  it('the Team page lists the rules that are on in one line, and says standard when none are', async () => {
+    await saveTeam({ name: 'Hawks', division: '12U', experience: 'some', needs: [], rules: { kidPitch: true, stealing: true, leadoff: false, droppedThird: false } })
+    window.location.hash = '#/team'
+    const { unmount } = render(<App />)
+    const line = await screen.findByText(/^Rules: /)
+    expect(line.textContent).toMatch(/^Rules: players pitch, stealing$/)
+    unmount()
+    await clearEverything()
+    await saveTeam({ name: 'Hawks', division: '6U', experience: 'some', needs: [], rules: {} })
+    render(<App />)
+    expect(await screen.findByText('Rules: standard')).toBeTruthy()
   })
 })

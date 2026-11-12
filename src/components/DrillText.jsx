@@ -46,14 +46,6 @@ export function DrillText({ drill: base, compact = false, sport = 'baseball', le
         </section>
       )}
       <DrillVisual drill={drill} compact={compact} sport={sport} />
-      <section>
-        <H>How it works</H>
-        <ol>
-          {drill.steps.map((s, i) => (
-            <li key={i}>{s}</li>
-          ))}
-        </ol>
-      </section>
       {drill.points.length > 0 && (
         <section>
           <H>Coaching points</H>
@@ -64,6 +56,14 @@ export function DrillText({ drill: base, compact = false, sport = 'baseball', le
           </ul>
         </section>
       )}
+      <section>
+        <H>How it works</H>
+        <ol>
+          {drill.steps.map((s, i) => (
+            <li key={i}>{s}</li>
+          ))}
+        </ol>
+      </section>
       {!compact && (
         <>
           {drill.easier && (
