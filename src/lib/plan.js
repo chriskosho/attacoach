@@ -110,20 +110,16 @@ export const missingGear = (drill, equipment) => drill.gear.filter((g) => !(equi
 export const staffFor = (drill, young) => (drill.staff === 'kids' && (young || drill.bat) ? 'watch' : drill.staff)
 
 /**
- * Who does what, given the adults on hand. The head coach floats when the helpers can run the
- * stations that need an adult, and otherwise runs one. `role` lets the coach overrule it.
+ * Who does what, given the adults on hand. The coach always runs a station, so every adult does.
+ * (If a coach hands a station over on the day, that is theirs to decide.)
  */
-export function staffingFor({ adults = 1, role = 'auto' } = {}) {
+export function staffingFor({ adults = 1 } = {}) {
   const a = Math.max(1, adults)
-  const helpers = a - 1
-  let coachRole = role === 'float' || role === 'run' ? role : helpers >= 2 ? 'float' : 'run'
-  if (a === 1) coachRole = 'run'
-  return { adults: a, helpers, coachRole, runSlots: coachRole === 'float' ? helpers : a }
+  return { adults: a, helpers: a - 1, coachRole: 'run', runSlots: a }
 }
 
 // How many watch-only stations can be covered once `runUsed` adults are running stations.
 function watchCapacity(st, runUsed) {
-  if (st.coachRole === 'float') return 2 + Math.max(0, st.helpers - runUsed) * 2
   if (st.adults === 1) return 0
   // Adults running a station can each keep an eye on one station set up beside them.
   return Math.max(0, st.adults - runUsed) * 2 + runUsed
@@ -182,10 +178,9 @@ export function assignStaff(drills, st, young) {
 /**
  * Build a practice plan.
  * team:    { division, rules, experience, needs }
- * options: { minutes, adults, kids, coachRole, spaces, equipment, athletic, focus, recent, practiceName, seed, date }
+ * options: { minutes, adults, kids, spaces, equipment, athletic, focus, recent, practiceName, seed, date }
  *   adults    everyone helping, counting the head coach (older plans called this coaches)
  *   kids      players expected today
- *   coachRole 'auto' (default), 'float' or 'run'
  *   spaces    ['field'], ['cage', 'open'] and so on
  *   equipment ids the team has, or null when unknown
  *   recent    the team's recent plans (see recentPlans), so practices vary and the week stays balanced
@@ -205,7 +200,7 @@ export function buildPlan(team, options = {}) {
   const avail = availableSpaces(spaces)
   const equipment = options.equipment ?? null
   const athletic = !!options.athletic
-  const st = staffingFor({ adults, role: options.coachRole })
+  const st = staffingFor({ adults })
 
   // Drills that fit today's space. If a small space leaves too little to choose from, use the
   // rest too: a thin plan is worse than an imperfect one.
@@ -554,7 +549,6 @@ export function buildPlan(team, options = {}) {
     coaches: adults,
     kids,
     coachRole: st.coachRole,
-    requestedRole: options.coachRole ?? 'auto',
     spaces,
     equipment,
     athletic,
@@ -577,7 +571,6 @@ export function rebuildPlan(team, plan, changes = {}) {
     minutes: plan.minutes,
     adults: plan.adults ?? plan.coaches,
     kids: plan.kids,
-    coachRole: plan.requestedRole ?? 'auto',
     spaces: plan.spaces,
     equipment: plan.equipment ?? null,
     athletic: plan.athletic,
@@ -642,7 +635,7 @@ export function planFromTemplate(team, template, options = {}) {
     athletic: template.athletic ?? options.athletic,
   })
   const young = divIndex(team.division) <= divIndex('6U')
-  const st = staffingFor({ adults: base.adults, role: options.coachRole })
+  const st = staffingFor({ adults: base.adults })
   const blocks = template.blocks.map((b) => refitBlock({ ...b, id: newId('b') }, base.kids, st, young))
   return { ...base, minutes: template.minutes ?? totalMinutes({ blocks }), blocks, templateId: template.id, templateName: template.name }
 }
@@ -754,7 +747,7 @@ function restaff(plan, block, division) {
   const drills = block.stations.map(drillById).filter(Boolean)
   if (drills.length !== block.stations.length) return block
   const young = division ? divIndex(division) <= divIndex('6U') : false
-  const st = staffingFor({ adults: plan.adults ?? plan.coaches ?? 1, role: plan.coachRole })
+  const st = staffingFor({ adults: plan.adults ?? plan.coaches ?? 1 })
   const kids = block.groups ? block.groups.reduce((a, b) => a + b, 0) : plan.kids ?? 12
   return { ...block, staff: assignStaff(drills, st, young), groups: groupSizes(kids, drills.length) }
 }

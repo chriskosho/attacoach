@@ -91,10 +91,10 @@ function DrillShort({ drill, sport }) {
   )
 }
 
-// "2 adults · You run a station": who is there and what the coach does. Opens Change of plans.
+// "2 adults": who is there. Opens Change of plans.
 export function adultsLine(plan) {
   const n = plan.adults ?? plan.coaches ?? 1
-  return `${n} ${n === 1 ? 'adult' : 'adults'} · ${n === 1 ? 'Just you' : plan.coachRole === 'float' ? 'You float and manage' : 'You run a station'}`
+  return `${n} ${n === 1 ? 'adult · Just you' : 'adults'}`
 }
 
 // One line for the top of the plan: "Tomorrow · 60 min · Cage · 12 kids".

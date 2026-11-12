@@ -1,26 +1,15 @@
 import { useEffect, useState } from 'react'
 import { EQUIPMENT, SPACES, WEEKDAYS, lengthsFor, spaceLabel } from '../data/constants.js'
-import { newPractice, practiceStaff, staffSummary, dayName, COACH_ROLES } from '../lib/practices.js'
+import { newPractice, practiceStaff, staffSummary, dayName } from '../lib/practices.js'
 import SkillChips from './SkillChips.jsx'
 import Stepper from './Stepper.jsx'
 
-// Adults count and the coach's role, with the role only when there is more than one adult.
-function AdultsPicker({ label, adults, role, onChange }) {
+// How many adults, counting the coach.
+function AdultsPicker({ label, adults, onChange }) {
   return (
-    <div className="stack">
-      <div className="row">
-        <strong className="small spacer">{label}</strong>
-        <Stepper label={label} value={adults} onChange={(n) => onChange({ adults: n, coachRole: role })} min={1} max={10} />
-      </div>
-      {adults > 1 && (
-        <div className="seg" role="group" aria-label={`Your role: ${label}`}>
-          {COACH_ROLES.map(([id, text]) => (
-            <button key={id} type="button" aria-pressed={role === id} onClick={() => onChange({ adults, coachRole: id })}>
-              {text}
-            </button>
-          ))}
-        </div>
-      )}
+    <div className="row">
+      <strong className="small spacer">{label}</strong>
+      <Stepper label={label} value={adults} onChange={(n) => onChange({ adults: n })} min={1} max={10} />
     </div>
   )
 }
@@ -29,7 +18,7 @@ function AdultsPicker({ label, adults, role, onChange }) {
 function practiceLine(p, team) {
   const st = practiceStaff(team, p)
   const parts = [p.day != null ? dayName(p.day).slice(0, 3) : null, `${p.minutes} min`, p.spaces.map(spaceLabel).join(' and ').toLowerCase()].filter(Boolean)
-  return `${parts.join(', ')}. ${st.own ? `${staffSummary(st.adults, st.role)} (just this one)` : 'Team adults'}`
+  return `${parts.join(', ')}. ${st.own ? `${staffSummary(st.adults)} (just this one)` : 'Team adults'}`
 }
 
 const PRACTICE_STEPS = 3
@@ -91,16 +80,16 @@ function PracticeDraft({ division, draft, setDraft, team, onDone, onCancel, isNe
         <div className="stack">
           <strong className="small">Adults at this practice</strong>
           <div className="choices" role="group" aria-label={`Adults at ${label}`}>
-            <button type="button" className="choice" aria-pressed={!st.own} onClick={() => set({ adults: null, coachRole: null })}>
+            <button type="button" className="choice" aria-pressed={!st.own} onClick={() => set({ adults: null })}>
               <strong>Same as the team</strong>
-              <span>{staffSummary(team.adults, team.coachRole)}</span>
+              <span>{staffSummary(team.adults)}</span>
             </button>
-            <button type="button" className="choice" aria-pressed={st.own} onClick={() => !st.own && set({ adults: team.adults, coachRole: team.coachRole })}>
+            <button type="button" className="choice" aria-pressed={st.own} onClick={() => !st.own && set({ adults: team.adults })}>
               <strong>Different for this one</strong>
               <span>Like a cage night with fewer helpers</span>
             </button>
           </div>
-          {st.own && <AdultsPicker label="Adults at this practice, counting you" adults={st.adults} role={st.role} onChange={set} />}
+          {st.own && <AdultsPicker label="Adults at this practice, counting you" adults={st.adults} onChange={set} />}
         </div>
       )}
       <div className="draft-nav">
@@ -123,11 +112,11 @@ function PracticeDraft({ division, draft, setDraft, team, onDone, onCancel, isNe
 
 // How a team practices: the adults who usually help, its weekly practices (added one at a time and
 // checked in a list before saving), the gear it has, and the athletic warm-up. Everything is optional.
-// Controlled: value = { adults, coachRole, practices, equipment, athletic }. `onEditingChange(true)`
+// Controlled: value = { adults, practices, equipment, athletic }. `onEditingChange(true)`
 // while a practice is half-entered, so the screen can hide its own Save until that practice is done.
 export default function PracticeSetup({ division, value, onChange, onEditingChange = () => {} }) {
   const { practices, equipment, athletic } = value
-  const team = { adults: value.adults ?? 2, coachRole: value.coachRole ?? 'auto' }
+  const team = { adults: value.adults ?? 2 }
   const set = (patch) => onChange({ ...value, ...patch })
   const [draft, setDraft] = useState(null) // { index: number | null, practice, sub }
   const [status, setStatus] = useState('')
@@ -166,7 +155,7 @@ export default function PracticeSetup({ division, value, onChange, onEditingChan
 
   return (
     <div className="stack">
-      <AdultsPicker label="Adults at practice, counting you" adults={team.adults} role={team.coachRole} onChange={set} />
+      <AdultsPicker label="Adults at practice, counting you" adults={team.adults} onChange={set} />
       <span className="small muted adults-help">Every practice starts from this. You can change it for one practice, and on the day.</span>
 
       <div className="stack">
@@ -195,7 +184,7 @@ export default function PracticeSetup({ division, value, onChange, onEditingChan
               ))}
             </ul>
             {overrides > 0 && (
-              <button type="button" className="link-btn practice-same" onClick={() => set({ practices: practices.map(({ adults, coachRole, ...p }) => p) })}>
+              <button type="button" className="link-btn practice-same" onClick={() => set({ practices: practices.map(({ adults, ...p }) => p) })}>
                 Use the team's adults for every practice
               </button>
             )}

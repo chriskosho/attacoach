@@ -59,7 +59,7 @@ describe('one clear button, more screens', () => {
   })
 
   it('has a plain entry for this version', () => {
-    expect(VERSION).toBe('1.38.0')
+    expect(CHANGELOG.some((c) => c.version === '1.38.0')).toBe(true)
     expect(CHANGELOG[0].version).toBe(VERSION)
   })
 })

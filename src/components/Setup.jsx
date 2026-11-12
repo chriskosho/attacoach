@@ -105,7 +105,6 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
   const [fromRoster, setFromRoster] = useState(false)
   const [practice, setPractice] = useState({
     adults: team?.adults ?? lastAdults(),
-    coachRole: team?.coachRole ?? 'auto',
     practices: team?.practices ?? [],
     equipment: team?.equipment ?? null,
     athletic: team?.athletic ?? null,
@@ -187,7 +186,6 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
       equipment: practice.equipment,
       athletic,
       adults: practice.adults,
-      coachRole: practice.coachRole,
     })
     await savePlayers(row.id, players)
     onDone?.(row)

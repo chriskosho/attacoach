@@ -51,12 +51,11 @@ export default function Today({ team, coach = '', players = [] }) {
   const [date, setDate] = useState(start.date)
   const [minutes, setMinutes] = useState(fitLength(start.practice.minutes ?? store.get('minutes', 60)))
   const [spaces, setSpaces] = useState(start.practice.spaces ?? ['field'])
-  // Adults and the coach's role come from the practice, then the team, then the last count used here.
+  // Adults come from the practice, then the team, then the last count used here.
   const staffOf = (p) => practiceStaff(team, p, store.get('adults', store.get('coaches', 2)))
   const [adults, setAdults] = useState(() => staffOf(start.practice).adults)
   // Kids expected starts from the roster when there is one, and from the last count otherwise.
   const [kids, setKids] = useState(players.length > 0 ? players.length : store.get('kids', 12))
-  const [role, setRole] = useState(() => staffOf(start.practice).role)
   const [equipment, setEquipment] = useState(team.equipment ?? null)
   const [athletic, setAthletic] = useState(team.athletic ?? athleticDefault(team.division))
   const teamFocus = team.needs?.length ? team.needs : starterNeeds(team.division)
@@ -91,7 +90,6 @@ export default function Today({ team, coach = '', players = [] }) {
     setSpaces(p.spaces?.length ? p.spaces : ['field'])
     const st = staffOf(p)
     setAdults(st.adults)
-    setRole(st.role)
   }
   const changeDate = (iso) => {
     setDate(iso)
@@ -120,7 +118,6 @@ export default function Today({ team, coach = '', players = [] }) {
       minutes,
       adults,
       kids,
-      coachRole: role,
       spaces,
       equipment,
       athletic,
@@ -269,7 +266,7 @@ export default function Today({ team, coach = '', players = [] }) {
                   </strong>
                   <Stepper label="Adults at practice" value={adults} onChange={setAdults} min={1} max={10} />
                 </div>
-                <span className="muted small">{staffingText({ adults, kids, role, young })}</span>
+                <span className="muted small">{staffingText({ adults, kids, young })}</span>
               </div>
               <div className="stack">
                 <strong className="small">Where is practice?</strong>
@@ -279,22 +276,6 @@ export default function Today({ team, coach = '', players = [] }) {
                 <strong className="small spacer">Kids expected</strong>
                 <Stepper label="Kids expected" value={kids} onChange={setKids} min={1} max={30} />
               </div>
-              {adults > 1 && (
-                <div className="stack">
-                  <strong className="small">Your role</strong>
-                  <div className="seg" role="group" aria-label="Your role">
-                    {[
-                      ['auto', 'Suggest'],
-                      ['float', 'Float'],
-                      ['run', 'Run a station'],
-                    ].map(([id, label]) => (
-                      <button key={id} type="button" aria-pressed={role === id} onClick={() => setRole(id)}>
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
               <div className="stack">
                 <strong className="small">Equipment today</strong>
                 <SkillChips options={EQUIPMENT} value={equipment ?? []} onChange={setEquipment} label="Equipment today" />

@@ -64,12 +64,12 @@ describe('plan page header', () => {
     const user = userEvent.setup()
     const plan = await openPlan()
     expect(screen.queryByRole('group', { name: 'Adults today' })).toBe(null)
-    await user.click(screen.getByRole('button', { name: /^3 adults · You (run a station|float and manage)/ }))
+    await user.click(screen.getByRole('button', { name: /^3 adults ›/ }))
     const sheet = await screen.findByRole('dialog', { name: 'Change of plans' })
     await user.click(within(sheet).getByRole('button', { name: 'Fewer: Adults today' }))
     await user.click(within(sheet).getByRole('button', { name: 'Apply changes' }))
     await waitFor(async () => expect((await saved(plan)).adults).toBe(2))
-    expect(await screen.findByRole('button', { name: /^2 adults · You run a station/ })).toBeTruthy()
+    expect(await screen.findByRole('button', { name: /^2 adults ›/ })).toBeTruthy()
   })
 
   it('folds the opener to one line that opens to the full line and the huddle talking points', async () => {

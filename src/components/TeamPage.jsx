@@ -27,7 +27,7 @@ export default function TeamPage({ team, teams, players = [] }) {
   const staff = practiceStaff(team, null, lastAdults())
 
   const editPractice = () =>
-    setPracticeDraft({ adults: staff.adults, coachRole: staff.role, practices: team.practices ?? [], equipment: team.equipment ?? null, athletic: team.athletic ?? athleticDefault(team.division) })
+    setPracticeDraft({ adults: staff.adults, practices: team.practices ?? [], equipment: team.equipment ?? null, athletic: team.athletic ?? athleticDefault(team.division) })
   const savePractice = async () => {
     const practices = practiceDraft.practices.map((p) => ({ ...p, name: p.name.trim() || 'Practice' }))
     await saveTeam({ ...team, ...practiceDraft, practices })
@@ -132,7 +132,7 @@ export default function TeamPage({ team, teams, players = [] }) {
             </button>
           </div>
           <p className="small" style={{ margin: 0 }}>
-            <strong>Adults:</strong> {staffSummary(staff.adults, staff.role)}
+            <strong>Adults:</strong> {staffSummary(staff.adults)}
           </p>
           <ul className="plain-list small">
             {teamPractices(team).map((p) => {
@@ -141,7 +141,7 @@ export default function TeamPage({ team, teams, players = [] }) {
                 <li key={p.id}>
                   <strong>{p.name}</strong>
                   {p.day != null ? `, ${dayName(p.day)}` : ''}, {p.minutes} min, {p.spaces.map(spaceLabel).join(' and ').toLowerCase()}
-                  {own.own ? `, ${staffSummary(own.adults, own.role)}` : ''}
+                  {own.own ? `, ${staffSummary(own.adults)}` : ''}
                 </li>
               )
             })}

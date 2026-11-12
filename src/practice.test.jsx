@@ -37,13 +37,12 @@ describe('drill tags', () => {
 })
 
 describe('staffing', () => {
-  it('lets the coach float with two or more helpers, and run a station otherwise', () => {
-    expect(staffingFor({ adults: 1 }).coachRole).toBe('run')
-    expect(staffingFor({ adults: 2 }).coachRole).toBe('run')
-    expect(staffingFor({ adults: 3 }).coachRole).toBe('float')
-    expect(staffingFor({ adults: 3, role: 'run' }).coachRole).toBe('run')
-    expect(staffingFor({ adults: 2, role: 'float' }).coachRole).toBe('float')
-    expect(staffingFor({ adults: 1, role: 'float' }).coachRole).toBe('run')
+  it('always has the coach run a station, so every adult runs one', () => {
+    for (const adults of [1, 2, 3, 5]) {
+      expect(staffingFor({ adults })).toMatchObject({ coachRole: 'run', runSlots: adults, helpers: adults - 1 })
+    }
+    // An old saved role is ignored.
+    expect(staffingFor({ adults: 3, role: 'float' }).coachRole).toBe('run')
   })
 
   it('sizes groups from the kids, about four each, never forcing a cap', () => {
@@ -85,9 +84,10 @@ describe('staffing', () => {
   })
 
   it('describes the day in plain words', () => {
-    expect(staffingText({ adults: 1, kids: 12, role: 'auto', young: true })).toMatch(/stays together/)
-    expect(staffingText({ adults: 1, kids: 12, role: 'auto', young: false })).toMatch(/player-led/)
-    expect(staffingText({ adults: 3, kids: 12, role: 'auto', young: false })).toMatch(/float/)
+    expect(staffingText({ adults: 1, kids: 12, young: true })).toMatch(/stays together/)
+    expect(staffingText({ adults: 1, kids: 12, young: false })).toMatch(/player-led/)
+    expect(staffingText({ adults: 3, kids: 12, young: false })).toMatch(/Each adult runs one/)
+    expect(staffingText({ adults: 3, kids: 12, young: false })).not.toMatch(/float|role/i)
     expect(staffText({ type: 'run', who: 'coach' })).toBe('You run this station.')
     expect(staffText({ type: 'watch', who: 'helper', helper: 2 })).toBe('Helper 2 keeps an eye on this one.')
     expect(staffText({ type: 'watch', near: 0 }, ['Tee work'])).toMatch(/next to Tee work/)
@@ -121,11 +121,19 @@ describe('space and gear', () => {
     expect(missingGear(drillById('machine-hitting'), null)).toEqual(['machine'])
     expect(missingGear(drillById('tee-work'), null)).toEqual([])
     expect(missingGear(drillById('machine-hitting'), ['machine'])).toEqual([])
-    let machine = 0
-    for (let seed = 1; seed <= 20; seed++) {
-      if (drillIdsInPlan(buildPlan(team(), { minutes: 90, adults: 3, spaces: ['cage', 'open'], seed })).includes('machine-hitting')) machine++
+    // Every adult now runs a station, so a third adult adds a run station and the machine shows up
+    // a little more. Two adults keep the original bar; with three, unknown gear must still make the
+    // machine rarer than when the team says it has one.
+    const machineCount = (adults, equipment) => {
+      let n = 0
+      for (let seed = 1; seed <= 20; seed++) {
+        const opts = { minutes: 90, adults, spaces: ['cage', 'open'], seed, ...(equipment ? { equipment } : {}) }
+        if (drillIdsInPlan(buildPlan(team(), opts)).includes('machine-hitting')) n++
+      }
+      return n
     }
-    expect(machine).toBeLessThan(4)
+    expect(machineCount(2)).toBeLessThan(4)
+    expect(machineCount(3)).toBeLessThan(machineCount(3, ['tee', 'machine']))
   })
 
   it('balances the week: a field day after a cage day does less hitting, but never none', () => {
@@ -209,21 +217,21 @@ describe('practice setup in the app', () => {
     expect(screen.getByRole('button', { name: '60' }).getAttribute('aria-pressed')).toBe('true')
     expect(screen.getByText(/60 min, \d adults?, 13 kids, Batting cage \+ Open grass, athletic warm-up/)).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'More: Adults at practice' }))
-    expect(screen.getByText(/you float and manage/)).toBeTruthy()
+    expect(screen.getByText(/Each adult runs one/)).toBeTruthy()
+    expect(screen.queryByText(/float|Your role/i)).toBe(null)
     await user.click(screen.getByRole('button', { name: 'Build practice plan' }))
     await screen.findByRole('list', { name: 'Practice blocks' })
     const [plan] = await db.plans.toArray()
-    expect(plan).toMatchObject({ practiceName: 'Cage day', minutes: 60, adults: 3, kids: 13, spaces: ['cage', 'open'], athletic: true, coachRole: 'float' })
+    expect(plan).toMatchObject({ practiceName: 'Cage day', minutes: 60, adults: 3, kids: 13, spaces: ['cage', 'open'], athletic: true })
     expect(plan.equipment).toEqual(['tee', 'machine'])
 
     // A helper cancels: the adult count line on the plan opens Change of plans (Stage 11D moved the stepper there).
-    await user.click(screen.getByRole('button', { name: /^3 adults · You float and manage/ }))
+    await user.click(screen.getByRole('button', { name: /^3 adults ›/ }))
     const sheet = await screen.findByRole('dialog', { name: 'Change of plans' })
     await user.click(within(sheet).getByRole('button', { name: 'Fewer: Adults today' }))
     await user.click(within(sheet).getByRole('button', { name: 'Apply changes' }))
     await waitFor(async () => expect((await db.plans.get(plan.id)).adults).toBe(2))
-    expect((await db.plans.get(plan.id)).coachRole).toBe('run')
-    expect(await screen.findByRole('button', { name: /^2 adults · You run a station/ })).toBeTruthy()
+    expect(await screen.findByRole('button', { name: /^2 adults ›/ })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Undo' })).toBeTruthy()
   })
 

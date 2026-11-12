@@ -1,6 +1,14 @@
-export const VERSION = '1.38.0'
+export const VERSION = '1.39.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.39.0',
+    date: '2026-11-12',
+    items: [
+      'Simpler: AttaCoach now assumes you run a station, so there is no role to pick. The Suggest, Float and Run a station choice is gone from team setup, the practice steps and Today.',
+      'Plans with three or more adults now give every adult a station to run. If you hand a station over on the day, that is up to you.',
+    ],
+  },
   {
     version: '1.38.0',
     date: '2026-11-12',

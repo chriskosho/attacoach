@@ -16,7 +16,7 @@ import { VERSION, CHANGELOG } from './changelog.js'
 
 const base = (over = {}) => ({ name: 'Hawks', sport: 'baseball', division: '10U', rules: defaultRules('10U'), experience: 'some', needs: ['grounders', 'contact'], ...over })
 const field = { id: 'pf', name: 'Field practice', day: 2, minutes: 90, spaces: ['field'] }
-const cage = { id: 'pc', name: 'Cage night', day: 4, minutes: 60, spaces: ['cage'], adults: 1, coachRole: null }
+const cage = { id: 'pc', name: 'Cage night', day: 4, minutes: 60, spaces: ['cage'], adults: 1 }
 
 beforeEach(async () => {
   await clearEverything()
@@ -34,23 +34,22 @@ const openPracticeSheet = async (user) => {
 
 describe('who is at practice', () => {
   it('a practice uses its own adults, then the team, then the last count on this device', () => {
-    const team = { adults: 3, coachRole: 'float' }
-    expect(practiceStaff(team, field)).toEqual({ adults: 3, role: 'float', own: false })
-    expect(practiceStaff(team, cage)).toEqual({ adults: 1, role: 'float', own: true })
-    expect(practiceStaff({}, field, 4)).toEqual({ adults: 4, role: 'auto', own: false })
-    expect(practiceStaff(null, null)).toEqual({ adults: 2, role: 'auto', own: false })
+    const team = { adults: 3 }
+    expect(practiceStaff(team, field)).toEqual({ adults: 3, own: false })
+    expect(practiceStaff(team, cage)).toEqual({ adults: 1, own: true })
+    expect(practiceStaff({}, field, 4)).toEqual({ adults: 4, own: false })
+    expect(practiceStaff(null, null)).toEqual({ adults: 2, own: false })
   })
 
   it('says the adults line in plain words', () => {
-    expect(staffSummary(1, 'auto')).toBe('1 adult, just you')
-    expect(staffSummary(3, 'float')).toBe('3 adults, you float')
-    expect(staffSummary(2, 'run')).toBe('2 adults, you run a station')
-    expect(staffSummary(2, 'auto')).toBe('2 adults')
+    expect(staffSummary(1)).toBe('1 adult, just you')
+    expect(staffSummary(2)).toBe('2 adults')
+    expect(staffSummary(3)).toBe('3 adults')
   })
 
   it('Today starts from the team adults, and switches when the date lands on a practice with its own', async () => {
     const user = userEvent.setup()
-    await saveTeam(base({ adults: 3, coachRole: 'run', practices: [field, cage] }))
+    await saveTeam(base({ adults: 3, practices: [field, cage] }))
     window.location.hash = '#/today'
     render(<App />)
     await user.click(await screen.findByText(/Change today's setup/))
@@ -62,7 +61,6 @@ describe('who is at practice', () => {
     expect(adults()).toBe('1')
     fireEvent.change(date, { target: { value: on(2) } })
     expect(adults()).toBe('3')
-    expect(screen.getByRole('button', { name: 'Run a station' }).getAttribute('aria-pressed')).toBe('true')
   })
 
   it('a team saved before this falls back to the last count used on this device', async () => {
@@ -79,7 +77,7 @@ describe('who is at practice', () => {
 describe('adding practices one at a time', () => {
   it('asks name and day, then length and where, then adults, and only then adds it to the list', async () => {
     const user = userEvent.setup()
-    const t = await saveTeam(base({ adults: 2, coachRole: 'run', practices: [] }))
+    const t = await saveTeam(base({ adults: 2, practices: [] }))
     const dialog = await openPracticeSheet(user)
     await user.click(within(dialog).getByRole('button', { name: 'More: Adults at practice, counting you' }))
     await user.click(within(dialog).getByRole('button', { name: 'Add a practice' }))
@@ -95,7 +93,7 @@ describe('adding practices one at a time', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Next' }))
     // Adults: the team's by default, or this practice's own.
     expect(within(dialog).getByRole('button', { name: /Same as the team/ }).getAttribute('aria-pressed')).toBe('true')
-    expect(within(dialog).getByRole('button', { name: /Same as the team/ }).textContent).toMatch(/3 adults, you run a station/)
+    expect(within(dialog).getByRole('button', { name: /Same as the team/ }).textContent).toMatch(/3 adults/)
     await user.click(within(dialog).getByRole('button', { name: /Different for this one/ }))
     await user.click(within(dialog).getByRole('button', { name: 'Fewer: Adults at this practice, counting you' }))
     await user.click(within(dialog).getByRole('button', { name: 'Add practice' }))
@@ -103,15 +101,16 @@ describe('adding practices one at a time', () => {
     const list = within(dialog).getByRole('list', { name: 'Your weekly practices' })
     expect(list.textContent).toMatch(/Cage night/)
     expect(list.textContent).toMatch(/Wed, 75 min/)
-    expect(list.textContent).toMatch(/2 adults, you run a station \(just this one\)/)
+    expect(list.textContent).toMatch(/2 adults \(just this one\)/)
     expect(within(dialog).getByText('Added Cage night.').getAttribute('role')).toBe('status')
     // Nothing is saved until Save.
     expect((await db.teams.get(t.id)).practices).toEqual([])
     await user.click(within(dialog).getByRole('button', { name: 'Save' }))
     await waitFor(async () => expect((await db.teams.get(t.id)).practices).toHaveLength(1))
     const saved = await db.teams.get(t.id)
-    expect(saved).toMatchObject({ adults: 3, coachRole: 'run' })
-    expect(saved.practices[0]).toMatchObject({ name: 'Cage night', day: 3, minutes: 75, spaces: ['field'], adults: 2, coachRole: 'run' })
+    expect(saved).toMatchObject({ adults: 3 })
+    expect(saved.coachRole).toBeUndefined()
+    expect(saved.practices[0]).toMatchObject({ name: 'Cage night', day: 3, minutes: 75, spaces: ['field'], adults: 2 })
   })
 
   it('Cancel leaves the list as it was; Edit and Remove work from the list', async () => {
@@ -183,7 +182,7 @@ describe('sample teams', () => {
     await user.click(screen.getByRole('button', { name: /Rec team, full roster/ }))
     await screen.findByRole('list', { name: 'Practice blocks' })
     const [t] = await db.teams.toArray()
-    expect(t).toMatchObject({ sample: true, adults: 3, coachRole: 'run' })
+    expect(t).toMatchObject({ sample: true, adults: 3 })
     window.location.hash = '#/today'
     expect((await screen.findByText(/You're trying a sample team/)).textContent).toMatch(/Sample/)
     expect(screen.getByRole('button', { name: 'Set up your own ›' })).toBeTruthy()
@@ -195,9 +194,9 @@ describe('sample teams', () => {
 
   it('sample teams come with adults, and one practice has its own', () => {
     const { team } = teamFromScenario(scenarioById('rec-10u'), 'x')
-    expect(team).toMatchObject({ adults: 3, coachRole: 'run' })
+    expect(team).toMatchObject({ adults: 3 })
     expect(team.practices[0].adults).toBeUndefined()
-    expect(team.practices[1]).toMatchObject({ adults: 2, coachRole: 'run' })
+    expect(team.practices[1]).toMatchObject({ adults: 2 })
   })
 })
 

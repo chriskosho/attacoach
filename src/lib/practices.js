@@ -4,31 +4,19 @@ import { localDate, stationTarget, staffingFor } from './plan.js'
 
 export const teamPractices = (team) => (team?.practices?.length ? team.practices : [DEFAULT_PRACTICE])
 
-export const COACH_ROLES = [
-  ['auto', 'Suggest'],
-  ['float', 'Float'],
-  ['run', 'Run a station'],
-]
-
 /**
  * Who is at a practice: the practice's own adults count if it has one, then the team's, then
  * `fallback` (the last count used on this device, for teams saved before the team asked).
- * Returns { adults, role, own } where `own` is true when the practice overrides the team.
+ * `own` is true when the practice overrides the team.
  */
 export function practiceStaff(team, practice, fallback = 2) {
   const own = practice?.adults != null
-  const adults = own ? practice.adults : team?.adults ?? fallback
-  const role = (own ? practice.coachRole : null) ?? team?.coachRole ?? 'auto'
-  return { adults, role, own }
+  return { adults: own ? practice.adults : team?.adults ?? fallback, own }
 }
 
-// "2 adults, you run a station": the adults line for a team or a practice, in plain words.
-export function staffSummary(adults, role) {
-  const n = `${adults} ${adults === 1 ? 'adult' : 'adults'}`
-  if (adults === 1) return `${n}, just you`
-  if (role === 'float') return `${n}, you float`
-  if (role === 'run') return `${n}, you run a station`
-  return n
+// "3 adults": the adults line for a team or a practice, in plain words.
+export function staffSummary(adults) {
+  return adults === 1 ? '1 adult, just you' : `${adults} adults`
 }
 
 export function newPractice(division, n = 1) {
@@ -68,14 +56,13 @@ export const practiceOn = (practices, iso) => practices.find((p) => p.day != nul
 export const dayName = (day) => (day == null ? '' : WEEKDAY_NAMES[day])
 
 // Plain words for what the adults on hand mean for practice.
-export function staffingText({ adults, kids, role, young }) {
-  const st = staffingFor({ adults, role })
+export function staffingText({ adults, kids, young }) {
+  const st = staffingFor({ adults })
   const n = young && st.adults === 1 ? 1 : stationTarget(kids)
   if (n < 2) return st.adults === 1 ? 'The team stays together and you lead every drill.' : 'The team stays together for most drills.'
   const groups = `about ${n} stations with ${Math.floor(kids / n)}${kids % n ? `-${Math.ceil(kids / n)}` : ''} kids each`
   if (st.adults === 1) return `${cap(groups)}. You run one station and the others are player-led.`
-  if (st.coachRole === 'float') return `${cap(groups)}. Your helpers run the stations and you float and manage.`
-  return `${cap(groups)}. You run a station and your ${st.helpers === 1 ? 'helper runs' : 'helpers run'} the others, with any extra stations watch-only or player-led.`
+  return `${cap(groups)}. Each adult runs one, with any extra stations watch-only or player-led.`
 }
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1)
