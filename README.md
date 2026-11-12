@@ -6,18 +6,18 @@ Live app: https://chriskosho.github.io/attacoach/
 
 ## What it does
 
-- **Setup in a minute.** Sport (baseball or softball), team name, age group, coaching experience, then optional roster, ranked team needs, league rules and weekly practices. Everything after the first two screens can be skipped. Softball teams choose fastpitch, coach pitch or tee ball (6U) and get softball wording and drills.
+- **Setup in a minute.** Sport (baseball or softball), team name, age group, coaching experience, then optional roster, ranked team needs, league rules and weekly practices. Everything after the first two screens can be skipped. The first screen also offers Restore a backup (for a new phone, or after an erase) and a one-tap High contrast (bright sun) link. Softball teams choose fastpitch, coach pitch or tee ball (6U) and get softball wording and drills.
 - **Plans from goals.** Pick a date, length, adults, kids and where you practise (field, cage, open space, gym). The plan opens with a warm-up, spends most of its time on the team's needs, always includes hitting on field days, rotates stations when there are enough adults, adds water breaks, finishes with a game and a huddle. Each new plan avoids repeating the last few practices.
-- **About 154 original drills**, rated beginner, intermediate or advanced, tagged by age, space, gear, staffing and league rules (leading off, stealing, dropped third strike, kid pitching). 24 are softball-only. Drills a league does not allow never appear.
+- **About 154 original drills**, rated beginner, intermediate or advanced, tagged by age, space, gear, staffing and league rules (leading off, stealing, dropped third strike, kid pitching). 24 are softball-only. Drills a league does not allow never appear. A plan never has two drills that teach the same skill the same way, and each station round has at most one pitching or catcher station.
 - **Drill pictures.** 16 moving top-down diagrams you can step through, and body-position strips for throwing, bunting, catching, pitching and fielding. The YouTube button opens a search that was checked first.
-- **Editing and templates.** Open any block to change minutes, swap, move, lock, add a break or remove it. Save a plan as a template. "Change of plans" rebuilds around fewer kids, fewer adults, less time or a new space.
+- **Editing and templates.** Open any block to change minutes, swap, move, lock, add a break or remove it. Save a plan as a template, named in the app. "Change of plans" rebuilds around fewer kids, fewer adults, less time or a new space.
 - **Field timer.** Big countdown with beep and vibration, auto-advance, station rotation calls, three reading lines at a time with More, the screen stays awake, trim-to-finish when running late, and a white high-contrast version.
 - **Coach the Coach.** Huddles by age band (changing from practice to practice), "say this, not that" cues for every drill type and tough moments, and short guides.
 - **Log and Season so far.** Game debriefs and practice recaps feed the next plan's suggested focus. The top of the Log tab shows practices run, games logged, how often each skill has come up in saved plans, and one nudge when a skill on the team's list has been quiet for three weeks.
-- **Display.** Auto, Light, Dark, and High contrast (bright sun).
-- **Safety.** Backup and restore as a file, a backup reminder, a home-screen hint, and an error screen that still offers a backup.
+- **Display.** Auto, Light, Dark, and High contrast (bright sun), chosen in Settings or from the first screen.
+- **Safety.** Backup and restore as a file (after saving, AttaCoach says where to find it, with Files on iPhone), a backup reminder, a home-screen hint, and an error screen that still offers a backup.
 - **Feedback (pilot).** "Send feedback" in Settings, and "Was this plan right?" on the plan page and the timer's finish screen. Each opens the coach's own email app with a message that is shown first: app version, sport, age group, practice length and space, the plan's drill names and the coach's note. It never includes the coach's, players' or team's names, and the app sends nothing itself.
-- **Private.** No analytics, tracking or ads. Teams, players, plans and the log stay in the browser on the device. The only network requests are the page itself, and the links a coach taps (YouTube search, PayPal, their email app).
+- **Private.** No analytics, tracking or ads. Teams, players, plans and the log stay in the browser on the device; a backup is a file you save yourself. The only network requests are the page itself, and the links a coach taps (YouTube search, PayPal, their email app).
 - **Sign-in (built, off).** Set `VITE_AUTH_REQUIRED=true` at build time to turn it on (Supabase email link or code). Leave it off for the pilot.
 
 ## Pilot settings
@@ -53,16 +53,18 @@ The offline check's font test fails about one run in six; run it again before in
 ## Code map
 
 - `src/data/drills*.js`: the drill library (base, more, young, older, softball). `drillTags.js` holds age, space, gear, staffing, sport and rule tags; `drillSoftball.js` softball wording; `video.js` the checked YouTube searches.
-- `src/data/diagrams.js`, `diagramBg.js`, `poses.js`: drill pictures and body-position strips.
+- `src/data/diagrams.js`, `diagramBg.js`, `poses.js`: drill pictures and body-position strips. `src/lib/diagram.js` has the playback helpers, including the fade for full-play diagrams.
+- `src/data/sameSkill.js`: drills that teach the same skill the same way; the planner keeps one per practice.
 - `src/data/constants.js`: divisions, rules, needs, levels, categories, spaces.
 - `src/data/coaching.js`, `motivation.js`: huddles, cues, guides, team talks.
 - `src/data/scenarios.js`: the ready-made test teams.
-- `src/lib/plan.js`: the plan engine and editing helpers (pure functions). `sport.js`: softball wording and fit rules. `changes.js`: change of plans.
+- `src/lib/plan.js`: the plan engine and editing helpers (pure functions). `pitchNote` decides when the pitch-count reminder shows. `sport.js`: softball wording and fit rules. `changes.js`: change of plans.
 - `src/lib/debrief.js`: log helpers and next-focus suggestion. `season.js`: the Season so far numbers. `feedback.js`: the feedback message.
 - `src/lib/db.js`: device storage (Dexie / IndexedDB), backup and restore.
 - `src/lib/auth.js`, `supabase.js`, `src/config.js`: the sign-in gate and public settings.
-- `src/components/`: screens. `src/styles.css`: all styles, with variables for light, dark and sun mode.
+- `src/components/`: screens (`Setup.jsx` includes the first-screen links; `RestoreBackup.jsx` is the shared restore flow; `Feedback.jsx` the feedback sheet). `src/styles.css`: all styles, with variables for light, dark and sun mode.
 - `scripts/`: browser checks and the offline service worker.
+- `docs/pilot-notes.md`: the note to pilot coaches, and what to look for in feedback emails.
 
 ## Deploy
 
