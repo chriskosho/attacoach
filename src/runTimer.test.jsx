@@ -270,6 +270,7 @@ describe('the finish screen', () => {
     expect(screen.getByRole('button', { name: 'Done' })).toBeTruthy()
     await user.click(screen.getByRole('button', { name: '2-minute recap' }))
     expect(window.location.hash).toBe('#/debrief/practice/p1')
+    await user.click(await screen.findByRole('button', { name: 'Change' }))
     expect((await screen.findByLabelText('Which practice')).value).toBe('p1')
     expect(screen.getByLabelText('Date').value).toBe('2026-11-05')
   })

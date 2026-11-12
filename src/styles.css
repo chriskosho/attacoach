@@ -847,3 +847,18 @@ textarea { font: inherit; width: 100%; border: 1.5px solid var(--line); border-r
   .plan-line { font-size: 15px; }
   .start-row .btn { min-height: 52px; font-size: 17px; }
 }
+
+/* Recap: one-line date and practice, ratings in a fold. */
+.recap-when { margin: 0; font-weight: 600; }
+.recap-when .link-btn { color: var(--accent); padding: 10px 2px; }
+.fold-body { display: flex; flex-direction: column; gap: 12px; }
+.fold summary { min-height: 44px; }
+
+/* Drills: a category heading that stays at the top while its drills scroll past. */
+.drill-groups { display: flex; flex-direction: column; gap: 14px; }
+.drill-group-head {
+  position: sticky; top: 0; z-index: 2; margin: 0; padding: 8px 14px; font-size: 15px; font-weight: 700;
+  background: var(--bg); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: baseline;
+}
+.drill-group-head span { color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+.drill-group > .card.flat { margin-top: 6px; }

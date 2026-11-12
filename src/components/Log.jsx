@@ -224,8 +224,13 @@ export function DebriefForm({ team, id, planId = null }) {
 }
 
 function Form({ team, plans, initial, isNew }) {
-  const [e, setE] = useState(initial)
+  // Older entries kept "What went well" and "What we saw" apart. They open together in one Notes box;
+  // nothing is changed in storage until the coach saves.
+  const [e, setE] = useState(() => ({ ...initial, notes: [initial.wentWell, initial.notes].map((x) => (x ?? '').trim()).filter(Boolean).join('\n\n'), wentWell: '' }))
   const [saving, setSaving] = useState(false)
+  const [changing, setChanging] = useState(false)
+  const [startOpen] = useState(() => Object.keys(initial.ratings ?? {}).length > 0)
+  const linkedPlan = e.kind === 'practice' && e.planId ? plans.find((p) => p.id === e.planId) : null
   const set = (patch) => setE((cur) => ({ ...cur, ...patch }))
   const kind = KINDS[e.kind] ?? KINDS.game
 
@@ -243,7 +248,7 @@ function Form({ team, plans, initial, isNew }) {
     await saveDebrief({
       ...e,
       opponent: (e.opponent ?? '').trim(),
-      wentWell: (e.wentWell ?? '').trim(),
+      wentWell: '',
       notes: (e.notes ?? '').trim(),
       ourScore: e.ourScore == null || e.ourScore === '' ? null : Number(e.ourScore),
       theirScore: e.theirScore == null || e.theirScore === '' ? null : Number(e.theirScore),
@@ -262,13 +267,12 @@ function Form({ team, plans, initial, isNew }) {
       <TeamHeader team={team} title={kind.title} backTo="log" />
       <main className="page">
         <section className="card">
-          <label className="field">
-            Date
-            <input type="date" value={e.date} onChange={(ev) => set({ date: ev.target.value || localDate() })} />
-          </label>
-
           {e.kind === 'game' ? (
             <>
+              <label className="field">
+                Date
+                <input type="date" value={e.date} onChange={(ev) => set({ date: ev.target.value || localDate() })} />
+              </label>
               <label className="field">
                 Opponent
                 <input type="text" value={e.opponent ?? ''} placeholder="Team name" maxLength={60} onChange={(ev) => set({ opponent: ev.target.value })} />
@@ -285,56 +289,70 @@ function Form({ team, plans, initial, isNew }) {
               </div>
             </>
           ) : (
-            plans.length > 0 && (
-              <label className="field">
-                Which practice
-                <select value={e.planId ?? ''} onChange={(ev) => set({ planId: ev.target.value || null })}>
-                  <option value="">Not linked to a plan</option>
-                  {plans.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {planDate(p)}, {totalMinutes(p)} minutes
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )
+            <>
+              <p className="recap-when">
+                {linkedPlan ? `${planDate(linkedPlan)}, ${totalMinutes(linkedPlan)} minutes` : `${dateLabel(e.date)}, not linked to a plan`}
+                {' · '}
+                <button type="button" className="link-btn" aria-expanded={changing} onClick={() => setChanging((v) => !v)}>
+                  {changing ? 'Done' : 'Change'}
+                </button>
+              </p>
+              {changing && (
+                <>
+                  <label className="field">
+                    Date
+                    <input type="date" value={e.date} onChange={(ev) => set({ date: ev.target.value || localDate() })} />
+                  </label>
+                  {plans.length > 0 && (
+                    <label className="field">
+                      Which practice
+                      <select value={e.planId ?? ''} onChange={(ev) => set({ planId: ev.target.value || null })}>
+                        <option value="">Not linked to a plan</option>
+                        {plans.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {planDate(p)}, {totalMinutes(p)} minutes
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                </>
+              )}
+            </>
           )}
         </section>
 
         <section className="card">
-          <h2 className="sm-h">How did it go?</h2>
-          <p className="muted small">Tap a rating for each area. Skip anything you did not see. Tap again to clear.</p>
-          {AREAS.map((a) => (
-            <div className="stack" key={a.id}>
-              <strong className="small" id={`area-${a.id}`}>
-                {a.label}
-              </strong>
-              <div className="seg" role="group" aria-labelledby={`area-${a.id}`}>
-                {RATINGS.map((r) => (
-                  <button key={r.value} type="button" aria-pressed={e.ratings[a.id] === r.value} onClick={() => rate(a.id, r.value)}>
-                    {r.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </section>
-
-        <section className="card">
-          <label className="field">
-            What went well
-            <textarea rows={3} value={e.wentWell ?? ''} maxLength={1000} placeholder="Plays, players or habits to celebrate" onChange={(ev) => set({ wentWell: ev.target.value })} />
-          </label>
-          <label className="field">
-            What we saw
-            <textarea rows={4} value={e.notes ?? ''} maxLength={2000} placeholder="Overthrows to first, passive at bat, great hustle..." onChange={(ev) => set({ notes: ev.target.value })} />
-          </label>
-        </section>
-
-        <section className="card">
-          <h2 className="sm-h">Work on at the next practice</h2>
-          <p className="muted small">Optional. Pick up to three. These count the most when AttaCoach suggests a focus.</p>
+          <h2 className="sm-h">Work on next time (pick up to 3)</h2>
+          <p className="muted small">These count the most when AttaCoach suggests a focus.</p>
           <NeedPicker division={team.division} value={e.next ?? []} onChange={(next) => set({ next })} />
+        </section>
+
+        <details className="card fold" open={startOpen || undefined}>
+          <summary>Rate each area (optional)</summary>
+          <div className="fold-body">
+            {AREAS.map((a) => (
+              <div className="stack" key={a.id}>
+                <strong className="small" id={`area-${a.id}`}>
+                  {a.label}
+                </strong>
+                <div className="seg" role="group" aria-labelledby={`area-${a.id}`}>
+                  {RATINGS.map((r) => (
+                    <button key={r.value} type="button" aria-pressed={e.ratings[a.id] === r.value} onClick={() => rate(a.id, r.value)}>
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </details>
+
+        <section className="card">
+          <label className="field">
+            Notes
+            <textarea rows={4} value={e.notes ?? ''} maxLength={3000} placeholder="What went well, what we saw. Overthrows to first, great hustle..." onChange={(ev) => set({ notes: ev.target.value })} />
+          </label>
         </section>
 
         <button className="btn big" onClick={save} disabled={saving}>

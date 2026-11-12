@@ -104,7 +104,7 @@ describe('Log tab', () => {
     await user.type(screen.getByLabelText('Their runs'), '9')
     const hitting = screen.getByRole('group', { name: 'Hitting' })
     await user.click(within(hitting).getByRole('button', { name: 'Needs work' }))
-    await user.type(screen.getByLabelText('What we saw'), 'Chased high pitches')
+    await user.type(screen.getByLabelText('Notes'), 'Chased high pitches')
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(await screen.findByText(/vs Tigers, L 4-9/)).toBeTruthy()
@@ -146,8 +146,93 @@ describe('Log tab', () => {
     const user = userEvent.setup()
     window.location.hash = '#/debrief/practice'
     render(<App />)
+    await user.click(await screen.findByRole('button', { name: 'Change' }))
     expect((await screen.findByLabelText('Which practice')).value).toBe('p1')
     await user.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(async () => expect((await db.debriefs.toArray())[0]).toMatchObject({ kind: 'practice', planId: 'p1' }))
+  })
+})
+
+describe('Practice recap layout (Stage 11E)', () => {
+  beforeEach(async () => {
+    await clearEverything()
+    window.location.hash = ''
+  })
+  const headings = () => screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
+
+  it('leads with Work on next, keeps ratings folded, shows one line for date and practice', async () => {
+    const t = await saveTeam(team)
+    const tomorrow = new Date(Date.now() + 86400000)
+    const iso = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`
+    await db.plans.put({ id: 'p1', teamId: t.id, date: iso, createdAt: '2026-11-05T10:00:00Z', focus: ['catching'], blocks: [{ id: 'b', drillId: 'x', minutes: 60 }] })
+    window.location.hash = '#/debrief/practice'
+    render(<App />)
+    expect(await screen.findByText(/^Tomorrow, \d+ minutes/)).toBeTruthy()
+    expect(headings()[0]).toBe('Work on next time (pick up to 3)')
+    expect(screen.queryByText(/Tap a rating for each area/)).toBe(null)
+    expect(screen.queryByText('How did it go?')).toBe(null)
+    const fold = screen.getByText('Rate each area (optional)').closest('details')
+    expect(fold.open).toBe(false)
+    // Date and practice pickers are behind Change.
+    expect(screen.queryByLabelText('Which practice')).toBe(null)
+    expect(screen.getAllByLabelText('Notes')).toHaveLength(1)
+    expect(screen.queryByLabelText('What went well')).toBe(null)
+  })
+
+  it('still saves ratings set inside the fold, Work on next, and one Notes box', async () => {
+    const t = await saveTeam(team)
+    const user = userEvent.setup()
+    window.location.hash = '#/debrief/practice'
+    render(<App />)
+    await user.click(await screen.findByText('Rate each area (optional)'))
+    await user.click(within(screen.getByRole('group', { name: 'Fielding' })).getByRole('button', { name: 'Needs work' }))
+    await user.click(screen.getByRole('button', { name: /Pitching/ }))
+    await user.type(screen.getByLabelText('Notes'), 'Hustled all night')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(async () => {
+      const row = (await db.debriefs.where('teamId').equals(t.id).toArray())[0]
+      expect(row.ratings).toEqual({ fielding: 1 })
+      expect(row.next).toEqual(['pitching'])
+      expect(row.notes).toBe('Hustled all night')
+    })
+  })
+
+  it('opens an old two-field entry with both texts in Notes and saves them merged', async () => {
+    const t = await saveTeam(team)
+    const saved = await saveDebrief(entry({ teamId: t.id, kind: 'practice', wentWell: 'Great hustle', notes: 'Overthrows to first', ratings: { throwing: 1 }, next: ['pitching'] }))
+    const user = userEvent.setup()
+    window.location.hash = `#/debrief/${saved.id}`
+    render(<App />)
+    const box = await screen.findByLabelText('Notes')
+    expect(box.value).toBe('Great hustle\n\nOverthrows to first')
+    // An entry with ratings opens the fold so they are visible.
+    expect(screen.getByText('Rate each area (optional)').closest('details').open).toBe(true)
+    await user.click(screen.getByRole('button', { name: 'Save changes' }))
+    await waitFor(async () => {
+      const row = await db.debriefs.get(saved.id)
+      expect(row.notes).toBe('Great hustle\n\nOverthrows to first')
+      expect(row.ratings).toEqual({ throwing: 1 })
+      expect(row.next).toEqual(['pitching'])
+    })
+  })
+
+  it('keeps the suggestion on Today fed by saved Work on next and ratings', async () => {
+    const t = await saveTeam(team)
+    await saveDebrief(entry({ teamId: t.id, kind: 'practice', ratings: { hitting: 1 }, next: ['pitching'] }))
+    const s = suggestFocus(team, await db.debriefs.toArray())
+    expect(s.needs[0]).toBe('pitching')
+    expect(s.needs).toEqual(expect.arrayContaining(['approach']))
+  })
+
+  it('restores an old backup with two-field logs and shows it', async () => {
+    const t = { ...team, id: 't9' }
+    const r = await importBackup({
+      format: 'attacoach-backup', version: 1, teams: [t], plans: [],
+      debriefs: [{ id: 'd1', teamId: 't9', kind: 'practice', date: '2026-11-01', createdAt: '2026-11-01T10:00:00Z', ratings: {}, next: [], wentWell: 'Old good', notes: 'Old saw' }],
+    })
+    expect(r.debriefs).toBe(1)
+    window.location.hash = '#/debrief/d1'
+    render(<App />)
+    expect((await screen.findByLabelText('Notes')).value).toBe('Old good\n\nOld saw')
   })
 })

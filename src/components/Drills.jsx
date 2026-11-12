@@ -28,7 +28,7 @@ export function filterDrills(drills, { team, query = '', category = '', need = '
   })
 }
 
-export function DrillList({ drills, onPick, team = null, action = null, empty = null }) {
+export function DrillList({ drills, onPick, team = null, action = null, empty = null, grouped = false }) {
   if (!drills.length) {
     return (
       <div className="card empty">
@@ -43,16 +43,32 @@ export function DrillList({ drills, onPick, team = null, action = null, empty = 
   }
   const favorites = new Set(team?.favorites ?? [])
   const hidden = new Set(team?.hidden ?? [])
+  const rows = (list) =>
+    list.map((d) => (
+      <div key={d.id} className={action ? 'drill-row-wrap' : undefined} style={action ? undefined : { display: 'contents' }}>
+        <button className="drill-row" onClick={() => onPick(d)}>
+          <strong>{d.name}</strong>
+          <DrillMeta drill={d} favorite={favorites.has(d.id)} hidden={hidden.has(d.id)} />
+        </button>
+        {action?.(d)}
+      </div>
+    ))
+  if (!grouped) return <div className="card flat">{rows(drills)}</div>
+  // One sticky heading per category that has drills, in the usual category order.
+  const known = new Set(CATEGORIES.map((c) => c.id))
+  const groups = [
+    ...CATEGORIES.map((c) => ({ id: c.id, label: c.label, list: drills.filter((d) => d.category === c.id) })),
+    { id: 'other', label: 'Other', list: drills.filter((d) => !known.has(d.category)) },
+  ].filter((g) => g.list.length > 0)
   return (
-    <div className="card flat">
-      {drills.map((d) => (
-        <div key={d.id} className={action ? 'drill-row-wrap' : undefined} style={action ? undefined : { display: 'contents' }}>
-          <button className="drill-row" onClick={() => onPick(d)}>
-            <strong>{d.name}</strong>
-            <DrillMeta drill={d} favorite={favorites.has(d.id)} hidden={hidden.has(d.id)} />
-          </button>
-          {action?.(d)}
-        </div>
+    <div className="drill-groups">
+      {groups.map((g) => (
+        <section key={g.id} className="drill-group" aria-labelledby={`cat-${g.id}`}>
+          <h2 className="drill-group-head" id={`cat-${g.id}`}>
+            {g.label} <span>{g.list.length}</span>
+          </h2>
+          <div className="card flat">{rows(g.list)}</div>
+        </section>
       ))}
     </div>
   )
@@ -172,7 +188,7 @@ export default function Drills({ team }) {
             Add your own drill
           </button>
         </div>
-        <DrillList drills={list} team={team} onPick={(d) => go(`drill/${d.id}`)} action={filters.show === 'hidden' ? unhide : null} empty={emptyFor} />
+        <DrillList drills={list} team={team} onPick={(d) => go(`drill/${d.id}`)} action={filters.show === 'hidden' ? unhide : null} empty={emptyFor} grouped />
       </main>
     </>
   )

@@ -1,6 +1,15 @@
-export const VERSION = '1.30.0'
+export const VERSION = '1.31.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.31.0',
+    date: '2026-11-12',
+    items: [
+      'The practice recap is shorter. "Work on next time (pick up to 3)" comes first, the ratings are folded under "Rate each area (optional)", and there is one Notes box. The date and practice are one line ("Tomorrow, 60 minutes · Change").',
+      'Older logs and backups open as before. If an entry had "What went well" and "What we saw", both show in Notes and are saved together when you save.',
+      'On the Drills tab each category has its own heading with a drill count, and the heading stays at the top while you scroll that category. Search and filters hide headings with no matches.',
+    ],
+  },
   {
     version: '1.30.0',
     date: '2026-11-12',
