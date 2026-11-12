@@ -487,8 +487,13 @@ summary { min-height: 44px; display: flex; align-items: center; }
   display: flex;
   flex-direction: column;
   padding: calc(env(safe-area-inset-top) + 12px) 16px 0;
-  overflow: auto;
+  overflow: hidden;
 }
+/* Three zones: the head (clock and its buttons) and the foot (what is next, Back / Start / Next)
+   never scroll; only the middle does, so nothing important sits behind the buttons. */
+.run-head { flex: none; }
+.run-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 8px; }
+.run-foot { flex: none; background: var(--run-bg); }
 .run-top { display: flex; align-items: center; gap: 10px; }
 .run-top .spacer { flex: 1; }
 .run-btn { background: transparent; border: 2px solid var(--run-line); color: var(--run-ink); border-radius: 999px; padding: 8px 16px; font-weight: 600; cursor: pointer; min-height: 44px; }
@@ -507,18 +512,15 @@ summary { min-height: 44px; display: flex; align-items: center; }
   letter-spacing: -0.01em;
   margin: 0 0 4px;
   padding: 10px 0 2px;
-  /* The digits stay in view while the steps below scroll. */
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: var(--run-bg);
 }
 .clock.paused { color: var(--run-ink); }
 .rotate-call { background: var(--call-bg); color: var(--call-ink); border-radius: 10px; padding: 8px 12px; font-weight: 700; font-size: 18px; align-self: flex-start; }
 .run-points { margin: 12px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 18px; }
-.run-next { margin-top: auto; padding-top: 16px; font-size: 16px; }
+.run-next { padding-top: 10px; font-size: 17px; font-weight: 600; }
+.run-how { margin-top: 8px; }
+.run-sub { margin: 14px 0 0; font-weight: 700; font-size: 16px; opacity: 0.85; }
 .run-more { margin-top: 4px; }
-.run-controls { display: grid; grid-template-columns: 1fr 1.6fr 1fr; gap: 10px; margin-top: 14px; position: sticky; bottom: 0; background: var(--run-bg); padding: 10px 0 calc(env(safe-area-inset-bottom) + 16px); }
+.run-controls { display: grid; grid-template-columns: 1fr 1.6fr 1fr; gap: 10px; margin-top: 6px; background: var(--run-bg); padding: 8px 0 calc(env(safe-area-inset-bottom) + 14px); }
 .run-controls button { min-height: 60px; border-radius: 16px; border: 0; font-family: var(--display); font-size: 21px; font-weight: 700; cursor: pointer; }
 .run-controls .main { background: var(--run-main-bg); color: var(--run-main-ink); }
 .run-controls .side { background: var(--run-soft); color: var(--run-ink); border: 2px solid var(--run-line); }
@@ -799,3 +801,14 @@ textarea { font: inherit; width: 100%; border: 1.5px solid var(--line); border-r
 .fold summary::after { content: '›'; color: var(--ink-2); margin-left: auto; transition: transform 0.15s; }
 .fold[open] summary::after { transform: rotate(90deg); }
 .fold[open] summary { margin-bottom: 6px; }
+
+/* Short phones (an SE, a 320-wide Android): trim the space around the clock so Say and Next fit. */
+@media (max-height: 720px) {
+  .run-progress { margin: 8px 0 4px; }
+  .run-now { margin-top: 8px; font-size: 20px; }
+  .run-title { font-size: 28px; }
+  .clock { font-size: min(30vw, 17vh); padding-top: 4px; margin-bottom: 0; }
+  .run-quiet { margin-top: 6px; }
+  .run-controls button { min-height: 52px; font-size: 20px; }
+  .run-cue { margin-top: 8px; }
+}

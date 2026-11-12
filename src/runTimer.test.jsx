@@ -8,6 +8,7 @@ import { defaultRules } from './data/constants.js'
 import { DRILLS } from './data/drills.js'
 import { DIAGRAMS } from './data/diagrams.js'
 import { hasPicture } from './components/DrillDiagram.jsx'
+import { cuesFor } from './data/coaching.js'
 
 const withPic = DRILLS.find((d) => DIAGRAMS[d.id] && d.steps?.length >= 2)
 const noPic = DRILLS.find((d) => !hasPicture(d.id) && d.steps?.length >= 2 && d.category !== 'warmup')
@@ -66,8 +67,8 @@ beforeEach(async () => {
 describe('station rotations in the timer', () => {
   it('shows each group with its station and who runs it', async () => {
     await open(stationPlan())
-    expect(screen.getByRole('button', { name: new RegExp(`Group 1 → ${withPic.name}`) })).toBeTruthy()
-    expect(screen.getByRole('button', { name: new RegExp(`Group 2 → ${noPic.name}`) })).toBeTruthy()
+    expect(screen.getByRole('button', { name: new RegExp(`Group 1 \\(4 kids\\) → ${withPic.name}`) })).toBeTruthy()
+    expect(screen.getByRole('button', { name: new RegExp(`Group 2 \\(4 kids\\) → ${noPic.name}`) })).toBeTruthy()
     expect(screen.getByText('You run it')).toBeTruthy()
     expect(screen.getByText('Kids run it')).toBeTruthy()
   })
@@ -75,7 +76,7 @@ describe('station rotations in the timer', () => {
   it('opens a station in place with its steps, and the clock stays', async () => {
     const user = userEvent.setup()
     await open(stationPlan())
-    const row = screen.getByRole('button', { name: new RegExp(`Group 1 → ${withPic.name}`) })
+    const row = screen.getByRole('button', { name: new RegExp(`Group 1 \\(4 kids\\) → ${withPic.name}`) })
     expect(row.getAttribute('aria-expanded')).toBe('false')
     await user.click(row)
     expect(row.getAttribute('aria-expanded')).toBe('true')
@@ -104,13 +105,94 @@ describe('single drills and the first screen', () => {
     expect(screen.queryByRole('button', { name: /picture/ })).toBe(null)
   })
 
-  it('keeps the opening line and puts the huddle points behind one tap', async () => {
+  it('keeps the opening line and puts the huddle points behind one tap, only before Start', async () => {
     const user = userEvent.setup()
     await open(plan())
     expect(screen.getByText('Welcome in.')).toBeTruthy()
     expect(document.querySelector('.huddle-points')).toBe(null)
     await user.click(screen.getByRole('button', { name: 'Huddle points' }))
     expect(document.querySelectorAll('.huddle-points li').length).toBeGreaterThan(1)
+    // Once the clock runs, the opener and the huddle points get out of the way.
+    await user.click(screen.getByRole('button', { name: 'Start' }))
+    expect(screen.queryByText('Welcome in.')).toBe(null)
+    expect(screen.queryByRole('button', { name: /huddle points/i })).toBe(null)
+    expect(document.querySelector('.huddle-points')).toBe(null)
+  })
+
+  it('shows the Say line under the clock and keeps the coaching bullets behind How it works', async () => {
+    const user = userEvent.setup()
+    await open(plan({ blocks: [{ id: 'a', kind: 'drill', drillId: other.id, minutes: 10 }, { id: 'h', kind: 'huddle', minutes: 4 }] }))
+    const say = cuesFor(other)[0].say
+    expect(screen.getByText('Say:').closest('p').textContent).toContain(say)
+    // Nothing else to read: not the steps, not the coaching points.
+    expect(screen.queryByText(other.steps[0])).toBe(null)
+    if (other.points[0]) expect(screen.queryByText(other.points[0])).toBe(null)
+    const how = screen.getByRole('button', { name: 'How it works' })
+    expect(how.getAttribute('aria-expanded')).toBe('false')
+    await user.click(how)
+    expect(screen.getByText(other.steps[0])).toBeTruthy()
+    if (other.points[0]) expect(screen.getByText(other.points[0])).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Hide how it works' }).getAttribute('aria-expanded')).toBe('true')
+    // It closes again on the next block.
+    await user.click(screen.getByRole('button', { name: 'Next block' }))
+    expect(screen.queryByText(other.steps[0])).toBe(null)
+  })
+
+  it('always shows what is next, above the buttons, in every block', async () => {
+    const user = userEvent.setup()
+    await open(plan())
+    const total = 5
+    for (let i = 0; i < total; i++) {
+      const line = document.querySelector('.run-next')
+      expect(line, `block ${i + 1}`).toBeTruthy()
+      expect(line.textContent).toMatch(i < total - 1 ? /^Next: .+, \d+ min$/ : /^Last block$/)
+      // The line sits in the footer with the buttons, not in the scrolling middle.
+      expect(line.parentElement).toBe(document.querySelector('.run-controls').parentElement)
+      expect(document.querySelector('.run-body').contains(line)).toBe(false)
+      if (i < total - 1) await user.click(screen.getByRole('button', { name: 'Next block' }))
+    }
+  })
+})
+
+describe('station groups in the timer', () => {
+  it('says how many kids are in each group', async () => {
+    const p = stationPlan()
+    p.blocks[0].groups = [1, 7]
+    await open(p)
+    expect(screen.getByRole('button', { name: new RegExp(`Group 1 \\(1 kid\\) → ${withPic.name}`) })).toBeTruthy()
+    expect(screen.getByRole('button', { name: new RegExp(`Group 2 \\(7 kids\\) → ${noPic.name}`) })).toBeTruthy()
+  })
+
+  it('names where group 1 goes next, and goes back to the usual line after the last rotation', async () => {
+    const user = userEvent.setup()
+    await open(stationPlan())
+    // Rotation 1: group 1 moves to the second station.
+    expect(document.querySelector('.run-next').textContent).toBe(`Next: rotate. Group 1 → ${noPic.name}, 5 min`)
+    await user.click(screen.getByRole('button', { name: 'Next block' }))
+    // Rotation 2 (the last): back to the plain next block.
+    expect(screen.getByText('Rotation 2 of 2')).toBeTruthy()
+    expect(document.querySelector('.run-next').textContent).toMatch(/^Next: .*, 4 min$/)
+    expect(document.querySelector('.run-next').textContent).not.toMatch(/rotate/)
+  })
+
+  it('tells the adult which group to stand with for a station the kids run', async () => {
+    const user = userEvent.setup()
+    const p = stationPlan()
+    p.blocks[0].staff = [{ type: 'run', who: 'coach' }, { type: 'watch', who: null, near: 0 }]
+    await open(p)
+    // Rotation 1: station 1 holds group 1.
+    expect(screen.getByText('Kids run it. Keep an eye from Group 1')).toBeTruthy()
+    expect(screen.queryByText(/Watch from station/)).toBe(null)
+    await user.click(screen.getByRole('button', { name: 'Next block' }))
+    // Rotation 2: groups swap stations, so station 1 now holds group 2.
+    expect(screen.getByText('Kids run it. Keep an eye from Group 2')).toBeTruthy()
+  })
+
+  it('keeps the clock, the next line and the buttons out of the scrolling list', async () => {
+    await open(stationPlan())
+    const body = document.querySelector('.run-body')
+    expect(body.contains(document.querySelector('.run-stations'))).toBe(true)
+    for (const sel of ['.clock', '.run-next', '.run-controls']) expect(body.contains(document.querySelector(sel)), sel).toBe(false)
   })
 })
 

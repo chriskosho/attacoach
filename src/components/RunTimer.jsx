@@ -125,8 +125,7 @@ function Runner({ plan, team }) {
   const elapsed = state.elapsed + (running ? (now - state.startedAt) / 1000 : 0)
   const remaining = seg ? seg.seconds - elapsed : 0
   const advanced = useRef(false)
-  const [showSteps, setShowSteps] = useState(team.experience === 'new')
-  const [showAll, setShowAll] = useState(false)
+  const [showHow, setShowHow] = useState(false)
 
   useWakeLock(running)
 
@@ -151,7 +150,7 @@ function Runner({ plan, team }) {
   useEffect(() => {
     setOpenGroup(null)
     setShowPic(false)
-    setShowAll(false)
+    setShowHow(false)
   }, [seg?.key])
 
   // Notes ("Caught up", "Trimmed") fade on their own.
@@ -217,10 +216,15 @@ function Runner({ plan, team }) {
   const next = segs[state.index + 1]
   const drill = seg?.drillId ? drillFor(drillById(seg.drillId), team) : null
   const block = plan.blocks[seg?.blockIndex]
-  // At most three lines to read at first; the rest sit behind More.
-  const allLines = drill ? (showSteps ? drill.steps : drill.points) : []
-  const shown = showAll ? allLines : allLines.slice(0, 3)
-  const more = allLines.length - 3 > 0 ? allLines.length - 3 : 0
+  // Before Start, the opener and huddle points are there to read; once the clock runs they get out of the way.
+  const upFirst = state.index === 0 && !running && elapsed === 0
+  const cue = drill ? cuesFor(drill)[0] : null
+  // The line above the buttons: what comes next, and for a station rotation, where group 1 goes.
+  const nextLine = !next
+    ? 'Last block'
+    : next.kind === 'stations' && next.rotation > 0
+      ? `rotate. Group 1 → ${drillFor(drillById(next.stations[next.rotation % next.rotations]), team)?.name ?? 'next station'}, ${Math.round(next.seconds / 60)} min`
+      : `${next.kind === 'stations' ? 'Stations' : next.title}, ${Math.round(next.seconds / 60)} min`
 
   const planned = baseSegs.reduce((n, x) => n + x.seconds, 0)
   const behind = behindSeconds({ startedWall: state.startedWall, now, totalNow: totalSeconds, doneNow: doneSeconds, totalPlanned: planned })
@@ -257,6 +261,7 @@ function Runner({ plan, team }) {
 
   return (
     <div className="run" role="main" aria-label="Practice timer">
+      <div className="run-head">
       <div className="run-top">
         <button className="run-btn" onClick={exit}>
           Exit
@@ -290,12 +295,19 @@ function Runner({ plan, team }) {
         )}
         {late && <span className="run-late">Running {Math.round(behind / 60)} min behind</span>}
       </div>
+      {seg.kind === 'stations' && seg.rotation + 1 < seg.rotations && remaining <= 30 && (
+        <div className="rotate-call" style={{ marginTop: 10 }}>
+          Get ready to rotate
+        </div>
+      )}
       {note && (
         <p className="run-note" role="status">
           {note}
         </p>
       )}
+      </div>
 
+      <div className="run-body">
       {seg.kind === 'stations' && (
         <>
           <div className="run-stations">
@@ -303,13 +315,17 @@ function Runner({ plan, team }) {
               const st = (g + seg.rotation) % seg.rotations
               const sd = drillFor(drillById(seg.stations[st]), team)
               const open = openGroup === g
-              const tag = staffTag(block?.staff?.[st])
+              const stf = block?.staff?.[st]
+              const watchGroup = stf?.near != null ? `Group ${((stf.near - seg.rotation) % seg.rotations + seg.rotations) % seg.rotations + 1}` : null
+              const tag = staffTag(stf, watchGroup)
+              const size = block?.groups?.[g]
               return (
                 <div key={g} className="run-station">
                   <button className="run-station-head" onClick={() => setOpenGroup(open ? null : g)} aria-expanded={open}>
                     <b>{g + 1}</b>
                     <span className="run-station-name">
-                      Group {g + 1} → {sd?.name}
+                      Group {g + 1}
+                      {size != null && ` (${size} ${size === 1 ? 'kid' : 'kids'})`} → {sd?.name}
                       {tag && <small>{tag}</small>}
                     </span>
                     <span className="run-station-toggle">{open ? 'Hide' : 'Open'}</span>
@@ -335,25 +351,19 @@ function Runner({ plan, team }) {
               )
             })}
           </div>
-          {seg.rotation + 1 < seg.rotations && remaining <= 30 && <div className="rotate-call" style={{ marginTop: 10 }}>Get ready to rotate</div>}
         </>
       )}
 
+      {drill && cue && (
+        <p className="run-cue">
+          <strong>Say:</strong> “{cue.say}”
+        </p>
+      )}
       {drill && (
         <>
-          <ul className="run-points">
-            {shown.map((p, i) => (
-              <li key={i}>{p}</li>
-            ))}
-          </ul>
           <div className="run-quiet">
-            {more > 0 && (
-              <button className="run-btn" onClick={() => setShowAll(!showAll)} aria-expanded={showAll}>
-                {showAll ? 'Fewer' : `More (${more})`}
-              </button>
-            )}
-            <button className="run-btn" onClick={() => { setShowSteps(!showSteps); setShowAll(false) }}>
-              {showSteps ? 'Show coaching points' : 'Show how it works'}
+            <button className="run-btn" onClick={() => setShowHow(!showHow)} aria-expanded={showHow}>
+              {showHow ? 'Hide how it works' : 'How it works'}
             </button>
             {hasPicture(drill.id) && (
               <button className="run-btn" onClick={() => setShowPic(!showPic)} aria-expanded={showPic}>
@@ -361,6 +371,25 @@ function Runner({ plan, team }) {
               </button>
             )}
           </div>
+          {showHow && (
+            <div className="run-how">
+              <ul className="run-points">
+                {drill.steps.map((p, i) => (
+                  <li key={i}>{p}</li>
+                ))}
+              </ul>
+              {drill.points.length > 0 && (
+                <>
+                  <p className="run-sub">Coaching points</p>
+                  <ul className="run-points">
+                    {drill.points.map((p, i) => (
+                      <li key={i}>{p}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          )}
           {showPic && (
             <div className="run-picture">
               <DrillPicture drill={drill} />
@@ -368,37 +397,26 @@ function Runner({ plan, team }) {
           )}
         </>
       )}
-      {drill && cuesFor(drill)[0] && (
-        <p className="run-cue">
-          <strong>Say:</strong> “{cuesFor(drill)[0].say}”
-        </p>
-      )}
       {seg.kind === 'huddle' && <p style={{ fontSize: 20, marginTop: 12 }}>{plan.closer}</p>}
       {seg.kind === 'huddle' && <HuddlePoints kind="practiceClose" team={team} focus={plan.focus} seed={plan.date ?? plan.id} />}
       {seg.kind === 'break' && <p style={{ fontSize: 20, marginTop: 12 }}>Water for everyone.</p>}
-      {state.index === 0 && (
+      {upFirst && (
         <p style={{ fontSize: 18, marginTop: 12 }}>
           <strong>Start with:</strong> {plan.opener}
         </p>
       )}
-      {state.index === 0 && (
+      {upFirst && (
         <div className="run-quiet">
           <button className="run-btn" onClick={() => setShowOpen(!showOpen)} aria-expanded={showOpen}>
             {showOpen ? 'Hide huddle points' : 'Huddle points'}
           </button>
         </div>
       )}
-      {state.index === 0 && showOpen && <HuddlePoints kind="practiceOpen" team={team} focus={plan.focus} seed={plan.date ?? plan.id} />}
-
-      <div className="run-next">
-        {next ? (
-          <>
-            Next: {next.kind === 'stations' && next.rotation > 0 ? `rotate (rotation ${next.rotation + 1})` : next.kind === 'stations' ? 'Stations' : next.title}, {Math.round(next.seconds / 60)} min
-          </>
-        ) : (
-          'Last block'
-        )}
+      {upFirst && showOpen && <HuddlePoints kind="practiceOpen" team={team} focus={plan.focus} seed={plan.date ?? plan.id} />}
       </div>
+
+      <div className="run-foot">
+      <div className="run-next">{next ? `Next: ${nextLine}` : nextLine}</div>
       <div className="run-controls">
         <button className="side" onClick={() => goToIndex(state.index - 1, running)} disabled={state.index === 0} aria-label="Previous block">
           Back
@@ -409,6 +427,7 @@ function Runner({ plan, team }) {
         <button className="side" onClick={() => goToIndex(state.index + 1, running)} aria-label="Next block">
           {next ? 'Next' : 'Finish'}
         </button>
+      </div>
       </div>
     </div>
   )

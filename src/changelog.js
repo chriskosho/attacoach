@@ -1,6 +1,16 @@
-export const VERSION = '1.28.0'
+export const VERSION = '1.29.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.29.0',
+    date: '2026-11-12',
+    items: [
+      'The practice timer is easier to read at a glance. While a drill runs you see the clock, one "Say" line and what is next. The steps and coaching points are one tap away under "How it works".',
+      '"Next: ..." now always sits right above Back / Pause / Next, on every phone size, and the clock and buttons stay put while a long list scrolls.',
+      'The opening line and "Huddle points" show before you press Start, then get out of the way.',
+      'Station rows show how many kids are in each group ("Group 1 (4 kids)"), say which group to stand with for a station the kids run, and the next-line tells you where Group 1 goes at the next rotation.',
+    ],
+  },
   {
     version: '1.28.0',
     date: '2026-11-12',

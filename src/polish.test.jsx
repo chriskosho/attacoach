@@ -100,17 +100,19 @@ describe('timer reading load', () => {
     })
   })
 
-  it('shows at most three bullets and puts the rest behind More', async () => {
+  // Stage 11C: the timer shows only the Say line while a drill runs; every step and coaching point
+  // is one tap away behind How it works (this replaces the old "three bullets and More" rule).
+  it('shows no bullets under the clock, and lists every step and coaching point behind How it works', async () => {
     const user = userEvent.setup()
     render(<App />)
     await screen.findByRole('timer')
     const list = () => document.querySelectorAll('.run-points li').length
-    expect(list()).toBe(3)
-    const more = screen.getByRole('button', { name: /^More \(\d+\)$/ })
-    await user.click(more)
-    expect(list()).toBeGreaterThan(3)
-    await user.click(screen.getByRole('button', { name: 'Fewer' }))
-    expect(list()).toBe(3)
+    expect(list()).toBe(0)
+    expect(screen.queryByRole('button', { name: /^More \(\d+\)$/ })).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'How it works' }))
+    expect(list()).toBe(longDrill.steps.length + longDrill.points.length)
+    await user.click(screen.getByRole('button', { name: 'Hide how it works' }))
+    expect(list()).toBe(0)
   })
 })
 

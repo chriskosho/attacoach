@@ -65,12 +65,13 @@ export function staffText(s, stationNames = []) {
 }
 
 // A few words on who covers a station, for the rows in the practice timer. Same facts as staffText.
-export function staffTag(s) {
+// `from` names the group an adult can watch this station from (for example "Group 1").
+export function staffTag(s, from = null) {
   if (!s) return ''
   if (s.type === 'kids') return 'Kids run it'
   const who = s.who === 'coach' ? 'You' : s.who === 'helper' ? `Helper ${s.helper}` : null
   if (s.type === 'run') return who ? (who === 'You' ? 'You run it' : `${who} runs it`) : 'Needs an adult'
   if (who) return who === 'You' ? 'You keep an eye on it' : `${who} keeps an eye on it`
-  if (s.near != null) return `Watch from station ${s.near + 1}`
+  if (s.near != null) return from ? `Kids run it. Keep an eye from ${from}` : `Watch from station ${s.near + 1}`
   return 'Watch-only'
 }

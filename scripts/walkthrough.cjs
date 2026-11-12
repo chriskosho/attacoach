@@ -167,14 +167,13 @@ const AUTH_ON = process.env.VITE_AUTH_REQUIRED === "true"
       await page.getByRole('timer').waitFor()
       await page.getByRole('button', { name: 'Start' }).waitFor()
       await shot('08a-timer-first')
-      // The first block shows its name, time, two steps and the Start button without scrolling.
+      // The first block shows its name, time, the Say line, what is next and the Start button without scrolling.
       const fit = await page.evaluate(() => {
         const bottom = (el) => (el ? el.getBoundingClientRect().bottom : 9999)
-        const steps = document.querySelectorAll('.run-points li')
-        return { start: bottom(document.querySelector('.run-controls .main')), second: bottom(steps[1]), height: window.innerHeight }
+        return { start: bottom(document.querySelector('.run-controls .main')), say: bottom(document.querySelector('.run-cue')), next: bottom(document.querySelector('.run-next')), height: window.innerHeight }
       })
       console.log('first timer screen', JSON.stringify(fit))
-      if (fit.start > fit.height || fit.second > fit.height) throw new Error(`first timer screen does not fit: ${JSON.stringify(fit)}`)
+      if (fit.start > fit.height || fit.say > fit.height || fit.next > fit.height) throw new Error(`first timer screen does not fit: ${JSON.stringify(fit)}`)
       await page.getByRole('button', { name: 'Start' }).click()
       await page.waitForTimeout(1500)
       await shot('08-timer')
