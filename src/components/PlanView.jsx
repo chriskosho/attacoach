@@ -389,7 +389,7 @@ export default function PlanView({ planId, team, coach = '' }) {
             <HuddlePoints kind="practiceOpen" team={team} focus={plan.focus} seed={plan.date ?? plan.id} />
           </div>
         ) : (
-          <details className="talk talk-fold">
+          <details className="talk talk-fold fold">
             <summary>
               <span className="who">Open with:</span> <span className="talk-line">{plan.opener}</span>
             </summary>
@@ -648,9 +648,11 @@ function ChangeSheet({ team, plan, onApply, onClose }) {
         <SkillChips options={SPACES} value={spaces} onChange={(v) => setSpaces(v.length ? v : spaces)} label="Space today" />
       </div>
       <p className="muted small">Drills you swapped in by hand may change too. You can undo this right after.</p>
-      <button className="btn big" onClick={() => onApply({ kids, adults, minutes, spaces })} disabled={!changed}>
-        Apply changes
-      </button>
+      <div className="sheet-actions">
+        <button className="btn big" onClick={() => onApply({ kids, adults, minutes, spaces })} disabled={!changed}>
+          Apply changes
+        </button>
+      </div>
     </Sheet>
   )
 }

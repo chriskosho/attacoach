@@ -307,7 +307,7 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
                 <button className="btn quiet" disabled={saving} onClick={skipSetup}>
                   Skip setup
                 </button>
-                <details className="test-tools">
+                <details className="fold test-tools">
                   <summary>Ready-made test teams</summary>
                   <TestTools onPick={tryScenario} />
                 </details>

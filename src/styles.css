@@ -410,7 +410,7 @@ input[type='text'], input[type='search'], input[type='date'], input[type='email'
 .station .slot-head { grid-template-columns: 34px 1fr auto; padding: 10px 12px; }
 .station-num { width: 28px; height: 28px; border-radius: 50%; background: var(--call-bg); color: var(--call-ink); display: grid; place-items: center; font-family: var(--display); font-weight: 700; }
 
-.level { display: inline-block; font-size: 12px; font-weight: 600; border-radius: 6px; padding: 1px 7px; border: 1px solid currentColor; }
+.level { display: inline-block; font-size: 13px; font-weight: 600; border-radius: 6px; padding: 1px 7px; border: 1px solid currentColor; }
 .level.beginner { color: var(--level-beginner); }
 .level.intermediate { color: var(--level-intermediate); }
 .level.advanced { color: var(--level-advanced); }
@@ -884,8 +884,6 @@ textarea { font: inherit; width: 100%; border: 1.5px solid var(--line); border-r
 @media (max-width: 359px) {
   main.page { gap: 10px; }
   .plan-sub { gap: 0 10px; }
-  .starter-line summary { min-height: 36px; }
-  .plan-sub summary, .plan-sub .link-row, .focus-fold summary, .plan-link-static { min-height: 40px; }
 }
 
 /* Stage 12C */
@@ -921,7 +919,7 @@ textarea { font: inherit; width: 100%; border: 1.5px solid var(--line); border-r
 .settings-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .settings-row-text strong { font-size: 17px; }
 .settings-row-arrow { color: var(--ink-2); font-size: 22px; }
-.settings-row.danger-row strong { color: var(--danger, #b3261e); }
+.settings-row.danger-row strong { color: var(--warn); }
 .settings-list { display: flex; flex-direction: column; }
 /* Highlighted choice: the likelier option is distinct and the rest sit under a small label. */
 .choice.recommended { border-color: var(--accent); background: var(--accent-soft); }
@@ -932,3 +930,42 @@ textarea { font: inherit; width: 100%; border: 1.5px solid var(--line); border-r
 .browse-row > span:last-child { color: var(--ink-2); font-size: 22px; }
 /* Team: the summary line, with the details folded under it. */
 .team-details summary { min-height: 44px; }
+
+/* ================================================ Stage 12D: one fold style, one link style */
+/* Folds: label on the left, a › on the right that turns when open, at least 44 px tall. */
+.fold summary, .day-setup summary, .coach-item summary, .talk-fold summary, .test-tools summary {
+  display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; list-style: none; font-weight: 600; padding-top: 0; padding-bottom: 0;
+}
+.fold summary::-webkit-details-marker, .day-setup summary::-webkit-details-marker, .coach-item summary::-webkit-details-marker, .talk-fold summary::-webkit-details-marker, .test-tools summary::-webkit-details-marker { display: none; }
+.fold summary::before, .day-setup summary::before { content: none; }
+.fold summary::after, .day-setup summary::after, .coach-item summary::after, .talk-fold summary::after, .test-tools summary::after {
+  content: '›'; margin-left: auto; flex: none; color: var(--ink-2); font-size: 22px; font-weight: 400; line-height: 1; transition: transform 0.15s;
+}
+.fold[open] > summary::after, .day-setup[open] > summary::after, .coach-item[open] > summary::after, .talk-fold[open] > summary::after, .test-tools[open] > summary::after { content: '›'; transform: rotate(90deg); }
+.fold-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.fold-text .small { font-weight: 400; }
+.day-setup, .coach-item { padding-top: 0; padding-bottom: 0; }
+.coach-item { padding: 0; }
+.coach-item[open] > summary, .day-setup[open] > summary { margin-bottom: 8px; }
+/* "Open with" keeps its dark look; the whole bar is the tap area. */
+.talk-fold { padding: 0; }
+.talk-fold summary { padding: 8px 14px; min-height: 48px; align-items: center; font-weight: 400; }
+.talk-fold summary::after { color: var(--pole); font-weight: 700; }
+.talk-fold > :not(summary) { padding-left: 14px; padding-right: 14px; }
+.talk-fold > :last-child { padding-bottom: 12px; }
+
+/* Links: every text link that does something looks the same, in light, dark and high contrast. */
+.link-btn, .link-row, .linklike, .plan-sub summary, .starter-line summary, .plan-link-static {
+  color: var(--accent); font-weight: 700; text-decoration: underline; text-decoration-color: currentColor; text-decoration-thickness: 1.5px; text-underline-offset: 3px;
+}
+.plan-sub summary, .link-row, .starter-line summary, .plan-link-static { font-size: 15px; min-height: 44px; }
+.plan-sub summary::after, .starter-line summary::after { color: var(--accent); }
+.link-btn.quiet-delete { color: var(--warn); }
+.link-btn.quiet-rebuild { color: var(--accent); }
+.run-note .link-btn { color: inherit; }
+
+/* Change of plans: Apply stays in view at the bottom of the sheet. */
+.sheet-actions { position: sticky; bottom: -20px; margin: 0 -16px -20px; padding: 10px 16px 20px; background: var(--bg); border-top: 1px solid var(--line); display: flex; flex-direction: column; }
+/* "Save and start planning" stays on one line. */
+.wizard-nav .btn { white-space: nowrap; padding-left: 12px; padding-right: 12px; }
+.wizard-nav .btn.quiet { flex: 0 0 auto; min-width: 84px; }

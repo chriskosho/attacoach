@@ -1,6 +1,18 @@
-export const VERSION = '1.34.0'
+export const VERSION = '1.35.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.35.0',
+    date: '2026-11-12',
+    items: [
+      'Every fold in the app now looks and works the same: the label on the left, a › on the right that turns when it opens, and at least 44 px tall. That covers "Change today\'s setup", the Coach tab, the recap ratings and the folds in Settings.',
+      'The "Open with" bar on the plan page opens when you tap anywhere on it, not only on the small text.',
+      'Links look the same everywhere: bold, underlined and in the app\'s accent color, including Focus, the adults line and "Date, template" on the plan page. Delete plan stays red.',
+      'Today\'s Next practice card shows the focus the same way as the plan page, like "Making contact +4".',
+      'Change of plans keeps the Apply button at the bottom of the sheet, so you never have to scroll to find it. "Save and start planning" fits on one line. Station rows in the timer say "Details ›", and level tags are a little bigger.',
+      'Fixed: "Delete everything" in Settings was hard to read in dark mode.',
+    ],
+  },
   {
     version: '1.34.0',
     date: '2026-11-12',

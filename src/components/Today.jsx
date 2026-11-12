@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db, savePlan, setSetting } from '../lib/db.js'
 import { buildPlan, planFromTemplate, totalMinutes, localDate, recentPlans } from '../lib/plan.js'
 import { go, store } from '../lib/route.js'
-import { lengthsFor, focusSummary, greeting, starterNeeds, divIndex, athleticDefault, SPACES, EQUIPMENT, WEEKDAYS, spaceLabel } from '../data/constants.js'
+import { lengthsFor, needLabel, focusSummary, greeting, starterNeeds, divIndex, athleticDefault, SPACES, EQUIPMENT, WEEKDAYS, spaceLabel } from '../data/constants.js'
 import { teamPractices, nextPractice, practiceOn, staffingText } from '../lib/practices.js'
 import Stepper from './Stepper.jsx'
 import SkillChips from './SkillChips.jsx'
@@ -36,6 +36,9 @@ export function sortPlans(plans) {
   const key = (p) => `${p.date ?? (p.createdAt ?? '').slice(0, 10)}|${p.createdAt ?? ''}`
   return [...plans].sort((a, b) => (key(a) < key(b) ? 1 : -1))
 }
+
+// "Making contact +4": the first focus and how many more, the same as the plan page.
+export const focusShort = (focus = []) => (focus.length ? `${needLabel(focus[0])}${focus.length > 1 ? ` +${focus.length - 1}` : ''}` : '')
 
 export default function Today({ team, coach = '', players = [] }) {
   const lengths = lengthsFor(team.division)
@@ -152,7 +155,7 @@ export default function Today({ team, coach = '', players = [] }) {
               {planDate(upcoming)}, {totalMinutes(upcoming)} minutes
             </h2>
             <span className="small muted">
-              {upcoming.practiceName ? `${upcoming.practiceName}. ` : ''}Focus: {focusSummary(upcoming.focus)}
+              {upcoming.practiceName ? `${upcoming.practiceName}. ` : ''}Focus: {focusShort(upcoming.focus)}
             </span>
             <div className="action-row">
               <button className="btn big" onClick={() => go(`run/${upcoming.id}`)}>
@@ -227,9 +230,12 @@ export default function Today({ team, coach = '', players = [] }) {
           </button>
           {focus.length === 0 && <span className="muted small">Pick at least one thing to work on.</span>}
 
-          <details className="day-setup">
+          <details className="fold day-setup">
             <summary>
-              Change today's setup <span className="small muted">{setupSummary}</span>
+              <span className="fold-text">
+                Change today's setup
+                <span className="small muted">{setupSummary}</span>
+              </span>
             </summary>
             <div className="stack">
               <div className="stack">
@@ -320,7 +326,7 @@ export default function Today({ team, coach = '', players = [] }) {
               <strong>
                 {planDate(latest)}, {totalMinutes(latest)} minutes
               </strong>
-              <span className="small muted">Focus: {focusSummary(latest.focus)}</span>
+              <span className="small muted">Focus: {focusShort(latest.focus)}</span>
             </button>
             {needsRecap?.id === latest.id && (
               <p className="small muted recap-line">

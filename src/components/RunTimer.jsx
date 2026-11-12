@@ -387,7 +387,7 @@ function Runner({ plan, team }) {
                       {size != null && ` (${size} ${size === 1 ? 'kid' : 'kids'})`} → {sd?.name}
                       {tag && <small>{tag}</small>}
                     </span>
-                    <span className="run-station-toggle">{open ? 'Hide' : 'Open'}</span>
+                    <span className="run-station-toggle">{open ? 'Hide' : 'Details ›'}</span>
                   </button>
                   {open && sd && (
                     <div className="run-station-body">

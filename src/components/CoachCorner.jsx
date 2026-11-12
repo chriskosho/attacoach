@@ -54,9 +54,12 @@ export default function CoachCorner({ team }) {
         <section className="card" aria-labelledby="gameday">
           <h2 id="gameday">Game day huddles</h2>
           {GAME_DAY.map((k) => (
-            <details key={k} className="coach-item">
+            <details key={k} className="fold coach-item">
               <summary>
-                {HUDDLES[k].title} <span className="small muted">{HUDDLES[k].when}</span>
+                <span className="fold-text">
+                  {HUDDLES[k].title}
+                  <span className="small muted">{HUDDLES[k].when}</span>
+                </span>
               </summary>
               <HuddlePoints kind={k} team={team} />
             </details>
@@ -69,9 +72,12 @@ export default function CoachCorner({ team }) {
             These also show up in every practice plan, filled in with that day’s focus.
           </p>
           {PRACTICE.map((k) => (
-            <details key={k} className="coach-item">
+            <details key={k} className="fold coach-item">
               <summary>
-                {HUDDLES[k].title} <span className="small muted">{HUDDLES[k].when}</span>
+                <span className="fold-text">
+                  {HUDDLES[k].title}
+                  <span className="small muted">{HUDDLES[k].when}</span>
+                </span>
               </summary>
               <HuddlePoints kind={k} team={team} />
             </details>
@@ -84,7 +90,7 @@ export default function CoachCorner({ team }) {
             For the moments that come up in every game.
           </p>
           {MOMENTS.map((m) => (
-            <details key={m.id} className="coach-item">
+            <details key={m.id} className="fold coach-item">
               <summary>{m.title}</summary>
               <div className="say-this">
                 {m.say.map((s) => (
@@ -106,7 +112,7 @@ export default function CoachCorner({ team }) {
         <section className="card" aria-labelledby="guides">
           <h2 id="guides">For the night before</h2>
           {GUIDES.map((g) => (
-            <details key={g.id} className="coach-item">
+            <details key={g.id} className="fold coach-item">
               <summary>{g.title}</summary>
               <p className="small">{g.intro}</p>
               {g.sections.map((s) => (
