@@ -115,6 +115,8 @@ describe('coach name in the app', () => {
     await saveTeam(team)
     const user = userEvent.setup()
     render(<App />)
+    // Optional, so it starts as one quiet link.
+    await user.click(await screen.findByRole('button', { name: 'Add your name ›' }))
     await user.type(await screen.findByLabelText('What should we call you?'), 'Sam')
     await user.click(screen.getByRole('button', { name: 'Save' }))
     expect(await screen.findByText(/Coach Sam/)).toBeTruthy()
@@ -125,15 +127,18 @@ describe('coach name in the app', () => {
     await saveTeam(team)
     const user = userEvent.setup()
     render(<App />)
+    expect(screen.queryByLabelText('What should we call you?')).toBeNull()
+    await user.click(await screen.findByRole('button', { name: 'Add your name ›' }))
     await user.click(await screen.findByRole('button', { name: 'Not now' }))
     expect(screen.queryByLabelText('What should we call you?')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Add your name ›' })).toBeNull()
   })
 
   it('edits the name in Settings', async () => {
     await saveTeam(team)
     await setSetting('coachName', 'Sam')
     const user = userEvent.setup()
-    window.location.hash = '#/settings'
+    window.location.hash = '#/settings/profile'
     render(<App />)
     await user.click(await screen.findByRole('button', { name: 'Edit' }))
     const input = await screen.findByLabelText('Your name')

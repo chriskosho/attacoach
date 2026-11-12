@@ -59,6 +59,8 @@ export default function TeamPage({ team, teams, players = [] }) {
               Edit
             </button>
           </div>
+          <details className="fold team-details">
+            <summary>{[sportSummary(team), team.division, exp?.label].filter(Boolean).join(' · ')}</summary>
           <dl className="stack" style={{ margin: 0 }}>
             <div>
               <dt className="small muted">Sport</dt>
@@ -93,6 +95,7 @@ export default function TeamPage({ team, teams, players = [] }) {
               <dd style={{ margin: 0 }}>{rulesLine(team)}</dd>
             </div>
           </dl>
+          </details>
         </section>
 
         <section className="card" aria-labelledby="roster-title">

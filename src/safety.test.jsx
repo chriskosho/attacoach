@@ -136,7 +136,7 @@ describe('asking the browser from the app', () => {
   })
   it('Settings says what the browser reports', async () => {
     await withTeam()
-    window.location.hash = '#/settings'
+    window.location.hash = '#/settings/backup'
     fakeStorage(true)
     render(<App />)
     expect((await screen.findByTestId('storage-line')).textContent).toMatch(/agreed to keep/)
@@ -306,7 +306,7 @@ describe('restoring a backup', () => {
     const file = await backupFile()
     await clearEverything()
     await withTeam()
-    window.location.hash = '#/settings'
+    window.location.hash = '#/settings/backup'
     render(<App />)
     await screen.findByText('Backup')
     await user.upload(document.querySelector('input[type=file]'), file)
@@ -327,7 +327,7 @@ describe('restoring a backup', () => {
     const file = await backupFile()
     await clearEverything()
     await withTeam()
-    window.location.hash = '#/settings'
+    window.location.hash = '#/settings/backup'
     render(<App />)
     await screen.findByText('Backup')
     await user.upload(document.querySelector('input[type=file]'), file)
@@ -339,7 +339,7 @@ describe('restoring a backup', () => {
   it('says when something here will be replaced, and rejects other files without a sheet', async () => {
     const user = userEvent.setup()
     const file = await backupFile()
-    window.location.hash = '#/settings'
+    window.location.hash = '#/settings/backup'
     render(<App />)
     await screen.findByText('Backup')
     await user.upload(document.querySelector('input[type=file]'), file)

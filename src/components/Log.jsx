@@ -10,6 +10,7 @@ import { NeedPicker } from './Setup.jsx'
 import { TeamHeader } from './Header.jsx'
 import { planDate, sortPlans } from './Today.jsx'
 import { seasonSummary } from '../lib/season.js'
+import { planNeedingRecap } from '../lib/todayRules.js'
 
 // Practices needed before the per-skill breakdown shows.
 export const SEASON_BREAKDOWN_AT = 3
@@ -122,14 +123,26 @@ export default function Log({ team }) {
         <section className="card">
           <h2>After the game or practice</h2>
           <p className="muted small">Jot down what you saw. AttaCoach uses it to suggest what to work on at your next practice.</p>
-          <div className="action-row">
-            <button className="btn" onClick={() => go('debrief/game')}>
-              Game debrief
-            </button>
-            <button className="btn quiet" onClick={() => go('debrief/practice')}>
-              Practice recap
-            </button>
-          </div>
+          {/* The likelier one first and highlighted: a recap when a past practice has none, a game debrief otherwise. */}
+          {(() => {
+            const recapFirst = !!planNeedingRecap(plans, entries)
+            const game = { id: 'game', title: 'Game debrief', desc: 'Score, what you saw and what to work on.' }
+            const practice = { id: 'practice', title: 'Practice recap', desc: 'How practice went. About 2 minutes.' }
+            const [first, second] = recapFirst ? [practice, game] : [game, practice]
+            return (
+              <div className="choices">
+                <button className="choice recommended" aria-label={first.title} onClick={() => go(`debrief/${first.id}`)}>
+                  <strong>{first.title}</strong>
+                  <span>{first.desc}</span>
+                </button>
+                <p className="small muted choice-label">Or</p>
+                <button className="choice" aria-label={second.title} onClick={() => go(`debrief/${second.id}`)}>
+                  <strong>{second.title}</strong>
+                  <span>{second.desc}</span>
+                </button>
+              </div>
+            )
+          })()}
         </section>
 
         {suggestion && (

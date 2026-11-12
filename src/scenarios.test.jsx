@@ -81,13 +81,13 @@ describe('skipping setup and testing tools in the app', () => {
     const user = userEvent.setup()
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     await loadScenario(SCENARIOS[0])
-    window.location.hash = '#/settings'
+    window.location.hash = '#/settings/testing'
     render(<App />)
     const group = await screen.findByRole('group', { name: 'Add a ready-made team' })
     await user.click(within(group).getByRole('button', { name: /Winter cage only/ }))
     await waitFor(async () => expect(await db.teams.count()).toBe(2))
     await waitFor(() => expect(window.location.hash).toBe('#/today')) // loading a team sends you to Today
-    window.location.hash = '#/settings'
+    window.location.hash = '#/settings/testing'
     await user.click(await screen.findByRole('button', { name: 'Start over and replay setup' }))
     expect(await screen.findByText('Set up your team', {}, { timeout: 4000 })).toBeTruthy()
     expect(await db.teams.count()).toBe(0)

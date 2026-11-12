@@ -1,6 +1,6 @@
 // With no feedback address set, no feedback button appears anywhere.
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, cleanup } from '@testing-library/react'
 
 vi.mock('./config.js', async (orig) => ({ ...(await orig()), FEEDBACK_EMAIL: '' }))
 
@@ -19,10 +19,14 @@ describe('feedback hidden without an address', () => {
   })
 
   it('Settings has no Send feedback card and the privacy text does not mention it', async () => {
-    window.location.hash = '#/settings'
+    window.location.hash = '#/settings/about'
     render(<App />)
-    await screen.findByRole('heading', { name: 'Display' })
+    await screen.findByRole('heading', { name: 'About' })
     expect(screen.queryByRole('button', { name: 'Send feedback' })).toBeNull()
+    cleanup()
+    window.location.hash = '#/settings/privacy'
+    render(<App />)
+    await screen.findByRole('heading', { name: 'Privacy' })
     expect(screen.queryByText(/Feedback is sent only/)).toBeNull()
   })
 

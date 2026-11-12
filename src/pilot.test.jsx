@@ -83,7 +83,7 @@ describe('feedback screens', () => {
   })
 
   it('Settings: shows the whole message before anything is sent, and the link matches it', async () => {
-    window.location.hash = '#/settings'
+    window.location.hash = '#/settings/about'
     const user = userEvent.setup()
     render(<App />)
     await user.click(await screen.findByRole('button', { name: 'Send feedback' }))
@@ -238,7 +238,7 @@ describe('pilot settings', () => {
   it('About is one line with the version; opening it shows the latest release only', async () => {
     await clearEverything()
     await saveTeam({ ...team })
-    window.location.hash = '#/settings'
+    window.location.hash = '#/settings/about'
     render(<App />)
     const about = (await screen.findByRole('heading', { name: 'About' })).closest('section')
     const fold = about.querySelector('details')
@@ -253,7 +253,7 @@ describe('pilot settings', () => {
   it('Privacy and Backup are folded to one line each, with the full text one tap away', async () => {
     await clearEverything()
     await saveTeam({ ...team })
-    window.location.hash = '#/settings'
+    window.location.hash = '#/settings/privacy'
     const user = userEvent.setup()
     render(<App />)
     const privacy = (await screen.findByRole('heading', { name: 'Privacy' })).closest('section')
@@ -262,7 +262,11 @@ describe('pilot settings', () => {
     await user.click(privacy.querySelector('summary'))
     expect(privacy.querySelector('details').open).toBe(true)
     expect(privacy.textContent).toMatch(/never uploads it/)
-    const backup = screen.getByRole('heading', { name: 'Backup' }).closest('section')
+    // Backup is its own section now.
+    cleanup()
+    window.location.hash = '#/settings/backup'
+    render(<App />)
+    const backup = (await screen.findByRole('heading', { name: 'Backup' })).closest('section')
     expect(backup.textContent).toContain('Saved only on this phone. Last backup: never.')
     expect(backup.querySelector('details').open).toBe(false)
     expect(within(backup).getByRole('button', { name: 'Save backup' })).toBeTruthy()
@@ -274,7 +278,7 @@ describe('pilot settings', () => {
   it('privacy text covers device storage, backups, YouTube and feedback', async () => {
     await clearEverything()
     await saveTeam({ ...team })
-    window.location.hash = '#/settings'
+    window.location.hash = '#/settings/privacy'
     render(<App />)
     const card = (await screen.findByRole('heading', { name: 'Privacy' })).closest('section')
     for (const re of [/stay in this browser on this device/, /backup is a file you save yourself/, /YouTube search/, /Feedback is sent only if you tap/]) expect(card.textContent).toMatch(re)

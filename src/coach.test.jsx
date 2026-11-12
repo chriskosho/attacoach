@@ -105,7 +105,8 @@ describe('team, settings and coach tabs', () => {
     expect(screen.queryByRole('heading', { name: 'Coach profile' })).toBeNull()
 
     await user.click(screen.getByRole('button', { name: 'Settings' }))
-    for (const h of ['Coach profile', 'Display', 'Backup', 'Privacy', 'About']) expect(await screen.findByRole('heading', { name: h })).toBeTruthy()
+    // Settings opens as a short list; each row opens one section.
+    for (const h of ['Coach profile', 'Display', 'Backup and restore', 'Share and support', 'Privacy', 'About and feedback', 'Delete everything']) expect(await screen.findByRole('button', { name: new RegExp(`^${h}`) })).toBeTruthy()
     expect(screen.queryByRole('heading', { name: 'Players' })).toBeNull()
     // Settings is not a tab, so there is no gear on it itself.
     expect(screen.queryByRole('button', { name: 'Settings' })).toBeNull()

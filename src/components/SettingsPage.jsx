@@ -5,7 +5,7 @@ import { setSetting, clearEverything, getSetting } from '../lib/db.js'
 import { saveBackupFile, backupMessage, backupWhere } from '../lib/backupFile.js'
 import RestoreBackup from './RestoreBackup.jsx'
 import { storageState, storageLine, LAST_BACKUP } from '../lib/safety.js'
-import { go } from '../lib/route.js'
+import { go, useRoute } from '../lib/route.js'
 import { shareText } from '../lib/share.js'
 import { signOut, deleteAccount, friendlyAuthError } from '../lib/auth.js'
 import { APP_URL, AUTH_REQUIRED, DONATE_URL, SHARE_TEXT, TEST_TOOLS } from '../config.js'
@@ -19,6 +19,8 @@ import { feedbackAvailable } from '../lib/feedback.js'
 // App-wide settings: your name, how the app looks, backup, sharing and account. Everything about
 // one team (players, how you practice, rules) lives on the Team tab instead.
 export default function SettingsPage({ team, theme, auth, coach = '' }) {
+  const route = useRoute()
+  const section = route.id
   const [msg, setMsg] = useState(null)
   const [nameDraft, setNameDraft] = useState(null)
 
@@ -75,10 +77,24 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
     go('today')
   }
 
-  return (
-    <>
-      <TeamHeader team={team} title="Settings" backTo="team" />
-      <main className="page">
+  // Settings opens as a short list; each row opens one section (#/settings/<section>).
+  const lastText = lastBackup ? `Last backup ${new Date(lastBackup).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : 'No backup yet'
+  const rows = [
+    ['profile', 'Coach profile', coach ? coachTitle(coach) : 'Add your name'],
+    ['display', 'Display', 'Light, dark or high contrast'],
+    ['backup', 'Backup and restore', lastText],
+    ['share', 'Share and support', 'Send AttaCoach to a coach, or chip in'],
+    ['privacy', 'Privacy', 'No ads, no tracking'],
+    ['about', 'About and feedback', `Version ${VERSION}, what's new, send feedback`],
+    ...(auth?.email ? [['account', 'Account', auth.email]] : []),
+    ...(TEST_TOOLS ? [['testing', 'Testing tools', 'Ready-made teams for review']] : []),
+    ['delete', 'Delete everything', 'Remove all teams and plans from this device'],
+  ]
+  const open = rows.find(([id]) => id === section)
+
+  const content = {
+    profile: (
+      <>
         <section className="card">
           <h2 className="sm-h">Coach profile</h2>
           {nameDraft === null ? (
@@ -105,7 +121,10 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
             </>
           )}
         </section>
-
+      </>
+    ),
+    display: (
+      <>
         <section className="card">
           <h2 className="sm-h">Display</h2>
           <div className="choices" role="group" aria-label="Theme">
@@ -122,25 +141,10 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
             ))}
           </div>
         </section>
-
-        <SettingsFeedback team={team} />
-
-        <section className="card">
-          <h2 className="sm-h">Share AttaCoach</h2>
-          <p className="small muted">Know a coach who could use it? Send them the link.</p>
-          <button className="btn quiet" onClick={shareApp}>
-            Share AttaCoach
-          </button>
-        </section>
-
-        <section className="card">
-          <h2 className="sm-h">Support AttaCoach</h2>
-          <p className="small muted">AttaCoach is free and has no ads. If it helps your team, you can chip in.</p>
-          <a className="btn quiet" href={DONATE_URL} target="_blank" rel="noopener noreferrer">
-            Donate with PayPal
-          </a>
-        </section>
-
+      </>
+    ),
+    backup: (
+      <>
         <section className="card">
           <h2 className="sm-h">Backup</h2>
           <p className="small">
@@ -159,13 +163,30 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
             </button>
             <RestoreBackup onMessage={setMsg} />
           </div>
-          {msg && (
-            <p className="small" role="status">
-              {msg}
-            </p>
-          )}
+        </section>
+      </>
+    ),
+    share: (
+      <>
+        <section className="card">
+          <h2 className="sm-h">Share AttaCoach</h2>
+          <p className="small muted">Know a coach who could use it? Send them the link.</p>
+          <button className="btn quiet" onClick={shareApp}>
+            Share AttaCoach
+          </button>
         </section>
 
+        <section className="card">
+          <h2 className="sm-h">Support AttaCoach</h2>
+          <p className="small muted">AttaCoach is free and has no ads. If it helps your team, you can chip in.</p>
+          <a className="btn quiet" href={DONATE_URL} target="_blank" rel="noopener noreferrer">
+            Donate with PayPal
+          </a>
+        </section>
+      </>
+    ),
+    privacy: (
+      <>
         <section className="card">
           <h2 className="sm-h">Privacy</h2>
           <details className="fold">
@@ -180,7 +201,10 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
             </ul>
           </details>
         </section>
-
+      </>
+    ),
+    about: (
+      <>
         <section className="card">
           <h2 className="sm-h">About</h2>
           <details className="fold">
@@ -198,9 +222,12 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
             <p className="small muted">Drills are original to AttaCoach. Check your league's rulebook for local rules and pitch limits.</p>
           </details>
         </section>
-
-        {auth?.email && (
-          <section className="card">
+        <SettingsFeedback team={team} />
+      </>
+    ),
+    account: (
+      <>
+        <section className="card">
             <h2 className="sm-h">Account</h2>
             <p className="small">
               Signed in as <strong>{auth.email}</strong>
@@ -215,10 +242,11 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
             </div>
             <p className="small muted">Signing out keeps your teams and plans on this device.</p>
           </section>
-        )}
-
-        {TEST_TOOLS && (
-          <section className="card" aria-labelledby="test-title">
+      </>
+    ),
+    testing: (
+      <>
+        <section className="card" aria-labelledby="test-title">
             <h2 className="sm-h" id="test-title">Testing tools</h2>
             <p className="small muted">Add a ready-made team to try different situations. It becomes your current team; your other teams stay.</p>
             <TestTools
@@ -232,10 +260,45 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
               Start over and replay setup
             </button>
           </section>
-        )}
+      </>
+    ),
+    delete: (
+      <section className="card danger-zone">
+        <h2 className="sm-h">Delete everything</h2>
+        <p className="small muted">This removes every team and plan on this device. Save a backup first if you might want them later. You will be asked to confirm.</p>
         <button className="btn danger" onClick={wipe}>
           Delete everything on this device
         </button>
+      </section>
+    ),
+  }
+
+  return (
+    <>
+      <TeamHeader team={team} title="Settings" backTo={open ? 'settings' : 'team'} />
+      <main className="page">
+        {open ? (
+          <>
+            {content[open[0]]}
+            {msg && (
+              <p className="small" role="status">
+                {msg}
+              </p>
+            )}
+          </>
+        ) : (
+          <div className="card flat settings-list">
+            {rows.map(([id, title, desc]) => (
+              <button key={id} className={`settings-row${id === 'delete' ? ' danger-row' : ''}`} onClick={() => go(`settings/${id}`)}>
+                <span className="settings-row-text">
+                  <strong>{title}</strong>
+                  <span className="small muted">{desc}</span>
+                </span>
+                <span className="settings-row-arrow" aria-hidden="true">›</span>
+              </button>
+            ))}
+          </div>
+        )}
       </main>
     </>
   )

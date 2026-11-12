@@ -1,6 +1,17 @@
-export const VERSION = '1.33.0'
+export const VERSION = '1.34.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.34.0',
+    date: '2026-11-12',
+    items: [
+      'Settings opens as a short list: Coach profile, Display, Backup and restore, Share and support, Privacy, About and feedback, and Delete everything last. Tap a row to open just that part; Back returns to the list. Nothing was removed, and Delete everything still asks before it deletes.',
+      'Today has one quiet "Browse drills" row under your next practice, with the drill count for your team ("83 drills for 10U"), so the whole library is one tap away without making a plan.',
+      'Optional things stay out of the way. On Today, "Add your name ›" is one small link until you tap it, and the backup reminder now sits below the planning button instead of above it. On the Team tab the team details fold under one line ("Baseball · 10U · A few seasons").',
+      'A new drill of your own starts with an empty Minutes box and the hint "Enter minutes (2 to 30)". Leave it empty and it is saved as 10 minutes, like before.',
+      'On the Log, the likelier choice is highlighted: Practice recap when a past practice has no recap yet, Game debrief otherwise. The other one sits under "Or".',
+    ],
+  },
   {
     version: '1.33.0',
     date: '2026-11-12',

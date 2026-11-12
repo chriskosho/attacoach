@@ -260,7 +260,7 @@ export function DrillPage({ drillId, team }) {
   )
 }
 
-const blankDrill = { name: '', category: 'team', minutes: 10, needs: [], where: ['field'], group: 'small', steps: '' }
+const blankDrill = { name: '', category: 'team', minutes: '', needs: [], where: ['field'], group: 'small', steps: '' }
 
 // Add or edit one of the coach's own drills. id is 'new' or a saved drill's id.
 export function MyDrillForm({ id, team }) {
@@ -304,7 +304,7 @@ function MyDrillFields({ team, initial, isNew }) {
           </label>
           <label className="field">
             Minutes
-            <input type="number" inputMode="numeric" min={2} max={30} value={d.minutes} onChange={(e) => set({ minutes: e.target.value })} />
+            <input type="number" inputMode="numeric" min={2} max={30} value={d.minutes} placeholder="Enter minutes (2 to 30)" onChange={(e) => set({ minutes: e.target.value })} />
           </label>
           <div className="stack">
             <strong className="small">What it works on</strong>

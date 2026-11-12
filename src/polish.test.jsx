@@ -44,6 +44,7 @@ describe('sun mode', () => {
 
   it('is a Display choice, is saved, and is applied to the page', async () => {
     const user = userEvent.setup()
+    window.location.hash = '#/settings/display'
     render(<App />)
     const group = await screen.findByRole('group', { name: 'Theme' })
     for (const name of [/^Auto/, 'Light', 'Dark', /High contrast/]) expect(within(group).getByRole('button', { name })).toBeTruthy()
@@ -55,6 +56,7 @@ describe('sun mode', () => {
 
   it('keeps Auto, Light and Dark working and clears the attribute for Auto', async () => {
     const user = userEvent.setup()
+    window.location.hash = '#/settings/display'
     render(<App />)
     const group = await screen.findByRole('group', { name: 'Theme' })
     await user.click(within(group).getByRole('button', { name: 'Dark' }))

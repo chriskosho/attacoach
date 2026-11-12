@@ -78,7 +78,7 @@ describe('restore preview counts', () => {
     const user = userEvent.setup()
     const file = await backupOfRichTeam()
     await saveTeam({ id: 'other', name: 'Other', division: '8U', experience: 'some', needs: [], rules: defaultRules('8U'), sport: 'baseball' })
-    window.location.hash = '#/settings'
+    window.location.hash = '#/settings/backup'
     render(<App />)
     await screen.findByText('Backup')
     await user.upload(screen.getByLabelText('Backup file'), file)
@@ -109,7 +109,7 @@ describe('where the backup went', () => {
     const user = userEvent.setup()
     await clearEverything()
     await saveTeam({ ...team })
-    window.location.hash = '#/settings'
+    window.location.hash = '#/settings/backup'
     render(<App />)
     await screen.findByText('Backup')
     global.URL.createObjectURL = () => 'blob:x'

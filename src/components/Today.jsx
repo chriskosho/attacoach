@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, savePlan, setSetting } from '../lib/db.js'
 import { buildPlan, planFromTemplate, totalMinutes, localDate, recentPlans } from '../lib/plan.js'
@@ -13,6 +13,8 @@ import NeedsRanker from './NeedsRanker.jsx'
 import { TeamHeader } from './Header.jsx'
 import { useSuggestion, SuggestionList } from './Log.jsx'
 import { nextPlan, planNeedingRecap, finishedToday } from '../lib/todayRules.js'
+import { allDrills } from '../data/drills.js'
+import { filterDrills } from './Drills.jsx'
 import SafetyCards from './SafetyCards.jsx'
 
 // Friendly practice date: "Today", "Tomorrow" or "Sat, Nov 14".
@@ -66,6 +68,7 @@ export default function Today({ team, coach = '', players = [] }) {
   const [templateId, setTemplateId] = useState('')
   const template = templates?.find((t) => t.id === templateId) ?? null
 
+  const customDrillCount = useLiveQuery(() => db.customDrills.count(), [], 0)
   const plans = useLiveQuery(() => db.plans.where('teamId').equals(team.id).toArray().then(sortPlans), [team.id])
   const latest = plans?.[0] ?? null
   const debriefs = useLiveQuery(() => db.debriefs.where('teamId').equals(team.id).toArray(), [team.id])
@@ -74,6 +77,8 @@ export default function Today({ team, coach = '', players = [] }) {
   const upcoming = loaded ? nextPlan(plans, undefined, debriefs) : null
   const doneToday = loaded ? finishedToday(plans, debriefs) : null
   const needsRecap = plans && debriefs ? planNeedingRecap(plans, debriefs) : null
+  // How many drills the Drills tab shows by default for this team.
+  const drillCount = useMemo(() => filterDrills(allDrills(), { team }).length, [team, customDrillCount]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const choosePractice = (p) => {
     setPracticeId(p.id)
@@ -159,8 +164,6 @@ export default function Today({ team, coach = '', players = [] }) {
             </div>
           </section>
         )}
-
-        {loaded && !upcoming && <SafetyCards players={players.length} plans={plans.length} />}
 
         {upcoming && !showForm && (
           <button className="btn quiet" onClick={() => setShowForm(true)}>
@@ -300,7 +303,15 @@ export default function Today({ team, coach = '', players = [] }) {
         </section>
         )}
 
-        {plans && upcoming && <SafetyCards players={players.length} plans={plans.length} />}
+        <button className="browse-row" onClick={() => go('drills')}>
+          <span>
+            <strong>Browse drills</strong>
+            <span className="small muted">{drillCount} drills for {team.division}</span>
+          </span>
+          <span aria-hidden="true">›</span>
+        </button>
+
+        {plans && <SafetyCards players={players.length} plans={plans.length} />}
 
         {latest && !upcoming && (
           <>
@@ -340,15 +351,24 @@ export default function Today({ team, coach = '', players = [] }) {
 function NamePrompt({ coach }) {
   const [name, setName] = useState('')
   const [hidden, setHidden] = useState(false)
+  const [open, setOpen] = useState(false)
   if (coach || hidden) return null
   const save = async () => {
     if (name.trim()) await setSetting('coachName', name.trim().replace(/\s+/g, ' '))
+  }
+  // Optional, so it is one quiet link until the coach taps it.
+  if (!open) {
+    return (
+      <button className="link-btn" style={{ alignSelf: 'flex-start' }} onClick={() => setOpen(true)}>
+        Add your name ›
+      </button>
+    )
   }
   return (
     <section className="card" aria-label="Your name">
       <label className="field">
         What should we call you?
-        <input type="text" value={name} maxLength={40} placeholder="e.g. Chris" autoComplete="given-name" onChange={(e) => setName(e.target.value)} />
+        <input type="text" value={name} maxLength={40} placeholder="e.g. Chris" autoComplete="given-name" autoFocus onChange={(e) => setName(e.target.value)} />
       </label>
       <div className="action-row">
         <button className="btn" disabled={!name.trim()} onClick={save}>

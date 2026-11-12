@@ -913,3 +913,22 @@ textarea { font: inherit; width: 100%; border: 1.5px solid var(--line); border-r
   .compact-stations .run-stations b { width: 22px; height: 22px; font-size: 13px; }
   .compact-stations .run-next { font-size: 15px; }
 }
+
+/* Stage 12E: Settings as a short list of rows */
+.settings-list { padding: 4px 0; }
+.settings-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 64px; padding: 10px 16px; background: none; border: 0; border-top: 1px solid var(--line); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.settings-row:first-child { border-top: 0; }
+.settings-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.settings-row-text strong { font-size: 17px; }
+.settings-row-arrow { color: var(--ink-2); font-size: 22px; }
+.settings-row.danger-row strong { color: var(--danger, #b3261e); }
+.settings-list { display: flex; flex-direction: column; }
+/* Highlighted choice: the likelier option is distinct and the rest sit under a small label. */
+.choice.recommended { border-color: var(--accent); background: var(--accent-soft); }
+.choice-label { margin: 0; }
+/* Today's one quiet row to the drill library. */
+.browse-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 14px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-sm, 12px); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.browse-row > span:first-child { flex: 1; display: flex; flex-direction: column; }
+.browse-row > span:last-child { color: var(--ink-2); font-size: 22px; }
+/* Team: the summary line, with the details folded under it. */
+.team-details summary { min-height: 44px; }

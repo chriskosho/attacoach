@@ -190,6 +190,7 @@ describe('settings page: account, share and donate', () => {
   it('signs out but keeps teams and plans on the device', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     const user = userEvent.setup()
+    window.location.hash = '#/settings/account'
     render(<App />)
     await user.click(await screen.findByRole('button', { name: 'Sign out' }))
     expect(await screen.findByText('Sign in or create your account')).toBeTruthy()
@@ -201,6 +202,7 @@ describe('settings page: account, share and donate', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     fake.auth.signOut.mockRejectedValue(new Error('Failed to fetch'))
     const user = userEvent.setup()
+    window.location.hash = '#/settings/account'
     render(<App />)
     await user.click(await screen.findByRole('button', { name: 'Sign out' }))
     expect(await screen.findByText('Sign in or create your account')).toBeTruthy()
@@ -210,6 +212,7 @@ describe('settings page: account, share and donate', () => {
   it('does nothing when sign out is cancelled', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(false)
     const user = userEvent.setup()
+    window.location.hash = '#/settings/account'
     render(<App />)
     await user.click(await screen.findByRole('button', { name: 'Sign out' }))
     expect(screen.queryByText('Sign in or create your account')).toBeNull()
@@ -219,6 +222,7 @@ describe('settings page: account, share and donate', () => {
   it('deletes the account through the server function, then signs out', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     const user = userEvent.setup()
+    window.location.hash = '#/settings/account'
     render(<App />)
     await user.click(await screen.findByRole('button', { name: 'Delete account' }))
     expect(await screen.findByText('Sign in or create your account')).toBeTruthy()
@@ -231,6 +235,7 @@ describe('settings page: account, share and donate', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     fake.rpc.mockResolvedValue({ data: null, error: { message: 'function not found', status: 404 } })
     const user = userEvent.setup()
+    window.location.hash = '#/settings/account'
     render(<App />)
     await user.click(await screen.findByRole('button', { name: 'Delete account' }))
     expect((await screen.findByRole('status')).textContent).toMatch(/Couldn't delete your account/)
@@ -241,6 +246,7 @@ describe('settings page: account, share and donate', () => {
     setOnline(false)
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
     const user = userEvent.setup()
+    window.location.hash = '#/settings/account'
     render(<App />)
     await user.click(await screen.findByRole('button', { name: 'Delete account' }))
     expect((await screen.findByRole('status')).textContent).toMatch(/Connect to the internet/)
@@ -252,6 +258,7 @@ describe('settings page: account, share and donate', () => {
     const share = vi.fn().mockResolvedValue()
     Object.defineProperty(window.navigator, 'share', { value: share, configurable: true })
     const user = userEvent.setup()
+    window.location.hash = '#/settings/share'
     render(<App />)
     await user.click(await screen.findByRole('button', { name: 'Share AttaCoach' }))
     expect(share).toHaveBeenCalledWith(expect.objectContaining({ url: APP_URL, title: 'AttaCoach' }))
@@ -262,6 +269,7 @@ describe('settings page: account, share and donate', () => {
     delete window.navigator.share
     const user = userEvent.setup()
     const writeText = vi.spyOn(window.navigator.clipboard, 'writeText').mockResolvedValue()
+    window.location.hash = '#/settings/share'
     render(<App />)
     await user.click(await screen.findByRole('button', { name: 'Share AttaCoach' }))
     expect(writeText).toHaveBeenCalledWith(expect.stringContaining(APP_URL))
@@ -269,6 +277,7 @@ describe('settings page: account, share and donate', () => {
   })
 
   it('links to PayPal in a new tab', async () => {
+    window.location.hash = '#/settings/share'
     render(<App />)
     const link = await screen.findByRole('link', { name: 'Donate with PayPal' })
     expect(link.getAttribute('href')).toBe('https://paypal.me/chriskosho')
@@ -278,6 +287,7 @@ describe('settings page: account, share and donate', () => {
   })
 
   it('tells people their email is used to sign in', async () => {
+    window.location.hash = '#/settings/privacy'
     render(<App />)
     const card = (await screen.findByText(/You sign in with your email/)).closest('section')
     expect(card.textContent).toMatch(/Nothing about them is sent to a server/)
