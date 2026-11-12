@@ -104,10 +104,18 @@ describe('roster on the Team tab', () => {
     await user.click(await screen.findByRole('button', { name: 'Edit Sam' }))
     const dialog = screen.getByRole('dialog')
     await user.click(within(within(dialog).getByRole('group', { name: 'Needs work' })).getByRole('button', { name: 'Throwing accuracy' }))
-    // A skill is a strength or a weakness, not both.
-    await user.click(within(within(dialog).getByRole('group', { name: 'Strengths' })).getByRole('button', { name: 'Throwing accuracy' }))
-    expect((await within(dialog).findAllByRole('button', { name: 'Throwing accuracy' })).map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'false'])
-    await user.click(within(within(dialog).getByRole('group', { name: 'Needs work' })).getByRole('button', { name: 'Throwing accuracy' }))
+    // A skill is a strength or a weakness, not both: it is greyed out in the other list.
+    const strengthChip = () => within(within(dialog).getByRole('group', { name: 'Strengths' })).getByRole('button', { name: 'Throwing accuracy' })
+    const needsChip = () => within(within(dialog).getByRole('group', { name: 'Needs work' })).getByRole('button', { name: 'Throwing accuracy' })
+    expect(strengthChip().disabled).toBe(true)
+    expect(needsChip().getAttribute('aria-pressed')).toBe('true')
+    // Taking it off needs work frees it up as a strength, and then needs work is greyed out.
+    await user.click(needsChip())
+    expect(strengthChip().disabled).toBe(false)
+    await user.click(strengthChip())
+    expect(needsChip().disabled).toBe(true)
+    await user.click(strengthChip())
+    await user.click(needsChip())
     await user.click(within(dialog).getByRole('button', { name: 'Save player' }))
     await waitFor(async () => expect((await db.players.toArray())[0].weaknesses).toEqual(['throwing']))
 

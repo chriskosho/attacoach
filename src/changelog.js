@@ -1,6 +1,13 @@
-export const VERSION = '1.32.0'
+export const VERSION = '1.32.1'
 
 export const CHANGELOG = [
+  {
+    version: '1.32.1',
+    date: '2026-11-12',
+    items: [
+      'When you add or edit a player, a skill you mark as a strength is greyed out under Needs work, and the other way around. Tap it off in one list to pick it in the other.',
+    ],
+  },
   {
     version: '1.32.0',
     date: '2026-11-12',

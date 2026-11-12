@@ -67,18 +67,19 @@ export default function Roster({ division, players, onChange }) {
 // Strengths, needs work, overall level and positions. Shared by the add wizard and the editor.
 function SkillFields({ division, p, set }) {
   const skills = needsForDivision(division, DRILLS)
-  // A skill is a strength or a weakness, not both.
-  const setStrengths = (strengths) => set({ strengths, weaknesses: p.weaknesses.filter((n) => !strengths.includes(n)) })
-  const setWeaknesses = (weaknesses) => set({ weaknesses, strengths: p.strengths.filter((n) => !weaknesses.includes(n)) })
+  // A skill is a strength or a weakness, not both: once it is one, it is greyed out in the other list.
+  // (Older saved players that have both keep them until the coach taps one off.)
+  const setStrengths = (strengths) => set({ strengths })
+  const setWeaknesses = (weaknesses) => set({ weaknesses })
   return (
     <>
       <div className="stack">
         <strong className="small">Strengths</strong>
-        <SkillChips options={skills} value={p.strengths} onChange={setStrengths} label="Strengths" />
+        <SkillChips options={skills} value={p.strengths} onChange={setStrengths} label="Strengths" disabled={p.weaknesses} disabledNote="Already marked as needs work" />
       </div>
       <div className="stack">
         <strong className="small">Needs work</strong>
-        <SkillChips options={skills} value={p.weaknesses} onChange={setWeaknesses} label="Needs work" />
+        <SkillChips options={skills} value={p.weaknesses} onChange={setWeaknesses} label="Needs work" disabled={p.strengths} disabledNote="Already marked as a strength" />
       </div>
       <div className="stack">
         <strong className="small" id="rating-label">
