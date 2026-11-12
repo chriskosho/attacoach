@@ -405,7 +405,7 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
 
         <div className="wizard-nav">
           {step > 0 && (
-            <button className="btn quiet" onClick={() => setStep(step - 1)}>
+            <button className="link-btn" onClick={() => setStep(step - 1)}>
               Back
             </button>
           )}

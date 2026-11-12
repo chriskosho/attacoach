@@ -157,11 +157,11 @@ export default function Today({ team, coach = '', players = [] }) {
             <span className="small muted">
               {upcoming.practiceName ? `${upcoming.practiceName}. ` : ''}Focus: {focusShort(upcoming.focus)}
             </span>
-            <div className="action-row">
+            <div className="next-actions">
               <button className="btn big" onClick={() => go(`run/${upcoming.id}`)}>
                 Start practice
               </button>
-              <button className="btn quiet" onClick={() => go(`plan/${upcoming.id}`)}>
+              <button className="link-btn" onClick={() => go(`plan/${upcoming.id}`)}>
                 Open plan
               </button>
             </div>
@@ -169,7 +169,7 @@ export default function Today({ team, coach = '', players = [] }) {
         )}
 
         {upcoming && !showForm && (
-          <button className="btn quiet" onClick={() => setShowForm(true)}>
+          <button className="link-btn plan-another" onClick={() => setShowForm(true)}>
             Plan another practice
           </button>
         )}
@@ -339,7 +339,7 @@ export default function Today({ team, coach = '', players = [] }) {
           </>
         )}
 
-        <section className="card" aria-labelledby="coach-corner">
+        <section className="card today-tip" aria-labelledby="coach-corner">
           <h3 id="coach-corner" className="sr-only">Coach Corner</h3>
           <p style={{ margin: 0 }}>
             <strong>Today’s tip:</strong> {tip}
@@ -380,7 +380,7 @@ function NamePrompt({ coach }) {
         <button className="btn" disabled={!name.trim()} onClick={save}>
           Save
         </button>
-        <button className="btn quiet" onClick={() => setHidden(true)}>
+        <button className="link-btn" onClick={() => setHidden(true)}>
           Not now
         </button>
       </div>

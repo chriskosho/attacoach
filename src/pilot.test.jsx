@@ -220,13 +220,13 @@ describe('season so far', () => {
     expect(full.textContent).not.toMatch(/appears after 3/)
   })
 
-  it('has a quiet empty state before anything is logged', async () => {
+  it('shows no season card before anything is logged', async () => {
     await clearEverything()
     await saveTeam({ ...team })
     window.location.hash = '#/log'
     render(<App />)
-    const card = (await screen.findByRole('heading', { name: 'Season so far' })).closest('section')
-    expect(card.textContent).toMatch(/show up here/)
+    await screen.findByRole('heading', { name: 'Nothing logged yet' })
+    expect(screen.queryByRole('heading', { name: 'Season so far' })).toBe(null)
   })
 })
 

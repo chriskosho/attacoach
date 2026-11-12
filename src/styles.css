@@ -10,7 +10,7 @@
   --bg: #eef2ee;
   --card: #ffffff;
   --ink: #13221a;
-  --ink-2: #4a5c50;
+  --ink-2: #3d4e44;
   --line: #cfd9d1;
   --accent: #1d5c3e;
   --accent-soft: #dcebe1;
@@ -49,7 +49,7 @@
     --bg: #0c1811;
     --card: #14261c;
     --ink: #e8f1ea;
-    --ink-2: #a3b8aa;
+    --ink-2: #b4c6bb;
     --line: #2a4033;
     --accent: #f2c230;
     --accent-soft: #233a2c;
@@ -70,7 +70,7 @@
   --bg: #0c1811;
   --card: #14261c;
   --ink: #e8f1ea;
-  --ink-2: #a3b8aa;
+  --ink-2: #b4c6bb;
   --line: #2a4033;
   --accent: #f2c230;
   --accent-soft: #233a2c;
@@ -402,7 +402,7 @@ input[type='text'], input[type='search'], input[type='date'], input[type='email'
 .slot-title { font-weight: 600; font-size: 17px; line-height: 1.25; }
 .slot-sub { font-size: 14px; color: var(--ink-2); }
 .slot-min { font-family: var(--display); font-weight: 700; font-size: 20px; font-variant-numeric: tabular-nums; }
-.slot-min small { font-size: 13px; font-weight: 500; color: var(--ink-2); margin-left: 2px; }
+.slot-min small { font-size: 14px; font-weight: 500; color: var(--ink-2); margin-left: 2px; }
 .slot.break .slot-title, .slot.huddle .slot-title { color: var(--ink-2); }
 .slot.open > .slot-head { background: var(--accent-soft); }
 .slot-body { padding: 4px 14px 16px; display: flex; flex-direction: column; gap: 12px; }
@@ -410,7 +410,7 @@ input[type='text'], input[type='search'], input[type='date'], input[type='email'
 .station .slot-head { grid-template-columns: 34px 1fr auto; padding: 10px 12px; }
 .station-num { width: 28px; height: 28px; border-radius: 50%; background: var(--call-bg); color: var(--call-ink); display: grid; place-items: center; font-family: var(--display); font-weight: 700; }
 
-.level { display: inline-block; font-size: 13px; font-weight: 600; border-radius: 6px; padding: 1px 7px; border: 1px solid currentColor; }
+.level { display: inline-block; font-size: 14px; font-weight: 600; border-radius: 6px; padding: 1px 7px; border: 1px solid currentColor; }
 .level.beginner { color: var(--level-beginner); }
 .level.intermediate { color: var(--level-intermediate); }
 .level.advanced { color: var(--level-advanced); }
@@ -423,7 +423,7 @@ input[type='text'], input[type='search'], input[type='date'], input[type='email'
 .drill-text ol, .drill-text ul { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 4px; }
 .drill-text section { display: flex; flex-direction: column; gap: 2px; }
 .drill-text .tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.tag { font-size: 13px; background: var(--accent-soft); border-radius: 6px; padding: 2px 8px; }
+.tag { font-size: 14px; background: var(--accent-soft); border-radius: 6px; padding: 2px 8px; }
 
 .edit-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
@@ -906,7 +906,7 @@ textarea { font: inherit; width: 100%; border: 1.5px solid var(--line); border-r
   .compact-stations .run-station-head { padding: 3px 8px; min-height: 44px; gap: 8px; line-height: 1.2; border-radius: 10px; }
   .compact-stations .run-station-name { display: block; }
   .compact-stations .run-station-name small { font-size: 13px; }
-  .compact-stations .run-station-name small::before { content: ' · '; }
+  .compact-stations .run-station-name small::before { content: none; }
   .compact-stations .run-station-toggle { font-size: 13px; }
   .compact-stations .run-stations b { width: 22px; height: 22px; font-size: 13px; }
   .compact-stations .run-next { font-size: 15px; }
@@ -969,3 +969,28 @@ textarea { font: inherit; width: 100%; border: 1.5px solid var(--line); border-r
 /* "Save and start planning" stays on one line. */
 .wizard-nav .btn { white-space: nowrap; padding-left: 12px; padding-right: 12px; }
 .wizard-nav .btn.quiet { flex: 0 0 auto; min-width: 84px; }
+
+/* ================================================ Stage 12F: one clear top, one filled action, one title style */
+/* Today: the next practice is the one raised card. Everything else sits flat on the page. */
+.next-card { box-shadow: 0 2px 10px rgba(19, 34, 26, 0.12); padding: 20px 16px 12px; gap: 8px; }
+.next-card h2 { font-size: 40px; line-height: 1; margin: 4px 0 2px; }
+.next-actions { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 8px; }
+.next-actions .btn.big { width: 100%; }
+.plan-another { align-self: center; }
+.browse-row { background: none; border: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); border-radius: 0; padding-left: 4px; padding-right: 4px; }
+.card.safety-card { background: none; border: 0; border-radius: 0; padding: 4px 4px 0; gap: 2px; }
+.safety-links { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.muted-link { color: var(--ink-2); font-weight: 600; }
+.today-tip { background: none; border: 0; padding: 4px; }
+/* One title style for card and row titles: the condensed heading face. */
+.card-title, .browse-row strong, .settings-row-text strong, .safety-card > strong { font-family: var(--display); font-size: 21px; font-weight: 700; letter-spacing: 0.01em; line-height: 1.15; }
+.plan-links { display: flex; flex-wrap: wrap; gap: 0 22px; }
+.wizard-nav .link-btn { flex: 0 0 auto; }
+.suggest .action-row { display: flex; flex-wrap: wrap; gap: 0 22px; }
+.action-row:has(> .link-btn) { display: flex; flex-wrap: wrap; gap: 0 22px; align-items: center; }
+/* Levels are information, not warnings: one neutral outline. */
+.level.beginner, .level.intermediate, .level.advanced { color: var(--ink-2); }
+/* Station cards: the drill is the title, the second line says who and how many. */
+.run-station-name small { display: block; }
+/* Log: left-aligned empty state. */
+.empty.left { text-align: left; align-items: flex-start; }

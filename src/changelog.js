@@ -1,6 +1,17 @@
-export const VERSION = '1.35.0'
+export const VERSION = '1.36.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.36.0',
+    date: '2026-11-12',
+    items: [
+      'Today has one clear top: the Next practice card is raised, with a bigger headline and one big Start practice button. Open plan, Plan another practice, Browse drills, the backup reminder and the daily tip are now quiet, flat lines.',
+      'Each screen has one filled button. The other choices, like Change of plans, Add a drill, Share, Back and Not now, are plain links.',
+      'The plan page header is lighter: the adults line moved inside "Date, template".',
+      'In the timer, each station card leads with the drill name and says how many kids and who runs it underneath. The arrow is gone.',
+      'Card titles use one style everywhere. Level tags are one neutral color, so orange and red only mean a warning. Gray helper text is a little darker and tags are a little bigger. The Log hides "Season so far" until there is something to total.',
+    ],
+  },
   {
     version: '1.35.0',
     date: '2026-11-12',

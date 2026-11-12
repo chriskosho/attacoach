@@ -67,8 +67,8 @@ beforeEach(async () => {
 describe('station rotations in the timer', () => {
   it('shows each group with its station and who runs it', async () => {
     await open(stationPlan())
-    expect(screen.getByRole('button', { name: new RegExp(`Group 1 \\(4 kids\\) → ${withPic.name}`) })).toBeTruthy()
-    expect(screen.getByRole('button', { name: new RegExp(`Group 2 \\(4 kids\\) → ${noPic.name}`) })).toBeTruthy()
+    expect(screen.getByRole('button', { name: new RegExp(`Group 1:\\s?${withPic.name}4 kids`) })).toBeTruthy()
+    expect(screen.getByRole('button', { name: new RegExp(`Group 2:\\s?${noPic.name}4 kids`) })).toBeTruthy()
     expect(screen.getByText('You run it')).toBeTruthy()
     expect(screen.getByText('Kids run it')).toBeTruthy()
   })
@@ -76,7 +76,7 @@ describe('station rotations in the timer', () => {
   it('opens a station in place with its steps, and the clock stays', async () => {
     const user = userEvent.setup()
     await open(stationPlan())
-    const row = screen.getByRole('button', { name: new RegExp(`Group 1 \\(4 kids\\) → ${withPic.name}`) })
+    const row = screen.getByRole('button', { name: new RegExp(`Group 1:\\s?${withPic.name}4 kids`) })
     expect(row.getAttribute('aria-expanded')).toBe('false')
     await user.click(row)
     expect(row.getAttribute('aria-expanded')).toBe('true')
@@ -159,8 +159,8 @@ describe('station groups in the timer', () => {
     const p = stationPlan()
     p.blocks[0].groups = [1, 7]
     await open(p)
-    expect(screen.getByRole('button', { name: new RegExp(`Group 1 \\(1 kid\\) → ${withPic.name}`) })).toBeTruthy()
-    expect(screen.getByRole('button', { name: new RegExp(`Group 2 \\(7 kids\\) → ${noPic.name}`) })).toBeTruthy()
+    expect(screen.getByRole('button', { name: new RegExp(`Group 1:\\s?${withPic.name}1 kid\\b`) })).toBeTruthy()
+    expect(screen.getByRole('button', { name: new RegExp(`Group 2:\\s?${noPic.name}7 kids`) })).toBeTruthy()
   })
 
   it('names where group 1 goes next, and goes back to the usual line after the last rotation', async () => {

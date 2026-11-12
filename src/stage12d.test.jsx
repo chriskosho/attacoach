@@ -164,7 +164,7 @@ describe('smaller notes', () => {
     expect(css).toMatch(/\.sheet-actions \{ position: sticky; bottom: -20px/)
   })
 
-  it('level badges are 13 px', () => {
-    expect(css).toMatch(/\.level \{ display: inline-block; font-size: 13px/)
+  it('level badges are 14 px', () => {
+    expect(css).toMatch(/\.level \{ display: inline-block; font-size: 14px/)
   })
 })

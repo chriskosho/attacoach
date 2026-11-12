@@ -129,7 +129,7 @@ function ShareSheet({ onText, onPrint, onClose }) {
       <button className="btn" onClick={onText}>
         Send or copy the plan
       </button>
-      <button className="btn quiet" onClick={onPrint}>
+      <button className="link-btn" onClick={onPrint}>
         Print
       </button>
     </Sheet>
@@ -332,6 +332,9 @@ export default function PlanView({ planId, team, coach = '' }) {
             <FocusLine focus={plan.focus} />
             <details className="plan-details no-print">
               <summary className="small">Date, template</summary>
+              <button className="link-row" onClick={() => setChanging(true)}>
+                {adultsLine(plan)} ›
+              </button>
               <label className="field">
                 Practice date
                 <input
@@ -341,13 +344,10 @@ export default function PlanView({ planId, team, coach = '' }) {
                   onChange={(e) => e.target.value && update({ ...plan, date: e.target.value })}
                 />
               </label>
-              <button className="btn quiet small" onClick={() => setNaming(true)}>
+              <button className="link-btn" onClick={() => setNaming(true)}>
                 Save as a template
               </button>
             </details>
-            <button className="link-row no-print" onClick={() => setChanging(true)}>
-              {adultsLine(plan)} ›
-            </button>
           </div>
           {coach && <div className="small muted print-only">Prepared by {coachTitle(coach)}</div>}
         </div>
@@ -361,7 +361,7 @@ export default function PlanView({ planId, team, coach = '' }) {
           <button className="btn big" onClick={() => go(`run/${plan.id}`)}>
             Start practice
           </button>
-          <button className="btn quiet" onClick={() => setChanging(true)}>
+          <button className="link-btn" onClick={() => setChanging(true)}>
             Change of plans
           </button>
         </div>
@@ -372,10 +372,10 @@ export default function PlanView({ planId, team, coach = '' }) {
               <span key={l}>{l}</span>
             ))}
             <span className="action-row" style={{ width: '100%' }}>
-              <button className="btn ghost small" onClick={undoChange}>
+              <button className="link-btn" onClick={undoChange}>
                 Undo
               </button>
-              <button className="btn quiet small" onClick={() => setChanged(null)}>
+              <button className="link-btn muted-link" onClick={() => setChanged(null)}>
                 OK
               </button>
             </span>
@@ -522,11 +522,11 @@ export default function PlanView({ planId, team, coach = '' }) {
         {/* The pitch-count reminder sits right under the blocks, so the first drill stays on the first screen. */}
         {pitchNote(plan, team) && <p className="note">{pitchNote(plan, team)}</p>}
 
-        <div className="action-row no-print">
-          <button className="btn quiet" onClick={() => setAdding(true)}>
+        <div className="plan-links no-print">
+          <button className="link-btn" onClick={() => setAdding(true)}>
             Add a drill
           </button>
-          <button className="btn quiet" onClick={() => setSharing(true)}>
+          <button className="link-btn" onClick={() => setSharing(true)}>
             Share
           </button>
         </div>

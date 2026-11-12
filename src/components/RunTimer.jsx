@@ -383,9 +383,14 @@ function Runner({ plan, team }) {
                   <button className="run-station-head" onClick={() => setOpenGroup(open ? null : g)} aria-expanded={open}>
                     <b>{g + 1}</b>
                     <span className="run-station-name">
-                      Group {g + 1}
-                      {size != null && ` (${size} ${size === 1 ? 'kid' : 'kids'})`} → {sd?.name}
-                      {tag && <small>{tag}</small>}
+                      <span className="sr-only">Group {g + 1}: </span>
+                      {sd?.name}
+                      {(size != null || tag) && (
+                        <small>
+                          {size != null && <span>{`${size} ${size === 1 ? 'kid' : 'kids'}${tag ? '. ' : ''}`}</span>}
+                          {tag && <span>{tag}</span>}
+                        </small>
+                      )}
                     </span>
                     <span className="run-station-toggle">{open ? 'Hide' : 'Details ›'}</span>
                   </button>

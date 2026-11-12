@@ -51,14 +51,8 @@ export function SuggestionList({ suggestion }) {
 // Practices run, games logged, and how often each skill has come up in your plans.
 export function SeasonCard({ team, plans, entries, today }) {
   const s = seasonSummary({ team, plans, debriefs: entries, today })
-  if (s.practices === 0 && s.games === 0) {
-    return (
-      <section className="card" aria-labelledby="season-title">
-        <h2 id="season-title">Season so far</h2>
-        <p className="muted small">Once you have run a practice or logged a game, your totals and what you have covered show up here.</p>
-      </section>
-    )
-  }
+  // Nothing to total yet, so nothing to show.
+  if (s.practices === 0 && s.games === 0) return null
   // The skill breakdown means little until a few practices are in: one plain line until then.
   if (s.practices < SEASON_BREAKDOWN_AT) {
     const parts = [
@@ -163,7 +157,7 @@ export default function Log({ team }) {
         )}
 
         {sorted.length === 0 ? (
-          <div className="card empty">
+          <div className="card empty left">
             <h2>Nothing logged yet</h2>
             <p className="muted">Your games and practices will show up here, newest first.</p>
           </div>
