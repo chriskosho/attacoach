@@ -7,7 +7,8 @@
 // curve: [from, to] draws that stretch of the track as a smooth curve (a runner's turn).
 // trail: the route an actor takes, shown faint, and solid as they run it.
 // pops: speech bubbles above an actor. labels: big text shown between two times.
-// The last frame of each loop matches the first, so it repeats without a jump.
+// The last frame of each loop matches the first, so it repeats without a jump. A play that cannot
+// return everyone to the start (a hit and a throw home) sets fade: true and fades out and back in at the restart.
 
 import { STAR } from './diagramBg.js'
 
@@ -21,6 +22,7 @@ const O = '#ff8a3d'
 // (the coach in left field has it) and gets back.
 const roundingFirst = {
   len: 9.6,
+  fade: true,
   bg: 'field',
   extras: '<polygon points="223,185 229,196 217,196" class="dg-cone"/><text x="240" y="212" class="dg-lab">cone</text>',
   at: [1.2, 4.0, 4.8],
@@ -46,11 +48,16 @@ const pickle = {
   bg: 'basepath',
   at: [1.0, 2.6, 5.8],
   actors: [
-    { kind: 'fielder', label: '', fill: W, track: [[0, 54, 150], [2.4, 54, 150], [3.5, 64, 150], [3.8, 70, 150], [4.2, 82, 150], [5.8, 82, 150], [7.2, 150, 132], [8.6, 246, 150], [10, 246, 150]] },
-    { kind: 'fielder', label: '', fill: W, track: [[0, 246, 150], [1.0, 246, 150], [3.5, 118, 150], [3.8, 112, 150], [5.8, 112, 150], [7.0, 84, 168], [8.2, 54, 150], [10, 54, 150]] },
-    { kind: 'runner', label: 'R', fill: Y, track: [[0, 150, 150], [1.2, 150, 150], [3.8, 86, 150], [4.0, 84, 151], [4.2, 87, 151], [5.8, 87, 151], [7.6, 150, 232], [10, 150, 232]] },
-    { kind: 'runner', label: 'R', fill: Y, track: [[0, 150, 232], [5.8, 150, 232], [8.0, 150, 150], [10, 150, 150]] },
-    { kind: 'ball', track: [[0, 246, 138], [1.0, 246, 138], [3.5, 118, 138], [3.65, 94, 132], [3.8, 70, 142], [4.2, 82, 142], [5.8, 82, 142], [7.2, 150, 120], [8.6, 246, 138], [10, 246, 138]] },
+    // Fielder with the ball (starts at 2nd, ends at 2nd). After the tag they wait until the catcher
+    // and the out runner have cleared the lane, then carry the ball back to the far end.
+    { kind: 'fielder', label: '', fill: W, track: [[0, 54, 150], [2.4, 54, 150], [3.5, 64, 150], [3.8, 70, 150], [4.2, 82, 150], [6.8, 82, 150], [8.4, 246, 150], [10, 246, 150]] },
+    // The partner steps up out of the lane (above it) and walks back to 1st.
+    { kind: 'fielder', label: '', fill: W, track: [[0, 246, 150], [1.0, 246, 150], [3.5, 118, 150], [3.8, 112, 150], [5.8, 112, 150], [6.4, 100, 124], [7.4, 56, 128], [8.0, 54, 150], [10, 54, 150]] },
+    // The tagged runner steps down out of the lane (below it), then takes the waiting spot after the next runner has left it.
+    { kind: 'runner', label: 'R', fill: Y, track: [[0, 150, 150], [1.2, 150, 150], [3.8, 86, 150], [4.0, 84, 151], [4.2, 87, 151], [5.8, 87, 151], [6.5, 96, 196], [8.0, 150, 232], [10, 150, 232]] },
+    // The next runner leaves the waiting spot first, behind the ball carrier, and is at 150,150 before the loop ends.
+    { kind: 'runner', label: 'R', fill: Y, track: [[0, 150, 232], [6.4, 150, 232], [8.2, 150, 150], [10, 150, 150]] },
+    { kind: 'ball', track: [[0, 246, 138], [1.0, 246, 138], [3.5, 118, 138], [3.65, 94, 132], [3.8, 70, 142], [4.2, 82, 142], [6.8, 82, 142], [8.4, 246, 138], [10, 246, 138]] },
   ],
   pops: [
     { t0: 1.2, t1: 2.8, at: 1, text: 'Ball up, run hard' },
@@ -80,7 +87,7 @@ const teeWork = {
   poseAt: swings.flatMap((s) => [[s - 0.6, 0], [s + 0.6, 1], [s + 1.6, 2], [s + 2.2, 3], [s + 3.0, 0]]),
   actors: [
     kid([[0, 128, 176], [12.0, 128, 176], [12.6, 92, 206], [13.2, 30, 226], [13.8, 30, 252], [14, 30, 252]]),
-    { kind: 'coach', label: 'C', fill: O, track: [[0, 214, 222], [0.4, 214, 222], [0.9, 128, 210], [1.5, 128, 210], [1.9, 214, 222], [4.2, 214, 222], [4.6, 162, 190], [5.0, 162, 190], [5.4, 214, 222], [7.8, 214, 222], [8.2, 162, 190], [8.6, 162, 190], [9.0, 214, 222], [14, 214, 222]] },
+    { kind: 'coach', label: 'C', fill: O, track: [[0, 214, 222], [0.4, 214, 222], [0.9, 128, 210], [1.5, 128, 210], [1.9, 214, 222], [4.2, 214, 222], [4.6, 162, 190], [5.0, 162, 190], [5.4, 214, 222], [7.8, 214, 222], [8.2, 162, 190], [8.6, 162, 190], [9.0, 214, 222], [11.6, 214, 222], [12.0, 162, 190], [12.4, 162, 190], [12.8, 214, 222], [14, 214, 222]] },
     kid([[0, 104, 252], [12.4, 104, 252], [13.4, 128, 176], [14, 128, 176]]),
     kid([[0, 80, 252], [12.4, 80, 252], [13.4, 104, 252], [14, 104, 252]]),
     kid([[0, 56, 252], [12.4, 56, 252], [13.4, 80, 252], [14, 80, 252]]),
@@ -88,9 +95,11 @@ const teeWork = {
     kid([[0, 268, 96], [12.0, 268, 96], [12.6, 160, 60], [13.0, 160, 60], [13.6, 268, 96], [14, 268, 96]]),
     kid([[0, 268, 122], [12.0, 268, 122], [12.6, 146, 62], [13.0, 146, 62], [13.6, 268, 122], [14, 268, 122]]),
     { kind: 'bat', vis: [0, 12.0], track: [[0, 120], ...bat] },
+    // A ball is always on the tee or in the coach's hand. Hit balls stay in the net until the next hitter.
     { kind: 'ball', vis: [0, 12.8], track: [[0, 150, 176], ...hit(swings[0], 156).slice(1)] },
-    { kind: 'ball', vis: [4.8, 12.8], track: hit(swings[1], 138).map((p, i) => (i ? p : [4.8, 150, 176])) },
-    { kind: 'ball', vis: [8.4, 12.8], track: hit(swings[2], 168).map((p, i) => (i ? p : [8.4, 150, 176])) },
+    { kind: 'ball', vis: [3.7, 12.8], track: [[3.7, 214, 214], [4.2, 214, 214], [4.6, 162, 184], [5.0, 150, 176], [7.3, 150, 176], [7.7, 138, 54], [12.8, 138, 54]] },
+    { kind: 'ball', vis: [7.3, 12.8], track: [[7.3, 214, 214], [7.8, 214, 214], [8.2, 162, 184], [8.6, 150, 176], [10.9, 150, 176], [11.3, 168, 54], [12.8, 168, 54]] },
+    { kind: 'ball', vis: [11.3, 14], track: [[11.3, 214, 214], [11.6, 214, 214], [12.0, 162, 184], [12.4, 150, 176], [14, 150, 176]] },
   ],
   pops: [
     { t0: 0.9, t1: 1.8, at: 1, text: 'Check stance', below: true },
@@ -161,7 +170,10 @@ const LEAN = [166, 108]
 const coachToss = [[0, ...BEHIND]]
 tossSwings.forEach((s) => coachToss.push([s - 0.5, ...BEHIND], [s - 0.2, ...LEAN], [s + 0.05, ...LEAN], [s + 0.4, ...BEHIND]))
 coachToss.push([13.5, ...BEHIND])
-const tossed = (s, to, vis1) => ({ kind: 'ball', vis: [s - 0.3, vis1], track: [[s - 0.3, 168, 112], [s, 168, 112], [s + 0.7, 150, 228], [s + 1.1, ...to], [13.5, ...to]] })
+// A tossed ball starts in the coach's hand (behind the screen), goes out with the coach when they
+// lean, is tossed, and lands. `from` is when the coach has it in hand; the ball is never missing.
+const HAND = [147, 108]
+const tossed = (from, s, to, vis1) => ({ kind: 'ball', vis: [from, vis1], track: [[from, ...HAND], [s - 0.5, ...HAND], [s - 0.2, 168, 112], [s, 168, 112], [s + 0.7, 150, 228], [s + 1.1, ...to], [13.5, ...to]] })
 const frontToss = {
   len: 13.5,
   bg: 'toss',
@@ -174,9 +186,11 @@ const frontToss = {
     kid([[0, 54, 284], [12.0, 54, 284], [13.0, 78, 284], [13.5, 78, 284]]),
     kid([[0, 30, 284], [12.0, 30, 284], [13.0, 54, 284], [13.5, 54, 284]]),
     { kind: 'bat', vis: [0, 11.6], track: tossBat },
-    tossed(tossSwings[0], [146, 126], 11.6),
-    tossed(tossSwings[1], [236, 22], 6.0),
-    tossed(tossSwings[2], [70, 22], 9.4),
+    tossed(0, tossSwings[0], [146, 126], 11.6),
+    tossed(2.0, tossSwings[1], [236, 22], 6.0),
+    tossed(5.4, tossSwings[2], [70, 22], 9.4),
+    // The coach is already holding the next ball when the loop wraps.
+    { kind: 'ball', vis: [8.8, 13.5], track: [[8.8, ...HAND], [13.5, ...HAND]] },
   ],
   pops: [
     { t0: 2.0, t1: 3.2, at: 1, text: 'Behind the screen' },
@@ -196,6 +210,7 @@ const frontToss = {
 const F = (label, track) => ({ kind: 'fielder', label, fill: W, track })
 const cutoffs = {
   len: 9,
+  fade: true,
   bg: 'field',
   at: [1.0, 2.2, 3.0],
   actors: [

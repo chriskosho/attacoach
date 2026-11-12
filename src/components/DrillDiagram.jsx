@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { DIAGRAMS } from '../data/diagrams.js'
 import { BG } from '../data/diagramBg.js'
 import { POSE_SETS, POSES_FOR } from '../data/poses.js'
-import { sample, samplePos, smoothPath, stepAt, poseAt, trailPoints } from '../lib/diagram.js'
+import { sample, samplePos, smoothPath, stepAt, poseAt, trailPoints, loopOpacity } from '../lib/diagram.js'
 import { videoUrl } from '../data/video.js'
 
 function Actor({ a, t }) {
@@ -60,11 +60,14 @@ export function DrillDiagram({ drill, spec }) {
   if (done && t < tr.to) done.push(samplePos(spec.actors[tr.actor], t))
   const cur = stepAt(spec.at, t)
   const pose = spec.poses && t > 0 ? poseAt(spec.poseAt, t) : null
+  // Only while playing: a paused or scrubbed picture always shows everything.
+  const opacity = playing ? loopOpacity(t, spec.len, spec.fade) : 1
 
   return (
     <div className="dg" ref={ref}>
       <svg viewBox="0 0 300 300" role="img" aria-label={`Diagram of ${drill.name} from above`} className="dg-svg">
         <g dangerouslySetInnerHTML={{ __html: BG[spec.bg] + (spec.extras ?? '') }} />
+        <g style={opacity < 1 ? { opacity } : undefined}>
         {(spec.guides ?? []).filter((g) => t >= g.t0 && t <= g.t1).map((g, i) => (
           <line key={i} x1={g.from[0]} y1={g.from[1]} x2={g.to[0]} y2={g.to[1]} className="dg-guide" />
         ))}
@@ -92,6 +95,7 @@ export function DrillDiagram({ drill, spec }) {
             </g>
           )
         })}
+        </g>
       </svg>
       {spec.poses && <PoseStrip set={spec.poses} active={pose} />}
       <div className="dg-controls no-print">

@@ -66,3 +66,11 @@ export function poseAt(list, t) {
 }
 
 export const trailPoints = (actor, from, to) => actor.track.filter((p) => p[0] >= from && p[0] <= to).map((p) => [p[1], p[2]])
+
+// How visible the picture is at time t while it plays: a full-play diagram (fade: true) fades out over
+// the end of the loop and back in at the start, so the restart is clean instead of a jump.
+export const FADE = 0.35
+export function loopOpacity(t, len, fade) {
+  if (!fade) return 1
+  return Math.max(0, Math.min(1, t / FADE, (len - t) / FADE))
+}

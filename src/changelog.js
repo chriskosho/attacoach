@@ -1,6 +1,15 @@
-export const VERSION = '1.24.0'
+export const VERSION = '1.25.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.25.0',
+    date: '2026-11-11',
+    items: [
+      'Pickle: after the tag, the out runner, the partner and the ball carrier now move one after another, so no one walks through anyone, and the loop starts over exactly as it began.',
+      'Tee work and Front toss: there is always a ball in the picture. It sits on the tee or in the coach\'s hand until it is hit or tossed, and the coach brings the next one before the hitter changes.',
+      'Rounding first and Cutoffs and relays fade out and back in at the restart instead of jumping everyone back to the start.',
+    ],
+  },
   {
     version: '1.24.0',
     date: '2026-11-11',
