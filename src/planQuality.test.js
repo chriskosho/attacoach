@@ -3,9 +3,11 @@
 // builds it, with the earlier plans passed back as `recent`.
 import { describe, test, expect } from 'vitest'
 import { scenarioPractices, runSeason, todayOptions, hasCategory, overlap, variedIds, closingGame } from './test/planSim.js'
-import { buildPlan, rebuildPlan, drillIdsInPlan, eligibleDrills, availableSpaces, spaceFits, HIT_SHARE, recentPlans, totalMinutes } from './lib/plan.js'
-import { drillById } from './data/drills.js'
-import { divIndex } from './data/constants.js'
+import { buildPlan, rebuildPlan, drillIdsInPlan, eligibleDrills, availableSpaces, spaceFits, HIT_SHARE, recentPlans, totalMinutes, alternatives, addDrill, pitchNote, PITCH_NOTE } from './lib/plan.js'
+import { drillById, DRILLS } from './data/drills.js'
+import { divIndex, defaultRules, lengthsFor } from './data/constants.js'
+import { matrixRuns, crowdedRounds } from './test/planMatrix.js'
+import { SAME_SKILL } from './data/sameSkill.js'
 import { scenarioById } from './data/scenarios.js'
 import { teamFromScenario } from './lib/scenarioTeam.js'
 import { firstPlanOptions } from './lib/starter.js'
@@ -148,5 +150,100 @@ describe('rebuilding a plan', () => {
     // A new build of the same practice still avoids last practice's drills.
     const fresh = rebuildPlan(r.team, plan, { seed: 999 })
     expect(overlap(r.plans[4], fresh)).toBeLessThanOrEqual(0.5)
+  })
+})
+
+// Stage 9B: every division, both sports (every softball format) and 45, 60, 75 and 90 minutes.
+describe('every division, sport and length', () => {
+  const MATRIX = matrixRuns()
+  const mlabel = (r) => `${r.team.id}, ${r.minutes} min`
+  const sameSkillPairs = (plan) => {
+    const ids = new Set(drillIdsInPlan(plan))
+    return SAME_SKILL.filter((g) => g.drills.filter((id) => ids.has(id)).length >= 2).map((g) => g.id)
+  }
+
+  test('covers every division, both sports and all four lengths', () => {
+    const teams = new Set(MATRIX.map((r) => r.team.id))
+    for (const d of ['4U', '6U', '8U', '10U', '12U', '14U']) {
+      expect([...teams].some((t) => t.startsWith(`bb-${d}`))).toBe(true)
+      expect([...teams].some((t) => t.startsWith(`sb-${d}`))).toBe(true)
+    }
+    expect(new Set(MATRIX.map((r) => r.minutes))).toEqual(new Set([45, 60, 75, 90]))
+  })
+
+  test.each(MATRIX.map((r) => [mlabel(r), r]))('%s: one pitching or catcher drill per station round when others fit', (_, r) => {
+    for (const plan of r.plans) {
+      for (const b of crowdedRounds(plan)) {
+        // Allowed only when nothing else could have filled the station.
+        const others = eligibleDrills(r.team).filter((d) => d.group === 'small' && !['warmup', 'game', 'pitching', 'catcher'].includes(d.category))
+        expect({ round: b.stations, others: others.length }).toEqual({ round: b.stations, others: 0 })
+      }
+    }
+  })
+
+  test.each(MATRIX.map((r) => [mlabel(r), r]))('%s: no two drills that teach the same skill the same way', (_, r) => {
+    for (const plan of r.plans) expect(sameSkillPairs(plan)).toEqual([])
+  })
+
+  test.each(MATRIX.map((r) => [mlabel(r), r]))('%s: hitting in every field plan, and the plan fills the practice exactly', (_, r) => {
+    for (const plan of r.plans) {
+      expect(hasCategory(plan, 'hitting')).toBe(true)
+      expect(totalMinutes(plan)).toBe(r.minutes)
+    }
+  })
+
+  // Lengths the app offers for the division (4U tops out at 60 minutes, 6U at 75, 8U at 90).
+  // Each practice shares at most half its drills with the one before. The one two back may share a
+  // little more for 4U and 6U, whose drill pools are small (4U reached 0.67 before this stage too).
+  const offered = MATRIX.filter((r) => lengthsFor(r.team.division).includes(r.minutes))
+  test.each(offered.map((r) => [mlabel(r), r]))('%s: three practices in a row are clearly different', (_, r) => {
+    const twoBack = divIndex(r.team.division) <= divIndex('6U') ? 0.7 : 0.5
+    for (let i = 0; i + 3 <= r.plans.length; i++) {
+      const [a, b, c] = r.plans.slice(i, i + 3)
+      expect(overlap(a, b)).toBeLessThanOrEqual(0.5)
+      expect(overlap(b, c)).toBeLessThanOrEqual(0.5)
+      expect(overlap(a, c)).toBeLessThanOrEqual(twoBack)
+    }
+  })
+
+  test('a coach can still add a second drill from the same group by hand', () => {
+    const r = MATRIX.find((x) => x.team.id === 'bb-12U-pitch' && x.minutes === 90)
+    const plan = r.plans[0]
+    const inPlan = new Set(drillIdsInPlan(plan))
+    const g = SAME_SKILL.find((x) => x.drills.some((id) => inPlan.has(id)))
+    const other = g.drills.find((id) => !inPlan.has(id) && eligibleDrills(r.team).some((d) => d.id === id))
+    expect(alternatives(r.team, g.drills.find((id) => inPlan.has(id)), plan).some((d) => d.id === other)).toBe(true)
+    const added = addDrill(plan, other, r.team.division)
+    expect(sameSkillPairs(added)).toEqual([g.id])
+  })
+
+  test('a locked drill keeps its group-mates out of the rebuilt plan', () => {
+    const r = MATRIX.find((x) => x.team.id === 'bb-12U-pitch' && x.minutes === 90)
+    const plan = r.plans[1]
+    const inPlan = new Set(drillIdsInPlan(plan))
+    const g = SAME_SKILL.find((x) => x.drills.some((id) => inPlan.has(id)))
+    const keep = g.drills.find((id) => inPlan.has(id))
+    const locked = { ...plan, blocks: plan.blocks.map((b) => (drillIdsInPlan({ blocks: [b] }).includes(keep) ? { ...b, locked: true } : b)) }
+    for (const seed of [11, 22, 33, 44]) expect(sameSkillPairs(rebuildPlan(r.team, locked, { seed }))).toEqual([])
+  })
+})
+
+describe('the pitch-count note', () => {
+  const t = (kidPitch) => ({ id: 't', division: '12U', experience: 'some', sport: 'baseball', rules: { ...defaultRules('12U'), kidPitch }, needs: [] })
+  const with_ = (...ids) => ({ blocks: ids.map((id, i) => ({ id: `b${i}`, kind: 'drill', drillId: id, minutes: 10 })) })
+
+  test('shows for real pitching, for teams whose players pitch', () => {
+    expect(pitchNote(with_('bullpen-targets'), t(true))).toBe(PITCH_NOTE)
+    expect(pitchNote(with_('live-bp'), t(true))).toBe(PITCH_NOTE)
+    expect(pitchNote(with_('fp-corners'), t(true))).toBe(PITCH_NOTE)
+  })
+  test('stays away for dry work, pitchers fielding, or teams whose players do not pitch', () => {
+    expect(pitchNote(with_('towel-drill', 'pfp-comebackers', 'pickoff-move', 'arm-care'), t(true))).toBe(null)
+    expect(pitchNote(with_('bullpen-targets'), t(false))).toBe(null)
+  })
+  test('reads plainly, with no "if your league has them"', () => {
+    expect(PITCH_NOTE).toBe("Count every pitch. Follow your league's pitch limits and rest days.")
+    const all = JSON.stringify(DRILLS)
+    expect(all).not.toMatch(/if your league has (pitch limits|them)/i)
   })
 })

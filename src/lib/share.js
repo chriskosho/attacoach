@@ -3,7 +3,7 @@ import { drillFor, sportOf } from './sport.js'
 
 const nameOf = (id, sport) => drillFor(drillById(id), sport)?.name
 import { focusSummary, coachTitle } from '../data/constants.js'
-import { schedule, totalMinutes, fmtClock, hasPitching } from './plan.js'
+import { schedule, totalMinutes, fmtClock, pitchNote } from './plan.js'
 
 export function blockTitle(block, sport = 'baseball') {
   if (block.kind === 'break') return 'Water break'
@@ -28,9 +28,9 @@ export function planText(plan, team, coachName = '') {
       })
     }
   }
-  if (hasPitching(plan)) {
+  if (pitchNote(plan, team)) {
     lines.push('')
-    lines.push('Pitchers: count every pitch and follow league pitch limits and rest days.')
+    lines.push(`Pitchers: ${pitchNote(plan, team)}`)
   }
   lines.push('')
   lines.push(coachName ? `From ${coachTitle(coachName)}, made with AttaCoach` : 'Made with AttaCoach')

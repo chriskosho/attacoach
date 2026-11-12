@@ -39,7 +39,7 @@ describe('softball pack', () => {
     for (const d of fp) {
       expect(FORMAT[d.id]).toEqual(['fastpitch'])
       expect(d.requires).toContain('kidPitch')
-      expect(textOf(d), d.id).toMatch(/Count pitches/)
+      expect(textOf(d), d.id).toMatch(/Count every pitch/)
     }
     expect(fp.some((d) => d.level === 'beginner')).toBe(true)
     expect(fp.some((d) => d.level === 'intermediate')).toBe(true)

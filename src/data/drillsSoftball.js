@@ -5,7 +5,7 @@
 // Leagues differ on pitching distance, ball size, leaving the base, the look-back rule and pitch
 // limits, so these drills point the coach to their league's rule instead of stating one.
 
-const COUNT = 'Count pitches and give pitchers rest days. If your league has pitch limits, follow them.'
+const COUNT = "Count every pitch. Follow your league's pitch limits and rest days."
 
 export const SOFTBALL_DRILLS = [
   // ---------------------------------------------------------------- Fastpitch pitching (beginner to intermediate)

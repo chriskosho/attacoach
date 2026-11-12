@@ -1,6 +1,15 @@
-export const VERSION = '1.23.0'
+export const VERSION = '1.24.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.24.0',
+    date: '2026-11-11',
+    items: [
+      'Stations spread out the pitching: each round has at most one pitching or catcher station, so your pitchers and catchers are not stuck in back-to-back stations. If pitching is a top need, it comes back later in the practice.',
+      'No more near-twins in one practice, like two catcher receiving drills, two bullpens, or two first fly-ball drills for the youngest. You can still add a second one yourself.',
+      'The pitch-count reminder now reads "Count every pitch. Follow your league\'s pitch limits and rest days." It shows only when players actually throw pitches in the plan, not for dry work like the towel drill or pitchers fielding.',
+    ],
+  },
   {
     version: '1.23.0',
     date: '2026-11-11',

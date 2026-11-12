@@ -6,6 +6,8 @@ import { needLabel, starterNeeds } from '../data/constants.js'
 import { sportFits } from './sport.js'
 
 // Small seeded random generator so a given seed always builds the same plan.
+import { sameSkillGroup } from '../data/sameSkill.js'
+
 export function rng(seed) {
   let a = 0
   for (const ch of String(seed)) a = (a * 31 + ch.charCodeAt(0)) >>> 0
@@ -239,16 +241,30 @@ export function buildPlan(team, options = {}) {
   const favorites = new Set(team.favorites ?? [])
   const favoriteBonus = (d) => (favorites.has(d.id) ? FAVORITE_BONUS : 0)
   const used = new Set(options.exclude ?? [])
+  // Drills that teach the same skill the same way: once one is in today's plan, the others stay out.
+  // Counted, so a station round that is thrown away gives its groups back.
+  const groupsTaken = new Map()
+  const holdGroup = (id, n) => {
+    const g = sameSkillGroup(id)
+    if (g) groupsTaken.set(g, (groupsTaken.get(g) ?? 0) + n)
+  }
+  for (const id of options.exclude ?? []) holdGroup(id, 1)
+  const sameSkillTaken = (d) => (groupsTaken.get(sameSkillGroup(d.id)) ?? 0) > 0
   const take = (drill) => {
     used.add(drill.id)
+    holdGroup(drill.id, 1)
     return drill
+  }
+  const giveBack = (drill) => {
+    used.delete(drill.id)
+    holdGroup(drill.id, -1)
   }
 
   // Ranked list, best first. Random jitter keeps plans varied; missing gear, a poor space fit and
   // needs covered earlier this week nudge a drill down without ruling it out.
   const ranked = (filter, needFocus = focus, extra = () => 0) =>
     pool
-      .filter((d) => !used.has(d.id) && !d.athletic && filter(d))
+      .filter((d) => !used.has(d.id) && !sameSkillTaken(d) && !d.athletic && filter(d))
       .map((d) => ({
         d,
         s:
@@ -307,7 +323,7 @@ export function buildPlan(team, options = {}) {
   let finisherMinutes = 0
   if (finisher) {
     finisherMinutes = Math.min(blockLength(finisher, division), Math.max(6, Math.round(minutes * 0.18)))
-    used.add(finisher.id)
+    take(finisher)
     left -= finisherMinutes
   }
 
@@ -365,6 +381,10 @@ export function buildPlan(team, options = {}) {
     served[best]++
     return dayFocus[best]
   }
+  const refundNeed = (need) => {
+    const i = dayFocus.indexOf(need)
+    if (i >= 0) served[i]--
+  }
 
   // Best drill for a need. A drill from last practice is used again only when nothing new fits.
   const bestFor = (need, filter, extra) => {
@@ -410,10 +430,20 @@ export function buildPlan(team, options = {}) {
         const w = watchUsed + (t === 'watch' ? 1 : 0)
         return r <= st.runSlots && w <= watchCapacity(st, r)
       }
+      // At most one pitching or catcher drill per round: pitchers and the catcher are the same few
+      // players, and a second pitching station would leave them waiting. Allowed only if nothing else fits.
+      const spread = (d) => fits(d) && !(roundPitch > 0 && pitchFits(d))
       // The first station goes to the top need; must-haves fill the next ones.
       let d = null
-      if (i > 0) for (const must of mustsFor(roundHit, roundPitch)) if (!d) d = mustPick(must, fits, sizeFit)
-      d = d || bestFor(nextNeed(), fits, sizeFit)
+      if (i > 0) for (const must of mustsFor(roundHit, roundPitch)) if (!d) d = mustPick(must, spread, sizeFit)
+      if (!d) {
+        // Only an open station takes a turn from the needs rotation.
+        const need = nextNeed()
+        d = bestFor(need, spread, sizeFit) || bestFor(need, fits, sizeFit)
+        // A need this round's pitching cap kept out (pitching, catcher) keeps its turn for the next
+        // slot, so a pitching team still gets its pitching work later in the practice.
+        if (d && need && roundPitch > 0 && !d.needs.includes(need)) refundNeed(need)
+      }
       if (!d) break
       if (d.category === 'hitting') roundHit += perStation
       if (pitchFits(d)) roundPitch++
@@ -452,7 +482,7 @@ export function buildPlan(team, options = {}) {
         lastWasStations = true
         continue
       }
-      picks.forEach((d) => used.delete(d.id))
+      picks.forEach(giveBack)
     }
     // Prefer a drill that fits the time left over cutting a long drill short.
     const notWarmOrGame = (x) => x.category !== 'warmup' && x.category !== 'game'
@@ -778,13 +808,22 @@ export function schedule(plan) {
   })
 }
 
-export function hasPitching(plan) {
-  // Drills where players actually pitch, so pitch counts matter.
-  return drillIdsInPlan(plan).some((id) => {
-    const d = drillById(id)
-    return d && (d.category === 'pitching' || (d.requires ?? []).includes('kidPitch'))
-  })
+// Drills where players throw real pitches, so pitch counts matter: pitching drills (and live hitting
+// against player pitchers) whose own coaching points tell the coach to count. Dry work such as the
+// towel drill, pickoff moves and pitchers fielding their position does not count.
+const COUNTS_PITCHES = /count (every |each )?(pitch|pitches|throws)|count pitches|pitch limits/i
+export function throwsPitches(d) {
+  if (!d || !(d.category === 'pitching' || (d.requires ?? []).includes('kidPitch'))) return false
+  return COUNTS_PITCHES.test([d.setup, ...(d.steps ?? []), ...(d.points ?? [])].join(' '))
 }
+
+export function hasPitching(plan) {
+  return drillIdsInPlan(plan).some((id) => throwsPitches(drillById(id)))
+}
+
+export const PITCH_NOTE = "Count every pitch. Follow your league's pitch limits and rest days."
+// The pitch-count reminder: only for teams whose players pitch, and only when today's plan has pitches.
+export const pitchNote = (plan, team) => (team?.rules?.kidPitch && hasPitching(plan) ? PITCH_NOTE : null)
 
 export function fmtClock(totalMin) {
   const h = Math.floor(totalMin / 60)

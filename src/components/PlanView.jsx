@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db, savePlan } from '../lib/db.js'
 import {
   schedule, totalMinutes, fmtClock, alternatives, swapDrill, setBlockMinutes, moveBlock, removeBlock,
-  addDrill, addBreak, hasPitching, eligibleDrills,
+  addDrill, addBreak, pitchNote, eligibleDrills,
   rebuildPlan, hasLocked,
   missingGear,
 } from '../lib/plan.js'
@@ -328,9 +328,7 @@ export default function PlanView({ planId, team, coach = '' }) {
           </details>
         </div>
 
-        {hasPitching(plan) && team.rules?.kidPitch && (
-          <p className="note">Count every pitch for each pitcher and follow your league's pitch limits and rest days.</p>
-        )}
+        {pitchNote(plan, team) && <p className="note">{pitchNote(plan, team)}</p>}
 
         <ol className="card flat lineup" aria-label="Practice blocks">
           {rows.map(({ block: b, start, end }, i) => {
