@@ -1,6 +1,14 @@
-export const VERSION = '1.39.0'
+export const VERSION = '1.40.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.40.0',
+    date: '2026-11-12',
+    items: [
+      'Plans no longer say who takes which station. A station says "Needs an adult", "Watch-only" or "Player-led", and you decide on the day who runs what, including handing a station to a helper who knows it better.',
+      'The timer, the plan and the shared text use the same plain wording. Practices saved earlier read the same way.',
+    ],
+  },
   {
     version: '1.39.0',
     date: '2026-11-12',

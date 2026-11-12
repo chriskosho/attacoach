@@ -21,12 +21,14 @@ beforeEach(async () => {
 })
 
 describe('the coach always runs a station', () => {
-  it('every adult runs one, and an old saved role is ignored', () => {
+  it('every adult can run a station, an old saved role is ignored, and no station names a person', () => {
     expect(staffingFor({ adults: 4, role: 'float' })).toMatchObject({ coachRole: 'run', runSlots: 4 })
     const plan = buildPlan({ id: 't', ...team }, { minutes: 90, adults: 4, kids: 12, seed: 3 })
     expect(plan.coachRole).toBe('run')
-    const whos = plan.blocks.filter((b) => b.kind === 'stations').flatMap((b) => b.staff.map((s) => s.who))
-    expect(whos).toContain('coach')
+    // The plan never names a person for a station: that is the coach's call.
+    const staff = plan.blocks.filter((b) => b.kind === 'stations').flatMap((b) => b.staff)
+    expect(staff.some((s) => s.type === 'run')).toBe(true)
+    for (const s of staff) expect([s.who, s.helper]).toEqual([null, null])
   })
 
   it('the adults line never mentions a role', () => {
@@ -59,7 +61,7 @@ describe('the coach always runs a station', () => {
   })
 
   it('has a plain entry for this version', () => {
-    expect(VERSION).toBe('1.39.0')
+    expect(CHANGELOG.some((c) => c.version === '1.39.0')).toBe(true)
     expect(CHANGELOG[0].version).toBe(VERSION)
   })
 })

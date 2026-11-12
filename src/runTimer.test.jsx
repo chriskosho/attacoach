@@ -65,11 +65,12 @@ beforeEach(async () => {
 })
 
 describe('station rotations in the timer', () => {
-  it('shows each group with its station and who runs it', async () => {
+  it('shows each group with its station and what it needs', async () => {
     await open(stationPlan())
     expect(screen.getByRole('button', { name: new RegExp(`Group 1:\\s?${withPic.name}4 kids`) })).toBeTruthy()
     expect(screen.getByRole('button', { name: new RegExp(`Group 2:\\s?${noPic.name}4 kids`) })).toBeTruthy()
-    expect(screen.getByText('You run it')).toBeTruthy()
+    expect(screen.getByText('Needs an adult')).toBeTruthy()
+    expect(screen.queryByText(/You run it/)).toBe(null)
     expect(screen.getByText('Kids run it')).toBeTruthy()
   })
 

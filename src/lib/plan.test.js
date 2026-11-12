@@ -110,12 +110,12 @@ describe('buildPlan', () => {
     expect(plan.blocks.some((b) => b.kind === 'stations')).toBe(false)
   })
 
-  it('with one adult at 8U and up, the coach runs one station and the rest are player-led', () => {
+  it('with one adult at 8U and up, one station needs an adult and the rest are player-led', () => {
     for (let seed = 1; seed <= 15; seed++) {
       const plan = buildPlan(team(), { minutes: 90, adults: 1, kids: 12, seed })
       for (const b of plan.blocks.filter((x) => x.kind === 'stations')) {
         expect(b.staff.filter((s) => s.type === 'run')).toHaveLength(1)
-        expect(b.staff.find((s) => s.type === 'run').who).toBe('coach')
+        expect(b.staff.find((s) => s.type === 'run').who).toBe(null)
         expect(b.staff.filter((s) => s.type === 'watch')).toHaveLength(0)
         b.stations.forEach((id, i) => {
           if (b.staff[i].type === 'kids') expect(drillById(id).bat).toBe(false)

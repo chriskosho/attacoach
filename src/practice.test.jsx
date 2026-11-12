@@ -54,12 +54,16 @@ describe('staffing', () => {
     expect(groupSizes(7, 2)).toEqual([4, 3])
   })
 
-  it('gives the coach the station that needs the most skill', () => {
+  it('says which stations need an adult, but never names who takes them', () => {
     const drills = ['funnel-grounders', 'dp-feeds', 'close-grounders'].map(drillById)
     const s = assignStaff(drills, staffingFor({ adults: 2 }), false)
-    expect(s[1]).toMatchObject({ type: 'run', who: 'coach' })
-    expect(s[0]).toMatchObject({ type: 'run', who: 'helper', helper: 1 })
+    expect(s[1]).toMatchObject({ type: 'run', who: null, helper: null })
+    expect(s[0]).toMatchObject({ type: 'run', who: null, helper: null })
     expect(s[2].type).toBe('kids')
+    for (const seed of [1, 2, 3]) {
+      const p = buildPlan(team(), { minutes: 90, adults: 4, kids: 12, seed })
+      for (const b of stationBlocks(p)) for (const x of b.staff) expect([x.who, x.helper]).toEqual([null, null])
+    }
   })
 
   it('never puts more run stations than adults, across many plans', () => {
@@ -68,8 +72,7 @@ describe('staffing', () => {
         const p = buildPlan(team(), { minutes: 90, adults, kids: 13, seed })
         for (const b of stationBlocks(p)) {
           const runs = b.staff.filter((s) => s.type === 'run').length
-          const max = p.coachRole === 'float' ? adults - 1 : adults
-          expect(runs).toBeLessThanOrEqual(max)
+          expect(runs).toBeLessThanOrEqual(adults)
           expect(b.groups.reduce((a, c) => a + c, 0)).toBe(13)
         }
       }
@@ -88,8 +91,10 @@ describe('staffing', () => {
     expect(staffingText({ adults: 1, kids: 12, young: false })).toMatch(/player-led/)
     expect(staffingText({ adults: 3, kids: 12, young: false })).toMatch(/Each adult runs one/)
     expect(staffingText({ adults: 3, kids: 12, young: false })).not.toMatch(/float|role/i)
-    expect(staffText({ type: 'run', who: 'coach' })).toBe('You run this station.')
-    expect(staffText({ type: 'watch', who: 'helper', helper: 2 })).toBe('Helper 2 keeps an eye on this one.')
+    expect(staffText({ type: 'run' })).toBe('Needs an adult to run it.')
+    // Plans saved before this version named people. They read neutrally now.
+    expect(staffText({ type: 'run', who: 'coach' })).toBe('Needs an adult to run it.')
+    expect(staffText({ type: 'watch', who: 'helper', helper: 2 })).toMatch(/^Watch-only/)
     expect(staffText({ type: 'watch', near: 0 }, ['Tee work'])).toMatch(/next to Tee work/)
   })
 })
@@ -164,7 +169,7 @@ describe('space and gear', () => {
     const p = buildPlan(team(), { minutes: 75, adults: 3, kids: 12, spaces: ['field'], seed: 4, practiceName: 'Tuesday' })
     const q = rebuildPlan(team(), p, { adults: 1 })
     expect(q).toMatchObject({ id: p.id, adults: 1, kids: 12, practiceName: 'Tuesday', minutes: 75 })
-    for (const b of stationBlocks(q)) expect(b.staff.filter((s) => s.type !== 'kids').every((s) => s.who === 'coach')).toBe(true)
+    for (const b of stationBlocks(q)) expect(b.staff.filter((s) => s.type === 'run').length).toBeLessThanOrEqual(1)
   })
 
   it('handles plans saved before this version', () => {
@@ -172,9 +177,10 @@ describe('space and gear', () => {
     expect(rebuildPlan(team(), old).adults).toBe(2)
   })
 
-  it('names who covers each station when sharing', () => {
+  it('says what each station needs when sharing, without naming anyone', () => {
     const p = buildPlan(team(), { minutes: 90, adults: 2, kids: 12, seed: 3 })
-    expect(planText(p, team())).toMatch(/run by head coach|run by helper 1/)
+    expect(planText(p, team())).toMatch(/needs an adult/)
+    expect(planText(p, team())).not.toMatch(/head coach|helper \d/i)
   })
 })
 

@@ -137,40 +137,21 @@ export function groupSizes(kids, n) {
   return Array.from({ length: n }, (_, i) => base + (i < kids % n ? 1 : 0))
 }
 
-// Which adult covers each station. Run stations get the coach first (the one needing the most
-// skill) when the coach is not floating; watch stations go to the floater, a free helper, or sit
-// next to a station an adult is running.
+// Which stations need an adult to run them, which an adult can just watch, and which the kids run.
+// The plan never names a person: who takes which station is the coach's call, since a helper may
+// know a drill better than the coach does. Watch stations an adult is free to cover (two per free
+// adult) need no note; the rest are set up next to a station an adult is running.
 export function assignStaff(drills, st, young) {
   const types = drills.map((d) => staffFor(d, young))
   const out = drills.map((_, i) => ({ type: types[i], who: null, helper: null, near: null }))
   const runIdx = types.map((t, i) => (t === 'run' ? i : -1)).filter((i) => i >= 0)
   runIdx.sort((x, y) => levelIndex(drills[y].level) - levelIndex(drills[x].level) || (drills[y].bat ? 1 : 0) - (drills[x].bat ? 1 : 0))
-  let helper = 0
-  runIdx.forEach((i, k) => {
-    if (st.coachRole === 'run' && k === 0) out[i].who = 'coach'
-    else {
-      helper++
-      out[i].who = 'helper'
-      out[i].helper = helper
-    }
-  })
-  // A coach who is not running a station this round keeps an eye on up to two.
-  const coachRunning = out.some((o) => o.who === 'coach')
-  let floaterLeft = coachRunning ? 0 : 2
-  const freeHelpers = []
-  for (let h = helper + 1; h <= st.helpers; h++) freeHelpers.push(h, h)
+  let freeSlots = Math.max(0, st.adults - runIdx.length) * 2
   const runners = [...runIdx]
   out.forEach((o, i) => {
     if (o.type !== 'watch') return
-    if (floaterLeft > 0) {
-      floaterLeft--
-      o.who = 'coach'
-    } else if (freeHelpers.length) {
-      o.who = 'helper'
-      o.helper = freeHelpers.shift()
-    } else if (runners.length) {
-      o.near = runners.shift()
-    }
+    if (freeSlots > 0) freeSlots--
+    else if (runners.length) o.near = runners.shift()
   })
   return out
 }

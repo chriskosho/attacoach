@@ -54,11 +54,9 @@ export async function shareText(title, text, url) {
   }
 }
 
-// Who covers a station, written for the helpers reading a shared plan.
+// What a station needs, written for the helpers reading a shared plan.
 export function staffShort(s) {
   if (!s) return ''
   if (s.type === 'kids') return 'player-led'
-  const who = s.who === 'coach' ? 'head coach' : s.who === 'helper' ? `helper ${s.helper}` : null
-  if (s.type === 'run') return who ? `run by ${who}` : 'needs an adult'
-  return who ? `watched by ${who}` : 'watch-only'
+  return s.type === 'run' ? 'needs an adult' : 'watch-only'
 }

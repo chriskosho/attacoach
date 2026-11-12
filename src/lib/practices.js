@@ -67,13 +67,11 @@ export function staffingText({ adults, kids, young }) {
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1)
 
-// Who covers a station, in plain words.
+// What a station needs, in plain words. It never names who: the coach decides who takes which station.
 export function staffText(s, stationNames = []) {
   if (!s) return ''
   if (s.type === 'kids') return 'Player-led. Set it up where an adult can see it.'
-  const who = s.who === 'coach' ? 'You' : s.who === 'helper' ? `Helper ${s.helper}` : null
-  if (s.type === 'run') return who ? `${who === 'You' ? 'You run' : `${who} runs`} this station.` : 'Needs an adult to run it.'
-  if (who) return `${who === 'You' ? 'You keep' : `${who} keeps`} an eye on this one.`
+  if (s.type === 'run') return 'Needs an adult to run it.'
   if (s.near != null) return `Watch-only. Set it up next to ${stationNames[s.near] ?? 'another station'}.`
   return 'Watch-only. Set it up where an adult can see it.'
 }
@@ -83,9 +81,7 @@ export function staffText(s, stationNames = []) {
 export function staffTag(s, from = null) {
   if (!s) return ''
   if (s.type === 'kids') return 'Kids run it'
-  const who = s.who === 'coach' ? 'You' : s.who === 'helper' ? `Helper ${s.helper}` : null
-  if (s.type === 'run') return who ? (who === 'You' ? 'You run it' : `${who} runs it`) : 'Needs an adult'
-  if (who) return who === 'You' ? 'You keep an eye on it' : `${who} keeps an eye on it`
+  if (s.type === 'run') return 'Needs an adult'
   if (s.near != null) return from ? `Kids run it. Keep an eye from ${from}` : `Watch from station ${s.near + 1}`
   return 'Watch-only'
 }
