@@ -60,7 +60,7 @@ const PAGE_CHECK = () => {
         results.push({ tag, name, ...(await p.evaluate(PAGE_CHECK)) })
       }
       await p.goto(base); await p.getByText('Set up your team').waitFor()
-      await p.getByText('Ready-made test teams').click()
+      await p.getByText('Try a sample team', { exact: true }).click()
       await p.getByRole('button', { name: /Rec team, full roster \(10U\)/ }).click(); await p.waitForTimeout(1500)
       if (hc) { await p.goto(base + '#/settings/display'); await p.getByRole('button', { name: /High contrast/ }).click() }
       await p.goto(base + '#/today'); await p.waitForTimeout(500); await check('1-today')
@@ -76,6 +76,12 @@ const PAGE_CHECK = () => {
       await p.goto(base + '#/settings'); await check('5-settings')
       await p.goto(base + '#/settings/backup'); await check('5b-settings-backup')
       await p.goto(base + '#/team'); await check('6-team')
+      // How you practice: the adults, the list of practices, and each step of adding one.
+      await p.locator('section', { has: p.getByRole('heading', { name: 'How you practice' }) }).getByRole('button', { name: 'Edit' }).click(); await check('6a-practice-list')
+      await p.getByRole('button', { name: 'Add another practice' }).click(); await check('6b-practice-step1')
+      await p.getByRole('button', { name: 'Next' }).click(); await check('6c-practice-step2')
+      await p.getByRole('button', { name: 'Next' }).click(); await p.getByRole('button', { name: /Different for this one/ }).click(); await check('6d-practice-step3')
+      await p.goto(base + '#/today')
       await p.goto(base + '#/log'); await check('7-log')
       await p.goto(base + '#/drills'); await check('8-drills')
       await p.goto(base + '#/today'); await p.getByRole('button', { name: 'Start practice' }).first().click(); await p.getByRole('timer').waitFor(); await check('9-timer')

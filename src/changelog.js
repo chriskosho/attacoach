@@ -1,6 +1,16 @@
-export const VERSION = '1.36.0'
+export const VERSION = '1.37.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.37.0',
+    date: '2026-11-12',
+    items: [
+      'Sample teams are back on the first setup screen for everyone. Tap "Try a sample team" to see plans, the timer and Coach Corner right away. A sample team is marked Sample, Today offers "Set up your own", and you can delete it from the Team tab in one tap.',
+      'Team setup asks how many adults usually help, counting you, and what you do: suggest, float or run a station. Every practice starts from this, and Today starts from it too.',
+      'Practices are added one at a time: name and day, then length and where, then adults. A practice can have its own adults, like a cage night with fewer helpers. Then you check the list, edit or remove any practice, and save.',
+      'The same steps are used when you edit how you practice from the Team tab.',
+    ],
+  },
   {
     version: '1.36.0',
     date: '2026-11-12',

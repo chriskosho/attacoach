@@ -4,6 +4,33 @@ import { localDate, stationTarget, staffingFor } from './plan.js'
 
 export const teamPractices = (team) => (team?.practices?.length ? team.practices : [DEFAULT_PRACTICE])
 
+export const COACH_ROLES = [
+  ['auto', 'Suggest'],
+  ['float', 'Float'],
+  ['run', 'Run a station'],
+]
+
+/**
+ * Who is at a practice: the practice's own adults count if it has one, then the team's, then
+ * `fallback` (the last count used on this device, for teams saved before the team asked).
+ * Returns { adults, role, own } where `own` is true when the practice overrides the team.
+ */
+export function practiceStaff(team, practice, fallback = 2) {
+  const own = practice?.adults != null
+  const adults = own ? practice.adults : team?.adults ?? fallback
+  const role = (own ? practice.coachRole : null) ?? team?.coachRole ?? 'auto'
+  return { adults, role, own }
+}
+
+// "2 adults, you run a station": the adults line for a team or a practice, in plain words.
+export function staffSummary(adults, role) {
+  const n = `${adults} ${adults === 1 ? 'adult' : 'adults'}`
+  if (adults === 1) return `${n}, just you`
+  if (role === 'float') return `${n}, you float`
+  if (role === 'run') return `${n}, you run a station`
+  return n
+}
+
 export function newPractice(division, n = 1) {
   const lengths = lengthsFor(division)
   return {

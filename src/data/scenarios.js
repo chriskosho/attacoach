@@ -8,6 +8,8 @@ const day = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 }
 export const SCENARIOS = [
   {
     id: 'tball-4u',
+    adults: 2,
+    coachRole: 'run',
     title: 'T-ball starter (4U)',
     blurb: 'First-time coach, 7 little kids with first names only, one short practice on open grass.',
     coach: 'Jamie',
@@ -23,6 +25,8 @@ export const SCENARIOS = [
   },
   {
     id: 'rookie-8u',
+    adults: 2,
+    coachRole: 'run',
     title: 'Rookie volunteer (8U)',
     blurb: 'New coach who never played. 10 kids, a few ratings, a field practice. Tests the extra coaching help.',
     coach: 'Pat',
@@ -48,6 +52,8 @@ export const SCENARIOS = [
   },
   {
     id: 'rec-10u',
+    adults: 3,
+    coachRole: 'run',
     title: 'Rec team, full roster (10U)',
     blurb: 'A few seasons of experience, 12 players with strengths, weaknesses and positions, and a field plus a cage day.',
     coach: 'Chris',
@@ -58,7 +64,7 @@ export const SCENARIOS = [
     unsure: ['bunting'],
     practices: [
       { name: 'Field practice', day: day.tue, minutes: 90, spaces: ['field'] },
-      { name: 'Cage practice', day: day.thu, minutes: 60, spaces: ['cage', 'open'] },
+      { name: 'Cage practice', day: day.thu, minutes: 60, spaces: ['cage', 'open'], adults: 2, coachRole: 'run' },
     ],
     equipment: ['tee', 'machine', 'net', 'catcherGear', 'cones'],
     players: [
@@ -78,6 +84,8 @@ export const SCENARIOS = [
   },
   {
     id: 'travel-12u',
+    adults: 4,
+    coachRole: 'float',
     title: 'Over-rostered travel team (12U)',
     blurb: 'Experienced coach, 14 players, three spaces and full gear. Tests big groups and several stations.',
     coach: 'Dana',
@@ -104,6 +112,8 @@ export const SCENARIOS = [
   },
   {
     id: 'no-steal-12u',
+    adults: 2,
+    coachRole: 'run',
     title: 'League with different rules (12U)',
     blurb: 'Stealing, leading off and dropped third strike all switched off. Drills that teach them should disappear.',
     coach: 'Robin',
@@ -120,6 +130,8 @@ export const SCENARIOS = [
   },
   {
     id: 'cage-only-10u',
+    adults: 1,
+    coachRole: 'auto',
     title: 'Winter cage only (10U)',
     blurb: 'One batting cage session, a machine and a hitting trainer, 8 players. Plans should lean to hitting.',
     coach: 'Sam',
@@ -135,6 +147,8 @@ export const SCENARIOS = [
   },
   {
     id: 'softball-6u',
+    adults: 2,
+    coachRole: 'run',
     title: 'Softball tee ball (6U)',
     blurb: 'New coach, 9 girls with first names only, an hour on open grass. Tee ball format.',
     coach: 'Taylor',
@@ -152,6 +166,8 @@ export const SCENARIOS = [
   },
   {
     id: 'softball-8u',
+    adults: 2,
+    coachRole: 'run',
     title: 'Softball coach pitch (8U)',
     blurb: 'A couple of seasons in, 11 players, a field practice. A coach pitches in games.',
     coach: 'Jordan',
@@ -169,6 +185,8 @@ export const SCENARIOS = [
   },
   {
     id: 'softball-12u',
+    adults: 3,
+    coachRole: 'float',
     title: 'Fastpitch travel team (12U)',
     blurb: 'Experienced coach, 12 players, field and cage nights, full gear. Players pitch.',
     coach: 'Morgan',

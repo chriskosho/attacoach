@@ -13,6 +13,10 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import RestoreBackup from './RestoreBackup.jsx'
 import { saveTeam, savePlayers, setSetting, getSetting } from '../lib/db.js'
 import { SPORTS, formatsFor, defaultFormat, ruleText, sportOf } from '../lib/sport.js'
+import { store } from '../lib/route.js'
+
+// Adults for a team saved before the team asked: the last count used on this device.
+export const lastAdults = () => store.get('adults', store.get('coaches', 2))
 
 const STEPS = ['You', 'Coaching', 'Players', 'Needs', 'League', 'Practice']
 const LAST = STEPS.length - 1
@@ -100,6 +104,8 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
   const [needsTouched, setNeedsTouched] = useState(!!team?.needs?.length)
   const [fromRoster, setFromRoster] = useState(false)
   const [practice, setPractice] = useState({
+    adults: team?.adults ?? lastAdults(),
+    coachRole: team?.coachRole ?? 'auto',
     practices: team?.practices ?? [],
     equipment: team?.equipment ?? null,
     athletic: team?.athletic ?? null,
@@ -114,6 +120,7 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
   const [rulesFor, setRulesFor] = useState(team ? `${team.division}|${sportOf(team)}|${sportOf(team) === 'softball' ? team.format ?? defaultFormat(team.division) : ''}` : null)
   const [rulesReset, setRulesReset] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [practiceOpen, setPracticeOpen] = useState(false)
 
   // Softball's format follows the age until the coach picks one, and stays valid for the age.
   const formatFor = (div, cur) => (cur && formatsFor(div).some((f) => f.id === cur) ? cur : defaultFormat(div))
@@ -179,6 +186,8 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
       practices,
       equipment: practice.equipment,
       athletic,
+      adults: practice.adults,
+      coachRole: practice.coachRole,
     })
     await savePlayers(row.id, players)
     onDone?.(row)
@@ -208,7 +217,7 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
     await savePlayers(row.id, players)
     onDone?.(row)
   }
-  const tryScenario = async (sc) => onDone?.(await loadScenario(sc))
+  const tryScenario = async (sc) => onDone?.(await loadScenario(sc, { sample: true }))
 
   return (
     <div className="app">
@@ -300,17 +309,19 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
               )}
             </div>
             {first && <FirstLinks />}
-            {first && TEST_TOOLS && (
-              <div className="card">
+            {first && (
+              <div className="card sample-card">
                 <h2 className="sm-h">Just looking around?</h2>
-                <p className="small muted">Skip the questions, or load a ready-made team to see plans, the timer and Coach Corner.</p>
-                <button className="btn quiet" disabled={saving} onClick={skipSetup}>
-                  Skip setup
-                </button>
+                <p className="small muted">Try a sample team to see plans, the timer and Coach Corner. It is marked Sample, and you can delete it any time.</p>
                 <details className="fold test-tools">
-                  <summary>Ready-made test teams</summary>
-                  <TestTools onPick={tryScenario} />
+                  <summary>Try a sample team</summary>
+                  <TestTools onPick={tryScenario} label="Sample teams" />
                 </details>
+                {TEST_TOOLS && (
+                  <button className="link-btn" disabled={saving} onClick={skipSetup}>
+                    Skip setup
+                  </button>
+                )}
               </div>
             )}
           </>
@@ -399,11 +410,12 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
               division={division}
               value={{ ...practice, athletic: practice.athletic ?? athleticDefault(division) }}
               onChange={setPractice}
+              onEditingChange={setPracticeOpen}
             />
           </div>
         )}
 
-        <div className="wizard-nav">
+        {!(step === LAST && practiceOpen) && <div className="wizard-nav">
           {step > 0 && (
             <button className="link-btn" onClick={() => setStep(step - 1)}>
               Back
@@ -423,7 +435,7 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
               {editing ? 'Save team' : 'Save and start planning'}
             </button>
           )}
-        </div>
+        </div>}
       </main>
     </div>
   )

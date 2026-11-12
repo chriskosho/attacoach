@@ -35,7 +35,7 @@ const results = []
       }
       await p.goto('http://localhost:4173/attacoach/'); await p.getByText('Set up your team').waitFor()
       if (hc) { await p.evaluate(() => {}) }
-      await p.getByText('Ready-made test teams').click()
+      await p.getByText('Try a sample team', { exact: true }).click()
       await p.getByRole('button', { name: /Rec team, full roster \(10U\)/ }).click(); await p.waitForTimeout(1500)
       if (hc) { await p.goto('http://localhost:4173/attacoach/#/settings/display'); await p.getByRole('button', { name: /High contrast/ }).click() }
       await p.goto('http://localhost:4173/attacoach/#/today'); await p.waitForTimeout(500)

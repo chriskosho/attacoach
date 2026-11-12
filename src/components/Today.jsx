@@ -4,7 +4,7 @@ import { db, savePlan, setSetting } from '../lib/db.js'
 import { buildPlan, planFromTemplate, totalMinutes, localDate, recentPlans } from '../lib/plan.js'
 import { go, store } from '../lib/route.js'
 import { lengthsFor, needLabel, focusSummary, greeting, starterNeeds, divIndex, athleticDefault, SPACES, EQUIPMENT, WEEKDAYS, spaceLabel } from '../data/constants.js'
-import { teamPractices, nextPractice, practiceOn, staffingText } from '../lib/practices.js'
+import { teamPractices, nextPractice, practiceOn, staffingText, practiceStaff } from '../lib/practices.js'
 import Stepper from './Stepper.jsx'
 import SkillChips from './SkillChips.jsx'
 import { AthleticToggle } from './PracticeSetup.jsx'
@@ -51,10 +51,12 @@ export default function Today({ team, coach = '', players = [] }) {
   const [date, setDate] = useState(start.date)
   const [minutes, setMinutes] = useState(fitLength(start.practice.minutes ?? store.get('minutes', 60)))
   const [spaces, setSpaces] = useState(start.practice.spaces ?? ['field'])
-  const [adults, setAdults] = useState(store.get('adults', store.get('coaches', 2)))
+  // Adults and the coach's role come from the practice, then the team, then the last count used here.
+  const staffOf = (p) => practiceStaff(team, p, store.get('adults', store.get('coaches', 2)))
+  const [adults, setAdults] = useState(() => staffOf(start.practice).adults)
   // Kids expected starts from the roster when there is one, and from the last count otherwise.
   const [kids, setKids] = useState(players.length > 0 ? players.length : store.get('kids', 12))
-  const [role, setRole] = useState('auto')
+  const [role, setRole] = useState(() => staffOf(start.practice).role)
   const [equipment, setEquipment] = useState(team.equipment ?? null)
   const [athletic, setAthletic] = useState(team.athletic ?? athleticDefault(team.division))
   const teamFocus = team.needs?.length ? team.needs : starterNeeds(team.division)
@@ -87,6 +89,9 @@ export default function Today({ team, coach = '', players = [] }) {
     setPracticeId(p.id)
     setMinutes(fitLength(p.minutes))
     setSpaces(p.spaces?.length ? p.spaces : ['field'])
+    const st = staffOf(p)
+    setAdults(st.adults)
+    setRole(st.role)
   }
   const changeDate = (iso) => {
     setDate(iso)
@@ -136,6 +141,14 @@ export default function Today({ team, coach = '', players = [] }) {
       <TeamHeader team={team} />
       <main className="page">
         {coach ? <p className="greeting">{greeting(coach)}</p> : <NamePrompt coach={coach} />}
+        {team.sample && (
+          <p className="sample-line">
+            <span className="sample-tag">Sample</span> You're trying a sample team.{' '}
+            <button className="link-btn" onClick={() => go('setup/new')}>
+              Set up your own ›
+            </button>
+          </p>
+        )}
         {doneToday && (
           <p className="done-line">
             Today's practice: done ✓ ·{' '}

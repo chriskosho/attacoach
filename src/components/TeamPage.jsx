@@ -6,7 +6,8 @@ import { DRILLS } from '../data/drills.js'
 import Roster from './Roster.jsx'
 import PracticeSetup from './PracticeSetup.jsx'
 import Sheet from './Sheet.jsx'
-import { teamPractices, dayName } from '../lib/practices.js'
+import { teamPractices, dayName, practiceStaff, staffSummary } from '../lib/practices.js'
+import { lastAdults } from './Setup.jsx'
 import { go } from '../lib/route.js'
 import { TeamHeader } from './Header.jsx'
 import { ruleText, sportOf, sportSummary } from '../lib/sport.js'
@@ -22,9 +23,11 @@ function rulesLine(team) {
 export default function TeamPage({ team, teams, players = [] }) {
   const [msg, setMsg] = useState(null)
   const [practiceDraft, setPracticeDraft] = useState(null)
+  const [draftOpen, setDraftOpen] = useState(false)
+  const staff = practiceStaff(team, null, lastAdults())
 
   const editPractice = () =>
-    setPracticeDraft({ practices: team.practices ?? [], equipment: team.equipment ?? null, athletic: team.athletic ?? athleticDefault(team.division) })
+    setPracticeDraft({ adults: staff.adults, coachRole: staff.role, practices: team.practices ?? [], equipment: team.equipment ?? null, athletic: team.athletic ?? athleticDefault(team.division) })
   const savePractice = async () => {
     const practices = practiceDraft.practices.map((p) => ({ ...p, name: p.name.trim() || 'Practice' }))
     await saveTeam({ ...team, ...practiceDraft, practices })
@@ -32,7 +35,7 @@ export default function TeamPage({ team, teams, players = [] }) {
   }
 
   const removeTeam = async () => {
-    if (!window.confirm(`Delete ${team.name} and all of its plans? This cannot be undone.`)) return
+    if (!team.sample && !window.confirm(`Delete ${team.name} and all of its plans? This cannot be undone.`)) return
     await deleteTeam(team.id)
     go('today')
   }
@@ -54,7 +57,10 @@ export default function TeamPage({ team, teams, players = [] }) {
       <main className="page">
         <section className="card">
           <div className="row">
-            <h2 className="spacer">{team.name}</h2>
+            <h2 className="spacer">
+              {team.name}
+              {team.sample && <span className="sample-tag">Sample</span>}
+            </h2>
             <button className="btn quiet small" onClick={() => go(`setup/${team.id}`)}>
               Edit
             </button>
@@ -125,13 +131,20 @@ export default function TeamPage({ team, teams, players = [] }) {
               Edit
             </button>
           </div>
+          <p className="small" style={{ margin: 0 }}>
+            <strong>Adults:</strong> {staffSummary(staff.adults, staff.role)}
+          </p>
           <ul className="plain-list small">
-            {teamPractices(team).map((p) => (
-              <li key={p.id}>
-                <strong>{p.name}</strong>
-                {p.day != null ? `, ${dayName(p.day)}` : ''}, {p.minutes} min, {p.spaces.map(spaceLabel).join(' and ').toLowerCase()}
-              </li>
-            ))}
+            {teamPractices(team).map((p) => {
+              const own = practiceStaff(team, p, lastAdults())
+              return (
+                <li key={p.id}>
+                  <strong>{p.name}</strong>
+                  {p.day != null ? `, ${dayName(p.day)}` : ''}, {p.minutes} min, {p.spaces.map(spaceLabel).join(' and ').toLowerCase()}
+                  {own.own ? `, ${staffSummary(own.adults, own.role)}` : ''}
+                </li>
+              )
+            })}
           </ul>
           <p className="small muted" style={{ margin: 0 }}>
             Equipment: {team.equipment?.length ? team.equipment.map(gearLabel).join(', ') : 'not set (plans assume tees, cones and basic gear)'}.
@@ -139,10 +152,12 @@ export default function TeamPage({ team, teams, players = [] }) {
           </p>
           {practiceDraft && (
             <Sheet title="How you practice" onClose={() => setPracticeDraft(null)}>
-              <PracticeSetup division={team.division} value={practiceDraft} onChange={setPracticeDraft} />
-              <button className="btn" onClick={savePractice}>
-                Save
-              </button>
+              <PracticeSetup division={team.division} value={practiceDraft} onChange={setPracticeDraft} onEditingChange={setDraftOpen} />
+              {!draftOpen && (
+                <button className="btn" onClick={savePractice}>
+                  Save
+                </button>
+              )}
             </Sheet>
           )}
         </section>
@@ -155,6 +170,7 @@ export default function TeamPage({ team, teams, players = [] }) {
                 <button key={t.id} className="choice" aria-pressed={t.id === team.id} onClick={() => setSetting('currentTeamId', t.id)}>
                   <strong>{t.name}</strong>
                   <span>
+                    {t.sample ? 'Sample, ' : ''}
                     {t.division} {sportOf(t) === 'softball' ? 'softball' : 'baseball'}
                   </span>
                 </button>
@@ -167,7 +183,7 @@ export default function TeamPage({ team, teams, players = [] }) {
         </section>
 
         <button className="btn danger" onClick={removeTeam}>
-          Delete this team
+          {team.sample ? 'Delete this sample team' : 'Delete this team'}
         </button>
       </main>
     </>

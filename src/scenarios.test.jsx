@@ -69,11 +69,12 @@ describe('skipping setup and testing tools in the app', () => {
   it('loads a ready-made team from the first screen and lands on its plan', async () => {
     const user = userEvent.setup()
     render(<App />)
-    await user.click(await screen.findByText('Ready-made test teams'))
+    await user.click(await screen.findByText('Try a sample team'))
     await user.click(screen.getByRole('button', { name: /Over-rostered travel team/ }))
     await screen.findByRole('list', { name: 'Practice blocks' })
     const [team] = await db.teams.toArray()
     expect(team.name).toBe('Thunder')
+    expect(team.sample).toBe(true)
     expect(await db.players.count()).toBe(14)
   })
 

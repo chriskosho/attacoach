@@ -6,9 +6,9 @@ const css = fs.readFileSync('src/styles.css', 'utf8')
 const src = (f) => fs.readFileSync(`src/components/${f}`, 'utf8')
 
 describe('Stage 12F: one clear top, one filled action', () => {
-  it('has a plain changelog entry for this version', () => {
+  it('has a plain changelog entry for 1.36.0', () => {
+    expect(CHANGELOG.some((c) => c.version === '1.36.0')).toBe(true)
     expect(CHANGELOG[0].version).toBe(VERSION)
-    expect(VERSION).toBe('1.36.0')
   })
 
   it('Today: only the next practice card is raised, with a larger headline', () => {
