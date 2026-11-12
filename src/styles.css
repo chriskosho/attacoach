@@ -887,3 +887,29 @@ textarea { font: inherit; width: 100%; border: 1.5px solid var(--line); border-r
   .starter-line summary { min-height: 36px; }
   .plan-sub summary, .plan-sub .link-row, .focus-fold summary, .plan-link-static { min-height: 40px; }
 }
+
+/* Stage 12C */
+/* Today after practice: one small line under the greeting. It adds about one line of height; the Recap
+   link keeps a 44 px tap area by reaching into the gap above and below. */
+.done-line { margin: -16px 0 0; min-height: 28px; display: flex; align-items: center; flex-wrap: wrap; gap: 0 4px; font-size: 15px; color: var(--ink-2); }
+.done-line .link-btn { margin: -8px 0; padding: 10px 4px; color: var(--accent); }
+
+/* Short phones during a station block: every group row fits above Next and the buttons, also when late. */
+@media (max-height: 719.98px) {
+  .compact-stations .run-progress { margin: 6px 0 2px; }
+  .compact-stations .run-meta { font-size: 13px; }
+  .compact-stations .run-now { margin-top: 4px; font-size: 18px; }
+  .compact-stations .rotate-call { margin-top: 4px; padding: 4px 10px; font-size: 17px; }
+  .compact-stations .clock { font-size: min(20vw, 10.5vh); line-height: 1; padding-top: 2px; }
+  .compact-stations .run-quiet { margin-top: 4px; flex-wrap: nowrap; gap: 8px; }
+  .compact-stations .run-quiet .run-btn { padding: 4px 12px; white-space: nowrap; }
+  .compact-stations .run-trimmed { font-size: 15px; font-weight: 700; color: var(--run-accent); white-space: nowrap; }
+  .compact-stations .run-stations { margin-top: 6px; gap: 4px; font-size: 15px; }
+  .compact-stations .run-station-head { padding: 3px 8px; min-height: 44px; gap: 8px; line-height: 1.2; border-radius: 10px; }
+  .compact-stations .run-station-name { display: block; }
+  .compact-stations .run-station-name small { font-size: 13px; }
+  .compact-stations .run-station-name small::before { content: ' · '; }
+  .compact-stations .run-station-toggle { font-size: 13px; }
+  .compact-stations .run-stations b { width: 22px; height: 22px; font-size: 13px; }
+  .compact-stations .run-next { font-size: 15px; }
+}

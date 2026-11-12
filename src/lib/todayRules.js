@@ -4,11 +4,19 @@ import { localDate } from './plan.js'
 // A plan's practice date. Plans made before dates existed fall back to the day they were made.
 export const dateOfPlan = (plan) => plan.date ?? (plan.createdAt ? localDate(new Date(plan.createdAt)) : null)
 
+// The practice recap linked to a plan, if the Log has one.
+export const recapFor = (plan, debriefs) => (debriefs ?? []).find((d) => d.kind === 'practice' && d.planId === plan.id) ?? null
+
+// A plan is finished once the timer reached Practice complete (finishedAt) or it has a linked recap.
+// finishedAt is optional: plans and backups from before it existed are simply not finished.
+export const isFinished = (plan, debriefs) => !!plan.finishedAt || !!recapFor(plan, debriefs)
+
 /**
- * The plan to lead with: the soonest one dated today or later. When two share a day, the one made last.
+ * The plan to lead with: the soonest one dated today or later that is not finished yet. When two share
+ * a day, the one made last.
  */
-export function nextPlan(plans, today = localDate()) {
-  const upcoming = (plans ?? []).filter((p) => (dateOfPlan(p) ?? '') >= today && dateOfPlan(p))
+export function nextPlan(plans, today = localDate(), debriefs = []) {
+  const upcoming = (plans ?? []).filter((p) => (dateOfPlan(p) ?? '') >= today && dateOfPlan(p) && !isFinished(p, debriefs))
   upcoming.sort((a, b) => {
     const da = dateOfPlan(a)
     const db = dateOfPlan(b)
@@ -34,4 +42,15 @@ export function planNeedingRecap(plans, debriefs, today = localDate()) {
   if (dateOfPlan(latest) >= today) return null
   const done = (debriefs ?? []).some((d) => d.kind === 'practice' && (d.planId === latest.id || d.date === dateOfPlan(latest)))
   return done ? null : latest
+}
+
+/**
+ * Today's finished practice, for the small "Today's practice: done" line: the plan dated today that was
+ * finished most recently, with its recap when there is one. Null when nothing dated today is finished.
+ */
+export function finishedToday(plans, debriefs, today = localDate()) {
+  const done = (plans ?? []).filter((p) => dateOfPlan(p) === today && isFinished(p, debriefs))
+  if (!done.length) return null
+  done.sort((a, b) => ((a.finishedAt ?? a.createdAt ?? '') < (b.finishedAt ?? b.createdAt ?? '') ? 1 : -1))
+  return { plan: done[0], recap: recapFor(done[0], debriefs) }
 }

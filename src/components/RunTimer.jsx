@@ -12,6 +12,23 @@ import { catchUp, behindSeconds, trimSegments } from '../lib/runMath.js'
 import { DrillPicture, hasPicture } from './DrillDiagram.jsx'
 import { PlanFeedback } from './Feedback.jsx'
 
+// True on short screens (under 720 px tall), where a station block needs a tighter layout so every
+// group row fits. Without matchMedia (tests, very old browsers) the usual layout is used.
+const SHORT = '(max-height: 719.98px)'
+function useShortScreen() {
+  const mq = () => (typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia(SHORT) : null)
+  const [short, setShort] = useState(() => !!mq()?.matches)
+  useEffect(() => {
+    const m = mq()
+    if (!m) return
+    const on = () => setShort(m.matches)
+    on()
+    m.addEventListener?.('change', on)
+    return () => m.removeEventListener?.('change', on)
+  }, [])
+  return short
+}
+
 // Turns a plan into timed segments. Each station rotation is its own segment.
 export function segmentsFor(plan, sport = 'baseball') {
   const segs = []
@@ -130,6 +147,7 @@ function Runner({ plan, team }) {
   const [showHow, setShowHow] = useState(false)
 
   useWakeLock(running)
+  const short = useShortScreen()
 
   useEffect(() => {
     store.set(storeKey, finished ? null : state)
@@ -167,6 +185,8 @@ function Runner({ plan, team }) {
     (i, keepRunning) => {
       if (i >= segs.length) {
         setFinished(true)
+        // Mark the plan finished so Today moves on to the next practice. Running it again later still works.
+        db.plans.update(plan.id, { finishedAt: new Date().toISOString() })
         setState((s) => ({ ...s, index: segs.length - 1, startedAt: null, elapsed: 0 }))
         return
       }
@@ -174,7 +194,7 @@ function Runner({ plan, team }) {
       setNow(t)
       setState((s) => ({ ...s, index: Math.max(0, i), startedAt: keepRunning ? t : null, elapsed: 0 }))
     },
-    [segs.length],
+    [segs.length, plan.id],
   )
 
   // Auto-advance when a segment runs out.
@@ -232,6 +252,9 @@ function Runner({ plan, team }) {
   const planned = baseSegs.reduce((n, x) => n + x.seconds, 0)
   const behind = behindSeconds({ startedWall: state.startedWall, now, totalNow: totalSeconds, doneNow: doneSeconds, totalPlanned: planned })
   const late = behind > 180 && !trimmed
+  // Short screens during a station block: smaller clock, one-line controls, compact group rows.
+  const compact = short && seg?.kind === 'stations'
+  const rotateSoon = seg?.kind === 'stations' && seg.rotation + 1 < seg.rotations && remaining <= 30
   const trim = () => {
     const t = trimSegments(segs, seg.blockIndex, behind)
     if (!t.cut) {
@@ -267,7 +290,7 @@ function Runner({ plan, team }) {
   }
 
   return (
-    <div className="run" role="main" aria-label="Practice timer">
+    <div className={`run${compact ? ' compact-stations' : ''}`} role="main" aria-label="Practice timer">
       <div className="run-head">
       <div className="run-top">
         <button className="run-btn" onClick={exit}>
@@ -286,8 +309,19 @@ function Runner({ plan, team }) {
         <span>{fmtTime(totalSeconds - doneSeconds)} left in practice</span>
       </div>
 
-      <div className="run-now">{seg.kind === 'stations' ? `Rotation ${seg.rotation + 1} of ${seg.rotations}` : running ? 'Now' : elapsed > 0 ? 'Paused' : 'Up first'}</div>
-      <div className="run-title">{seg.kind === 'stations' ? 'Stations' : seg.title}</div>
+      {compact ? (
+        // One line instead of two; in the last 30 seconds the rotate call takes that line's place.
+        rotateSoon ? (
+          <div className="rotate-call">Get ready to rotate</div>
+        ) : (
+          <div className="run-now">Stations · Rotation {seg.rotation + 1} of {seg.rotations}</div>
+        )
+      ) : (
+        <>
+          <div className="run-now">{seg.kind === 'stations' ? `Rotation ${seg.rotation + 1} of ${seg.rotations}` : running ? 'Now' : elapsed > 0 ? 'Paused' : 'Up first'}</div>
+          <div className="run-title">{seg.kind === 'stations' ? 'Stations' : seg.title}</div>
+        </>
+      )}
       <div className={`clock${running ? '' : ' paused'}`} role="timer" aria-live="off">
         {fmtTime(remaining)}
       </div>
@@ -297,17 +331,27 @@ function Runner({ plan, team }) {
         </button>
         {late && (
           <button className="run-btn" onClick={trim}>
-            Trim the rest to finish on time
+            {compact ? `Trim (${Math.round(behind / 60)} min behind)` : 'Trim the rest to finish on time'}
           </button>
         )}
-        {late && <span className="run-late">Running {Math.round(behind / 60)} min behind</span>}
+        {late && !compact && <span className="run-late">Running {Math.round(behind / 60)} min behind</span>}
+        {trimmed && compact && (
+          <>
+            <span className="run-trimmed" role="status">
+              Trimmed {trimmed.mins} min
+            </span>
+            <button className="run-btn" onClick={undoTrim}>
+              Undo
+            </button>
+          </>
+        )}
       </div>
-      {seg.kind === 'stations' && seg.rotation + 1 < seg.rotations && remaining <= 30 && (
+      {rotateSoon && !compact && (
         <div className="rotate-call" style={{ marginTop: 10 }}>
           Get ready to rotate
         </div>
       )}
-      {trimmed && (
+      {trimmed && !compact && (
         <p className="run-note" role="status">
           Trimmed {trimmed.mins} min from the drills ahead.{' '}
           <button className="link-btn" style={{ minHeight: 44 }} onClick={undoTrim}>

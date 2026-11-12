@@ -12,7 +12,7 @@ import { COACH_TIPS, pick } from '../data/motivation.js'
 import NeedsRanker from './NeedsRanker.jsx'
 import { TeamHeader } from './Header.jsx'
 import { useSuggestion, SuggestionList } from './Log.jsx'
-import { nextPlan, planNeedingRecap } from '../lib/todayRules.js'
+import { nextPlan, planNeedingRecap, finishedToday } from '../lib/todayRules.js'
 import SafetyCards from './SafetyCards.jsx'
 
 // Friendly practice date: "Today", "Tomorrow" or "Sat, Nov 14".
@@ -69,7 +69,10 @@ export default function Today({ team, coach = '', players = [] }) {
   const plans = useLiveQuery(() => db.plans.where('teamId').equals(team.id).toArray().then(sortPlans), [team.id])
   const latest = plans?.[0] ?? null
   const debriefs = useLiveQuery(() => db.debriefs.where('teamId').equals(team.id).toArray(), [team.id])
-  const upcoming = plans ? nextPlan(plans) : null
+  // Wait for the Log too, so a practice with a recap never flashes up as still to run.
+  const loaded = !!plans && !!debriefs
+  const upcoming = loaded ? nextPlan(plans, undefined, debriefs) : null
+  const doneToday = loaded ? finishedToday(plans, debriefs) : null
   const needsRecap = plans && debriefs ? planNeedingRecap(plans, debriefs) : null
 
   const choosePractice = (p) => {
@@ -125,6 +128,18 @@ export default function Today({ team, coach = '', players = [] }) {
       <TeamHeader team={team} />
       <main className="page">
         {coach ? <p className="greeting">{greeting(coach)}</p> : <NamePrompt coach={coach} />}
+        {doneToday && (
+          <p className="done-line">
+            Today's practice: done ✓ ·{' '}
+            {doneToday.recap ? (
+              <span>Recap saved</span>
+            ) : (
+              <button className="link-btn" onClick={() => go(`debrief/practice/${doneToday.plan.id}`)}>
+                Recap ›
+              </button>
+            )}
+          </p>
+        )}
         {upcoming && (
           <section className="card next-card" aria-labelledby="next-title">
             <span className="muted small">Next practice</span>
@@ -145,7 +160,7 @@ export default function Today({ team, coach = '', players = [] }) {
           </section>
         )}
 
-        {plans && !upcoming && <SafetyCards players={players.length} plans={plans.length} />}
+        {loaded && !upcoming && <SafetyCards players={players.length} plans={plans.length} />}
 
         {upcoming && !showForm && (
           <button className="btn quiet" onClick={() => setShowForm(true)}>

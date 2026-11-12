@@ -1,6 +1,15 @@
-export const VERSION = '1.32.1'
+export const VERSION = '1.33.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.33.0',
+    date: '2026-11-12',
+    items: [
+      'After practice, Today moves on. When the timer reaches Practice complete, the plan is marked done, and Today shows a small line, "Today\'s practice: done ✓ · Recap ›", above your next practice (or the planning form). Once a recap is saved for that practice, the line says "Recap saved". A practice with a recap counts as done too.',
+      'You can still open a finished plan and run its timer again. Older plans and backups work as before, and backups keep which practices are done.',
+      'On short phones, a station block now fits every group on the screen, also when you are running late. The clock is smaller, "+1 min" and "Trim (34 min behind)" share one row, and after a trim "Trimmed 11 min" and Undo sit on that same row. Taller phones keep the usual layout.',
+    ],
+  },
   {
     version: '1.32.1',
     date: '2026-11-12',
