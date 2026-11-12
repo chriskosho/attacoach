@@ -62,7 +62,7 @@ function DrillBody({ drill, experienced, sport }) {
       {cue && <SayThis cue={cue} />}
       <DrillText drill={drill} compact={!full} sport={sport} />
       {experienced && (
-        <button className="btn ghost small no-print" style={{ alignSelf: 'flex-start' }} onClick={() => setFull(!full)}>
+        <button className="link-btn no-print" onClick={() => setFull(!full)}>
           {full ? 'Show less' : 'Show setup, variations and equipment'}
         </button>
       )}
@@ -309,10 +309,10 @@ export default function PlanView({ planId, team, coach = '' }) {
           <details className="starter-line no-print">
             <summary>Starter plan for {team.division}. Make it yours</summary>
             <span className="action-row">
-              <button className="btn ghost small" onClick={() => go('team')}>
+              <button className="link-btn" onClick={() => go('team')}>
                 Add players
               </button>
-              <button className="btn quiet small" onClick={() => go(`setup/${team.id}`)}>
+              <button className="link-btn" onClick={() => go(`setup/${team.id}`)}>
                 Choose skills
               </button>
             </span>

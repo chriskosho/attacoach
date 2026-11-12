@@ -5,13 +5,14 @@ import { saveBackupFile, backupWhere } from '../lib/backupFile.js'
 import { backupReminderDue, snoozeBackupReminder, installHintKind, readSafetySettings, isInstalledApp, isIosDevice, useInstallPrompt, runInstallPrompt, INSTALL_DISMISSED } from '../lib/safety.js'
 
 // One small, dismissible card on Today: a backup reminder, or (never together) the home screen hint.
-export default function SafetyCards({ players = 0, plans = 0 }) {
+// A sample team holds nothing worth backing up, so it never gets the backup reminder.
+export default function SafetyCards({ players = 0, plans = 0, sample = false }) {
   const s = useLiveQuery(readSafetySettings, [])
   const prompt = useInstallPrompt()
   const [saved, setSaved] = useState(false)
   if (!s) return null
 
-  const backupDue = backupReminderDue({ players, plans, lastBackupAt: s.lastBackupAt, snoozedUntil: s.snoozedUntil })
+  const backupDue = !sample && backupReminderDue({ players, plans, lastBackupAt: s.lastBackupAt, snoozedUntil: s.snoozedUntil })
   const kind = installHintKind({ installed: isInstalledApp(), dismissed: s.installDismissed, backupDue, hasPrompt: !!prompt, ios: isIosDevice() })
 
   if (saved) {

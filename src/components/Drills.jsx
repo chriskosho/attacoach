@@ -162,7 +162,7 @@ export default function Drills({ team }) {
   const list = useMemo(() => filterDrills(allDrills(), { team, ...filters }), [team, filters, mine]) // eslint-disable-line react-hooks/exhaustive-deps
   const unhide = (d) =>
     filters.show === 'hidden' ? (
-      <button className="btn quiet small" onClick={() => toggleTeamList(team.id, 'hidden', d.id)} aria-label={`Suggest ${d.name} again`}>
+      <button className="link-btn" onClick={() => toggleTeamList(team.id, 'hidden', d.id)} aria-label={`Suggest ${d.name} again`}>
         Suggest again
       </button>
     ) : null
@@ -184,7 +184,7 @@ export default function Drills({ team }) {
           <p className="muted small spacer">
             {list.length} {list.length === 1 ? 'drill' : 'drills'}
           </p>
-          <button className="btn quiet small" onClick={() => go('mydrill/new')}>
+          <button className="link-btn" onClick={() => go('mydrill/new')}>
             Add your own drill
           </button>
         </div>
@@ -240,11 +240,11 @@ export function DrillPage({ drillId, team }) {
         {(team.hidden ?? []).includes(drill.id) && <p className="small muted">Plans won't pick this one. You can still add it to a plan yourself.</p>}
         {drill.custom && (
           <div className="action-row">
-            <button className="btn quiet" onClick={() => go(`mydrill/${drill.id}`)}>
+            <button className="link-btn" onClick={() => go(`mydrill/${drill.id}`)}>
               Edit
             </button>
             <button
-              className="btn quiet"
+              className="link-btn danger-link"
               onClick={async () => {
                 if (!window.confirm(`Delete ${drill.name}? Plans that already use it keep it, marked as a deleted drill.`)) return
                 await deleteCustomDrill(drill.id)
@@ -335,7 +335,7 @@ function MyDrillFields({ team, initial, isNew }) {
             <button className="btn" disabled={!d.name.trim()} onClick={save}>
               Save drill
             </button>
-            <button className="btn quiet" onClick={() => go('drills')}>
+            <button className="link-btn" onClick={() => go('drills')}>
               Cancel
             </button>
           </div>

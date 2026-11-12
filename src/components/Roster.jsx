@@ -169,7 +169,7 @@ function AddPlayerWizard({ division, count, onAdd, onClose }) {
               </button>
             </div>
             {added.length > 0 && (
-              <button className="btn quiet" type="button" onClick={onClose}>
+              <button className="link-btn" type="button" onClick={onClose}>
                 Done
               </button>
             )}
@@ -187,7 +187,7 @@ function AddPlayerWizard({ division, count, onAdd, onClose }) {
                   Save and finish
                 </button>
               </div>
-              <button className="btn quiet small" type="button" onClick={() => setStep(1)}>
+              <button className="link-btn" type="button" onClick={() => setStep(1)}>
                 Back to name
               </button>
             </div>

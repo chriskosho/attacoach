@@ -961,6 +961,7 @@ textarea { font: inherit; width: 100%; border: 1.5px solid var(--line); border-r
 .plan-sub summary, .link-row, .starter-line summary, .plan-link-static { font-size: 15px; min-height: 44px; }
 .plan-sub summary::after, .starter-line summary::after { color: var(--accent); }
 .link-btn.quiet-delete { color: var(--warn); }
+.link-btn.danger-link { color: var(--warn); }
 .link-btn.quiet-rebuild { color: var(--accent); }
 .run-note .link-btn { color: inherit; }
 

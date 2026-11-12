@@ -215,7 +215,7 @@ export default function Today({ team, coach = '', players = [] }) {
               <strong>From your recent games and practices</strong>
               <SuggestionList suggestion={suggestion} />
               {useSuggested ? (
-                <button className="btn ghost small" onClick={applySuggestion}>
+                <button className="link-btn" onClick={applySuggestion}>
                   Use this focus
                 </button>
               ) : (
@@ -310,7 +310,7 @@ export default function Today({ team, coach = '', players = [] }) {
                 <div className="row">
                   <strong className="small spacer">Today's focus</strong>
                   {changedFocus && (
-                    <button className="btn ghost small" onClick={() => setFocus(teamFocus)}>
+                    <button className="link-btn" onClick={() => setFocus(teamFocus)}>
                       Use team needs
                     </button>
                   )}
@@ -330,7 +330,7 @@ export default function Today({ team, coach = '', players = [] }) {
           <span aria-hidden="true">›</span>
         </button>
 
-        {plans && <SafetyCards players={players.length} plans={plans.length} />}
+        {plans && <SafetyCards players={players.length} plans={plans.length} sample={!!team.sample} />}
 
         {latest && !upcoming && (
           <>

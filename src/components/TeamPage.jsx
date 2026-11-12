@@ -61,7 +61,7 @@ export default function TeamPage({ team, teams, players = [] }) {
               {team.name}
               {team.sample && <span className="sample-tag">Sample</span>}
             </h2>
-            <button className="btn quiet small" onClick={() => go(`setup/${team.id}`)}>
+            <button className="link-btn" onClick={() => go(`setup/${team.id}`)}>
               Edit
             </button>
           </div>
@@ -127,7 +127,7 @@ export default function TeamPage({ team, teams, players = [] }) {
             <h3 id="practice-title" className="spacer">
               How you practice
             </h3>
-            <button className="btn quiet small" onClick={editPractice}>
+            <button className="link-btn" onClick={editPractice}>
               Edit
             </button>
           </div>
@@ -177,7 +177,7 @@ export default function TeamPage({ team, teams, players = [] }) {
               ))}
             </div>
           )}
-          <button className="btn quiet" onClick={() => go('setup/new')}>
+          <button className="link-btn" onClick={() => go('setup/new')}>
             Add another team
           </button>
         </section>

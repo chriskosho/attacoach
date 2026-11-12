@@ -114,7 +114,7 @@ export default function SettingsPage({ team, theme, auth, coach = '' }) {
                 <button className="btn" disabled={!nameDraft.trim()} onClick={saveName}>
                   Save name
                 </button>
-                <button className="btn quiet" onClick={() => setNameDraft(null)}>
+                <button className="link-btn" onClick={() => setNameDraft(null)}>
                   Cancel
                 </button>
               </div>

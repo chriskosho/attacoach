@@ -1,6 +1,15 @@
-export const VERSION = '1.37.0'
+export const VERSION = '1.38.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.38.0',
+    date: '2026-11-12',
+    items: [
+      'Sample team descriptions are written for coaches now, and the sample list says what each team is.',
+      'A sample team no longer shows the backup reminder.',
+      'More screens have one clear button. Edit, Cancel, Delete, Show setup, Work with a team and similar secondary choices on the plan, Drills, Team, Roster, Today and Settings are plain links.',
+    ],
+  },
   {
     version: '1.37.0',
     date: '2026-11-12',

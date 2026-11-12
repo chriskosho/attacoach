@@ -70,7 +70,7 @@ describe('skipping setup and testing tools in the app', () => {
     const user = userEvent.setup()
     render(<App />)
     await user.click(await screen.findByText('Try a sample team'))
-    await user.click(screen.getByRole('button', { name: /Over-rostered travel team/ }))
+    await user.click(screen.getByRole('button', { name: /Big travel team/ }))
     await screen.findByRole('list', { name: 'Practice blocks' })
     const [team] = await db.teams.toArray()
     expect(team.name).toBe('Thunder')

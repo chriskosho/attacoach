@@ -202,8 +202,8 @@ describe('sample teams', () => {
 })
 
 describe('changelog', () => {
-  it('has a plain entry for this version', () => {
-    expect(VERSION).toBe('1.37.0')
+  it('has a plain entry for 1.37.0', () => {
+    expect(CHANGELOG.some((c) => c.version === '1.37.0')).toBe(true)
     expect(CHANGELOG[0].version).toBe(VERSION)
   })
 })
