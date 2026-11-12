@@ -107,10 +107,10 @@ export function planLine(plan) {
 function FocusLine({ focus = [] }) {
   if (!focus.length) return null
   const first = needLabel(focus[0])
-  if (focus.length === 1) return <div className="small muted">Focus: {first}</div>
+  if (focus.length === 1) return <div className="small plan-link-static">Focus: {first}</div>
   return (
     <details className="focus-fold">
-      <summary className="small muted" title={`Focus: ${focusSummary(focus)}`}>
+      <summary className="small" title={`Focus: ${focusSummary(focus)}`}>
         Focus: {first} +{focus.length - 1}
       </summary>
       <ol className="small focus-list">
@@ -306,10 +306,9 @@ export default function PlanView({ planId, team, coach = '' }) {
       <TeamHeader team={team} title="Practice plan" backTo="plans" />
       <main className="page">
         {!team.needs?.length && (
-          <div className="suggest no-print" role="note">
-            <strong>This is a starter plan on the fundamentals for {team.division}.</strong>
-            <span>Add your players or choose your team's skills and the next plan will be built around them.</span>
-            <span className="action-row" style={{ width: '100%' }}>
+          <details className="starter-line no-print">
+            <summary>Starter plan for {team.division}. Make it yours</summary>
+            <span className="action-row">
               <button className="btn ghost small" onClick={() => go('team')}>
                 Add players
               </button>
@@ -317,7 +316,7 @@ export default function PlanView({ planId, team, coach = '' }) {
                 Choose skills
               </button>
             </span>
-          </div>
+          </details>
         )}
         <div className="plan-head">
           <div className="plan-top">
@@ -332,7 +331,7 @@ export default function PlanView({ planId, team, coach = '' }) {
           <div className="plan-sub">
             <FocusLine focus={plan.focus} />
             <details className="plan-details no-print">
-              <summary className="small">Date and template</summary>
+              <summary className="small">Date, template</summary>
               <label className="field">
                 Practice date
                 <input

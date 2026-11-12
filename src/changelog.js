@@ -1,6 +1,19 @@
-export const VERSION = '1.31.0'
+export const VERSION = '1.32.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.32.0',
+    date: '2026-11-12',
+    items: [
+      'A new team\'s first plan shows Start practice and the first drill right away. The big starter box is now one quiet line, "Starter plan for 10U. Make it yours", that opens Add players and Choose skills.',
+      'After Trim in the timer you see "Trimmed 6 min from the drills ahead." with an Undo that puts the times back.',
+      'Save on the practice recap and game debrief stays at the bottom of the screen above the tabs, so you do not have to scroll to it.',
+      'The finish screen says "Send them home with:" before the closing line, and Done now goes to Today.',
+      'On the plan page, Focus, the adults line and "Date, template" look the same, and Start practice and Change of plans are the same width.',
+      'On the Drills tab, rows under a category heading no longer repeat the category.',
+      'The ready-made test teams are hidden in the public app. Reviewers can still reach them at the #/testing page.',
+    ],
+  },
   {
     version: '1.31.0',
     date: '2026-11-12',

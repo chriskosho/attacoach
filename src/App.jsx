@@ -17,6 +17,7 @@ import CoachCorner from './components/CoachCorner.jsx'
 import TeamPage from './components/TeamPage.jsx'
 import SettingsPage from './components/SettingsPage.jsx'
 import RunTimer from './components/RunTimer.jsx'
+import TestingPage from './components/TestingPage.jsx'
 import { TabIcon } from './components/Icons.jsx'
 import { createFirstPlan } from './lib/starter.js'
 import { requestPersist } from './lib/safety.js'
@@ -70,6 +71,9 @@ export default function App() {
   if (auth.status === 'signedOut') return <SignIn />
 
   if (!data) return null
+
+  // Hidden review page, reachable only by typing #/testing.
+  if (route.name === 'testing') return <div className="app"><TestingPage /></div>
 
   const team = data.teams.find((t) => t.id === data.currentId) ?? data.teams[0] ?? null
 

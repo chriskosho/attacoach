@@ -43,12 +43,12 @@ export function DrillList({ drills, onPick, team = null, action = null, empty = 
   }
   const favorites = new Set(team?.favorites ?? [])
   const hidden = new Set(team?.hidden ?? [])
-  const rows = (list) =>
+  const rows = (list, showCategory = true) =>
     list.map((d) => (
       <div key={d.id} className={action ? 'drill-row-wrap' : undefined} style={action ? undefined : { display: 'contents' }}>
         <button className="drill-row" onClick={() => onPick(d)}>
           <strong>{d.name}</strong>
-          <DrillMeta drill={d} favorite={favorites.has(d.id)} hidden={hidden.has(d.id)} />
+          <DrillMeta drill={d} favorite={favorites.has(d.id)} hidden={hidden.has(d.id)} category={showCategory} />
         </button>
         {action?.(d)}
       </div>
@@ -67,7 +67,7 @@ export function DrillList({ drills, onPick, team = null, action = null, empty = 
           <h2 className="drill-group-head" id={`cat-${g.id}`}>
             {g.label} <span>{g.list.length}</span>
           </h2>
-          <div className="card flat">{rows(g.list)}</div>
+          <div className="card flat">{rows(g.list, false)}</div>
         </section>
       ))}
     </div>

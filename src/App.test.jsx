@@ -111,7 +111,7 @@ describe('first run setup', () => {
     await user.click(press('Next')) // league rules
     await user.click(press('Save and start planning'))
 
-    expect(await screen.findByText(/starter plan on the fundamentals for 6U/)).toBeTruthy()
+    expect(await screen.findByText(/Starter plan for 6U\. Make it yours/)).toBeTruthy()
     const [team] = await db.teams.toArray()
     expect(team.needs).toEqual([])
     expect(await db.players.count()).toBe(0)

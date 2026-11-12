@@ -355,9 +355,11 @@ function Form({ team, plans, initial, isNew }) {
           </label>
         </section>
 
-        <button className="btn big" onClick={save} disabled={saving}>
-          {isNew ? 'Save' : 'Save changes'}
-        </button>
+        <div className="save-bar">
+          <button className="btn big" onClick={save} disabled={saving}>
+            {isNew ? 'Save' : 'Save changes'}
+          </button>
+        </div>
         {!isNew && (
           <button className="btn danger" onClick={remove}>
             Delete this entry

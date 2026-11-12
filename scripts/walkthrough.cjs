@@ -152,7 +152,7 @@ const AUTH_ON = process.env.VITE_AUTH_REQUIRED === "true"
       await items.nth(3).getByRole('button', { name: 'Lock' }).click()
       await page.getByRole('button', { name: 'Rebuild the rest' }).waitFor()
       await shot('07a-plan-locked')
-      await page.getByText('Date and template').click()
+      await page.getByText('Date, template').click()
       await page.getByRole('button', { name: 'Save as a template' }).click()
       await page.getByRole('dialog', { name: 'Name this template' }).waitFor()
       await shot('07b0-template-sheet')

@@ -25,7 +25,7 @@ Live app: https://chriskosho.github.io/attacoach/
 | Setting | Where | Pilot value |
 | --- | --- | --- |
 | Feedback address | `FEEDBACK_EMAIL` in `src/config.js` | `chriskosho@gmail.com`. Set it to an empty string to hide every feedback button. |
-| Ready-made test teams | `TEST_TOOLS` in `src/config.js` (off when built with `VITE_TEST_TOOLS=false`) | On: visible on the first screen and in Settings. |
+| Ready-made test teams | `TEST_TOOLS` in `src/config.js` (off when built with `VITE_TEST_TOOLS=false`) | On in development and tests. The public build sets it false (hidden); the ready-made teams stay at `#/testing`. |
 | Sign-in gate | `VITE_AUTH_REQUIRED` | Off |
 | Version and changelog | `VERSION` and `CHANGELOG` in `src/changelog.js`, `version` in `package.json` | Bump all three for every release. Settings, About shows the version and the two newest entries. |
 

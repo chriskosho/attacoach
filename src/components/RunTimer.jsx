@@ -115,6 +115,8 @@ function Runner({ plan, team }) {
   // The run's own lengths: +1 min and trimming change these, never the saved plan.
   const segs = useMemo(() => baseSegs.map((x) => ({ ...x, base: x.seconds, seconds: state.adj[x.key] ?? x.seconds })), [baseSegs, state.adj])
   const [note, setNote] = useState('')
+  // After Trim: how many minutes were cut and the lengths from before, so Undo can put them back.
+  const [trimmed, setTrimmed] = useState(null)
   const [openGroup, setOpenGroup] = useState(null)
   const [showPic, setShowPic] = useState(false)
   const [showOpen, setShowOpen] = useState(false)
@@ -151,6 +153,7 @@ function Runner({ plan, team }) {
     setOpenGroup(null)
     setShowPic(false)
     setShowHow(false)
+    setTrimmed(null)
   }, [seg?.key])
 
   // Notes ("Caught up", "Trimmed") fade on their own.
@@ -228,16 +231,19 @@ function Runner({ plan, team }) {
 
   const planned = baseSegs.reduce((n, x) => n + x.seconds, 0)
   const behind = behindSeconds({ startedWall: state.startedWall, now, totalNow: totalSeconds, doneNow: doneSeconds, totalPlanned: planned })
-  const late = behind > 180 && !note.startsWith('Trimmed')
+  const late = behind > 180 && !trimmed
   const trim = () => {
     const t = trimSegments(segs, seg.blockIndex, behind)
     if (!t.cut) {
       setNote('Nothing left to trim. Water breaks and the huddle stay as planned.')
       return
     }
+    setTrimmed({ mins: Math.max(1, Math.round(t.cut / 60)), before: state.adj })
     setState((s) => ({ ...s, adj: { ...s.adj, ...t.seconds } }))
-    const mins = Math.max(1, Math.round(t.cut / 60))
-    setNote(`Trimmed ${mins} min from the drills ahead${t.capped ? ' (each keeps at least 60% of its time)' : ''}. Water breaks and the closing huddle are unchanged.`)
+  }
+  const undoTrim = () => {
+    setState((s) => ({ ...s, adj: trimmed.before }))
+    setTrimmed(null)
   }
 
   if (finished) {
@@ -245,13 +251,14 @@ function Runner({ plan, team }) {
       <div className="run" role="main">
         <div className="run-now">Practice complete</div>
         <div className="run-title">Great work, Coach.</div>
-        <p style={{ fontSize: 20, marginTop: 16 }}>{plan.closer}</p>
+        <p className="run-now" style={{ marginTop: 16, fontSize: 16 }}>Send them home with:</p>
+        <p style={{ fontSize: 20, marginTop: 4 }}>{plan.closer}</p>
         <PlanFeedback team={team} plan={plan} variant="run" />
         <div className="run-controls finish">
           <button className="main" onClick={() => go(`debrief/practice/${plan.id}`)}>
             2-minute recap
           </button>
-          <button className="side" onClick={() => go(`plan/${plan.id}`)}>
+          <button className="side" onClick={() => go('today')}>
             Done
           </button>
         </div>
@@ -299,6 +306,14 @@ function Runner({ plan, team }) {
         <div className="rotate-call" style={{ marginTop: 10 }}>
           Get ready to rotate
         </div>
+      )}
+      {trimmed && (
+        <p className="run-note" role="status">
+          Trimmed {trimmed.mins} min from the drills ahead.{' '}
+          <button className="link-btn" style={{ minHeight: 44 }} onClick={undoTrim}>
+            Undo
+          </button>
+        </p>
       )}
       {note && (
         <p className="run-note" role="status">

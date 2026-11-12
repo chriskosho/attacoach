@@ -8,9 +8,9 @@ export function LevelTag({ level }) {
 }
 
 // Category, level, ages and time on one wrapping line, with a dot between the items.
-export function DrillMeta({ drill, favorite = false, hidden = false }) {
+export function DrillMeta({ drill, favorite = false, hidden = false, category = true }) {
   const items = [
-    <span key="cat">{categoryLabel(drill.category)}</span>,
+    category && <span key="cat">{categoryLabel(drill.category)}</span>,
     drill.custom ? <span key="lvl" className="mark yours">Yours</span> : <LevelTag key="lvl" level={drill.level} />,
     !drill.custom && <span key="ages">{drill.ages[0] === drill.ages[1] ? drill.ages[0] : `${drill.ages[0]}–${drill.ages[1]}`}</span>,
     <span key="min">{drill.minutes} min</span>,

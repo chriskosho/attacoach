@@ -862,3 +862,28 @@ textarea { font: inherit; width: 100%; border: 1.5px solid var(--line); border-r
 }
 .drill-group-head span { color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; }
 .drill-group > .card.flat { margin-top: 6px; }
+
+/* Stage 12B */
+/* Save stays in reach above the tab bar on long forms. */
+.save-bar { position: sticky; bottom: calc(56px + env(safe-area-inset-bottom)); z-index: 5; background: var(--bg); padding: 10px 0; margin: 0 -2px; border-top: 1px solid var(--line); display: flex; flex-direction: column; }
+/* Starter plan: one quiet line that opens the two ways to make it theirs. */
+.starter-line summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-size: 15px; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 4px; list-style: none; }
+.starter-line summary::-webkit-details-marker { display: none; }
+.starter-line summary::after { content: ' ›'; text-decoration: none; }
+.starter-line[open] summary::after { content: ' ▾'; }
+.starter-line .action-row { padding-bottom: 6px; }
+/* Plan header: Focus, adults and Date use one link style. */
+.plan-sub summary, .plan-sub .link-row, .focus-fold summary { font-size: 15px; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 4px; min-height: 44px; display: flex; align-items: center; }
+.plan-sub summary::after { text-decoration: none; }
+.plan-sub .plan-details summary::after { content: ' ›'; }
+.plan-sub .plan-details[open] summary::after { content: ' ▾'; }
+.start-row { grid-template-columns: 1fr 1fr; }
+.start-row .btn { white-space: nowrap; font-size: 17px; }
+.plan-link-static { min-height: 44px; display: flex; align-items: center; font-size: 15px; }
+/* Small phones: the first plan keeps Start practice and the first drill above the tab bar. */
+@media (max-width: 359px) {
+  main.page { gap: 10px; }
+  .plan-sub { gap: 0 10px; }
+  .starter-line summary { min-height: 36px; }
+  .plan-sub summary, .plan-sub .link-row, .focus-fold summary, .plan-link-static { min-height: 40px; }
+}

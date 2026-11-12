@@ -13,8 +13,8 @@ export const DONATE_URL = 'https://paypal.me/chriskosho'
 export const SHARE_TEXT = 'AttaCoach builds baseball and softball practice plans around what your team needs to work on. Free, works offline.'
 
 // Review tools: "Skip setup" and ready-made test teams on the first screen and in Settings.
-// On for now so content is easy to review. Set VITE_TEST_TOOLS=false at build time (or change the
-// default) when onboarding should be required.
+// On in development and tests. The public build (GitHub Actions) sets VITE_TEST_TOOLS=false, which
+// hides them everywhere; the hidden page at #/testing still offers the ready-made teams.
 export const TEST_TOOLS = import.meta.env.VITE_TEST_TOOLS !== 'false'
 
 // Where feedback goes. The coach's email app opens with a message they can read first; nothing is
