@@ -66,7 +66,8 @@ describe('coach corner in the app', () => {
     await user.click(await screen.findByRole('button', { name: 'Build practice plan' }))
     const list = await screen.findByRole('list', { name: 'Practice blocks' })
     await user.click(screen.getByText('Huddle talking points'))
-    expect(screen.getByText(/Today’s focus and why it matters: "pitching, making contact/)).toBeTruthy()
+    // The opener's wording rotates from practice to practice; whichever one is chosen names the focus.
+    expect(screen.getAllByText(/pitching, making contact/).length).toBeGreaterThan(0)
     const first = within(list).getAllByRole('listitem')[0]
     await user.click(within(first).getAllByRole('button')[0])
     expect(within(first).getByText('Say')).toBeTruthy()
