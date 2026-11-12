@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 
-export default function Sheet({ title, onClose, children }) {
+// `top` pins the sheet to the top of the screen, so a phone keyboard cannot cover it.
+export default function Sheet({ title, onClose, children, top = false }) {
   const ref = useRef(null)
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose()
@@ -14,7 +15,7 @@ export default function Sheet({ title, onClose, children }) {
     }
   }, [onClose])
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
+    <div className={top ? 'sheet-backdrop top' : 'sheet-backdrop'} onClick={onClose}>
       <div className="sheet" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()} ref={ref} tabIndex={-1}>
         <div className="sheet-head">
           <h2>{title}</h2>

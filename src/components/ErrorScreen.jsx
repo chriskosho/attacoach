@@ -1,5 +1,5 @@
 import { Component, useState } from 'react'
-import { saveBackupFile } from '../lib/backupFile.js'
+import { saveBackupFile, backupWhere } from '../lib/backupFile.js'
 import { VERSION } from '../changelog.js'
 
 // Shown when the app crashes: calm words, a way back, and a way to save the data first.
@@ -11,7 +11,7 @@ export function ErrorScreen({ error }) {
   const backup = async () => {
     try {
       const data = await saveBackupFile()
-      setMsg(`Saved a backup of ${data.teams.length} ${data.teams.length === 1 ? 'team' : 'teams'} and ${data.plans.length} ${data.plans.length === 1 ? 'plan' : 'plans'}.`)
+      setMsg(`Saved a backup of ${data.teams.length} ${data.teams.length === 1 ? 'team' : 'teams'} and ${data.plans.length} ${data.plans.length === 1 ? 'plan' : 'plans'}. ${backupWhere()}`)
     } catch {
       setMsg('The backup could not be saved. Your data has not been changed.')
     }

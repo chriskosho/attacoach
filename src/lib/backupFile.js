@@ -23,3 +23,14 @@ export function backupMessage(data) {
   return `Saved a backup of ${plural(data.teams.length, 'team')} and ${plural(data.plans.length, 'plan')}${data.debriefs?.length ? ` and ${plural(data.debriefs.length, 'log entry', 'log entries')}` : ''}.`
 }
 
+
+// Where the saved file went. The app cannot see this, so it only says where to look.
+export function isIOS(ua = typeof navigator === 'undefined' ? '' : navigator.userAgent, touchPoints = typeof navigator === 'undefined' ? 0 : navigator.maxTouchPoints) {
+  return /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && touchPoints > 1)
+}
+
+export function backupWhere(ios = isIOS()) {
+  return ios
+    ? 'Check Files > Downloads, or choose Save to Files if a share sheet opens.'
+    : 'Look in your Downloads folder, or wherever your browser saves files.'
+}

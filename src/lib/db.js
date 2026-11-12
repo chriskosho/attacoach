@@ -201,6 +201,8 @@ export async function describeBackup(data) {
     debriefs: debriefs.length,
     customDrills: (Array.isArray(data.customDrills) ? data.customDrills : []).filter((d) => !d.deleted).length,
     templates: Array.isArray(data.templates) ? data.templates.length : 0,
+    favorites: data.teams.reduce((n, t) => n + (Array.isArray(t.favorites) ? t.favorites.length : 0), 0),
+    hidden: data.teams.reduce((n, t) => n + (Array.isArray(t.hidden) ? t.hidden.length : 0), 0),
     firstDate: dates[0] ?? null,
     lastDate: dates[dates.length - 1] ?? null,
     exportedAt: data.exportedAt ?? null,

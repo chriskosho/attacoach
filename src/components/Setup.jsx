@@ -9,7 +9,9 @@ import { TEST_TOOLS } from '../config.js'
 import PracticeSetup from './PracticeSetup.jsx'
 import SkillChips from './SkillChips.jsx'
 import { DRILLS } from '../data/drills.js'
-import { saveTeam, savePlayers, setSetting } from '../lib/db.js'
+import { useLiveQuery } from 'dexie-react-hooks'
+import RestoreBackup from './RestoreBackup.jsx'
+import { saveTeam, savePlayers, setSetting, getSetting } from '../lib/db.js'
 import { SPORTS, formatsFor, defaultFormat, ruleText, sportOf } from '../lib/sport.js'
 
 const STEPS = ['You', 'Coaching', 'Players', 'Needs', 'League', 'Practice']
@@ -62,6 +64,27 @@ export function RuleToggles({ rules, onChange, sport = 'baseball' }) {
           />
         </label>
       ))}
+    </div>
+  )
+}
+
+// Two quiet options on the very first screen: bring back a saved backup, or switch to the
+// high-contrast look for use in bright sun. Neither is needed to set up a team.
+function FirstLinks() {
+  const [msg, setMsg] = useState('')
+  const theme = useLiveQuery(() => getSetting('theme', 'system'), [], 'system')
+  const sun = theme === 'sun'
+  return (
+    <div className="first-links">
+      <RestoreBackup label="Restore a backup" className="linklike" onMessage={setMsg} />
+      <button type="button" className="linklike" aria-pressed={sun} onClick={() => setSetting('theme', sun ? 'system' : 'sun')}>
+        {sun ? 'Normal colors' : 'High contrast (bright sun)'}
+      </button>
+      {msg && (
+        <p className="small" role="status">
+          {msg}
+        </p>
+      )}
     </div>
   )
 }
@@ -276,6 +299,7 @@ export default function Setup({ team = null, onDone, onCancel, first = false, co
                 </div>
               )}
             </div>
+            {first && <FirstLinks />}
             {first && TEST_TOOLS && (
               <div className="card">
                 <h2 className="sm-h">Just looking around?</h2>

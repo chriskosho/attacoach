@@ -280,8 +280,12 @@ describe('on screen', () => {
     window.location.hash = `#/plan/${plan.id}`
     render(<App />)
     await screen.findByRole('list', { name: 'Practice blocks' })
-    window.prompt = () => 'Tuesday basics'
     await user.click(screen.getByRole('button', { name: 'Save as a template' }))
+    const sheet = await screen.findByRole('dialog', { name: 'Name this template' })
+    const field = within(sheet).getByLabelText('Template name')
+    await user.clear(field)
+    await user.type(field, 'Tuesday basics')
+    await user.click(within(sheet).getByRole('button', { name: 'Save' }))
     await waitFor(async () => expect(await db.templates.count()).toBe(1))
     window.location.hash = '#/today'
     const pick = await screen.findByLabelText('Start from a template')

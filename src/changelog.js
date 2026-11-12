@@ -1,6 +1,17 @@
-export const VERSION = '1.22.0'
+export const VERSION = '1.23.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.23.0',
+    date: '2026-11-11',
+    items: [
+      'New phone, or started over? The first screen now has "Restore a backup", so you can bring your teams back without setting up again.',
+      'The first screen also has a one-tap "High contrast (bright sun)" link, so you can make it readable outside before you type anything.',
+      'Before you restore, the preview now also shows your own drills, templates, favorites and hidden drills.',
+      'After you save a backup, AttaCoach tells you where to look for the file (on iPhone: Files > Downloads, or Save to Files).',
+      'Saving a plan as a template now asks for the name in the app, with the keyboard out of the way, instead of a browser pop-up.',
+    ],
+  },
   {
     version: '1.22.0',
     date: '2026-11-11',

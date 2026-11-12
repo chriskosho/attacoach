@@ -79,6 +79,7 @@ export default function PlanView({ planId, team, coach = '' }) {
   const [printing, setPrinting] = useState(false)
   const [toast, setToast] = useToast()
   const [changing, setChanging] = useState(false)
+  const [naming, setNaming] = useState(false)
   // What the last change of plans did, with one Undo.
   const [changed, setChanged] = useState(null)
 
@@ -155,9 +156,8 @@ export default function PlanView({ planId, team, coach = '' }) {
     else setToast(on ? "Plans won't suggest it again. It stays in this plan until you swap it." : 'Plans can suggest it again.')
   }
 
-  const asTemplate = async () => {
-    const name = window.prompt('Name this template', plan.practiceName ? `${plan.practiceName} template` : 'My practice')
-    if (!name || !name.trim()) return
+  const saveAsTemplate = async (name) => {
+    setNaming(false)
     await saveTemplate(plan, name)
     setToast(`Saved "${name.trim()}". Start from it on the Today tab.`)
   }
@@ -270,7 +270,7 @@ export default function PlanView({ planId, team, coach = '' }) {
                   onChange={(e) => e.target.value && update({ ...plan, date: e.target.value })}
                 />
               </label>
-              <button className="btn quiet small" onClick={asTemplate}>
+              <button className="btn quiet small" onClick={() => setNaming(true)}>
                 Save as a template
               </button>
             </details>
@@ -468,6 +468,7 @@ export default function PlanView({ planId, team, coach = '' }) {
         </button>
       </main>
 
+      {naming && <TemplateNameSheet initial={plan.practiceName ? `${plan.practiceName} template` : 'My practice'} onSave={saveAsTemplate} onClose={() => setNaming(false)} />}
       {changing && <ChangeSheet team={team} plan={plan} onApply={applyChange} onClose={() => setChanging(false)} />}
       {swap && <SwapSheet team={team} plan={plan} swap={swap} onPick={pickSwap} onClose={() => setSwap(null)} />}
       {adding && <AddSheet team={team} plan={plan} onPick={pickAdd} onClose={() => setAdding(false)} />}
@@ -492,6 +493,36 @@ export default function PlanView({ planId, team, coach = '' }) {
 }
 
 // Half the team is out, a helper cancelled, or it rained: set the day as it is now and rebuild.
+// Asks for a template name inside the app (no browser pop-up), so it works with the phone keyboard open.
+export function TemplateNameSheet({ initial, onSave, onClose }) {
+  const [name, setName] = useState(initial)
+  const ok = name.trim().length > 0
+  return (
+    <Sheet title="Name this template" onClose={onClose} top>
+      <form
+        className="stack"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (ok) onSave(name)
+        }}
+      >
+        <label className="field">
+          Template name
+          <input type="text" value={name} maxLength={60} autoFocus enterKeyHint="done" onFocus={(e) => e.target.select()} onChange={(e) => setName(e.target.value)} />
+        </label>
+        <div className="action-row">
+          <button type="submit" className="btn" disabled={!ok}>
+            Save
+          </button>
+          <button type="button" className="btn quiet" onClick={onClose}>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </Sheet>
+  )
+}
+
 function ChangeSheet({ team, plan, onApply, onClose }) {
   const [kids, setKids] = useState(plan.kids ?? 12)
   const [adults, setAdults] = useState(plan.adults ?? plan.coaches ?? 1)
