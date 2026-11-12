@@ -124,6 +124,19 @@ describe('loops restart cleanly', () => {
     }
   })
 
+  it('cutoffs and relays: no two people ever come closer than 18 px', () => {
+    const spec = DIAGRAMS['cutoffs-relays']
+    const people = spec.actors.filter((a) => a.kind !== 'bat' && a.kind !== 'ball')
+    for (let t = 0; t <= spec.len + 1e-9; t += 0.05) {
+      for (let i = 0; i < people.length; i++)
+        for (let j = i + 1; j < people.length; j++) {
+          const [x1, y1] = samplePos(people[i], t)
+          const [x2, y2] = samplePos(people[j], t)
+          expect(Math.hypot(x1 - x2, y1 - y2), `t=${t.toFixed(2)} dots ${i} and ${j}`).toBeGreaterThanOrEqual(18)
+        }
+    }
+  })
+
   it('tee work and front toss keep a ball in view the whole loop, on the tee or in the coach’s hand', () => {
     for (const id of ['tee-work', 'front-toss']) {
       const spec = DIAGRAMS[id]

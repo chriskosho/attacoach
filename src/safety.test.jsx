@@ -3,6 +3,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, waitFor, within, cleanup, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { backupWhere } from './lib/backupFile.js'
 import App from './App.jsx'
 import ErrorBoundary from './components/ErrorScreen.jsx'
 import { db, saveTeam, savePlayers, clearEverything, getSetting, setSetting, exportBackup } from './lib/db.js'
@@ -173,6 +174,14 @@ describe('the backup card on Today', () => {
     await waitFor(() => expect(screen.queryByRole('region', { name: 'Backup reminder' })).toBe(null))
     expect(Date.now() - Date.parse(await getSetting('lastBackupAt'))).toBeLessThan(5000)
     expect(URL.createObjectURL).toHaveBeenCalled()
+  })
+  it('says where the file went after Save backup, using the shared where-line', async () => {
+    const user = userEvent.setup()
+    await withTeam({ players: 6 })
+    render(<App />)
+    await user.click(await screen.findByRole('button', { name: 'Save backup' }))
+    const done = await screen.findByRole('region', { name: 'Backup saved' })
+    expect(within(done).getByText(backupWhere())).toBeTruthy()
   })
   it('does not show when the last backup was recent, and comes back after 14 days', async () => {
     await withTeam({ players: 6 })

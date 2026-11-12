@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { setSetting } from '../lib/db.js'
-import { saveBackupFile } from '../lib/backupFile.js'
+import { saveBackupFile, backupWhere } from '../lib/backupFile.js'
 import { backupReminderDue, snoozeBackupReminder, installHintKind, readSafetySettings, isInstalledApp, isIosDevice, useInstallPrompt, runInstallPrompt, INSTALL_DISMISSED } from '../lib/safety.js'
 
 // One small, dismissible card on Today: a backup reminder, or (never together) the home screen hint.
@@ -13,6 +13,15 @@ export default function SafetyCards({ players = 0, plans = 0 }) {
 
   const backupDue = backupReminderDue({ players, plans, lastBackupAt: s.lastBackupAt, snoozedUntil: s.snoozedUntil })
   const kind = installHintKind({ installed: isInstalledApp(), dismissed: s.installDismissed, backupDue, hasPrompt: !!prompt, ios: isIosDevice() })
+
+  if (saved) {
+    return (
+      <section className="card safety-card" aria-label="Backup saved">
+        <strong>Backup saved</strong>
+        <span className="small muted">{backupWhere()}</span>
+      </section>
+    )
+  }
 
   if (backupDue && !saved) {
     return (

@@ -4,6 +4,7 @@ import {
   removeBlock, addDrill, schedule, eligibleDrills, needScore, hasPitching,
 } from './plan.js'
 import { drillById } from '../data/drills.js'
+import { OPENERS } from '../data/motivation.js'
 import { DIVISIONS, PRACTICE_LENGTHS, defaultRules, divIndex, MAX_BLOCK } from '../data/constants.js'
 
 const team = (over = {}) => {
@@ -81,6 +82,18 @@ describe('buildPlan', () => {
     expect(plan.focus).toEqual(['bunting'])
     expect(drillIdsInPlan(plan).some((id) => drillById(id).needs.includes('bunting'))).toBe(true)
     expect(plan.opener).toContain('bunting')
+  })
+
+  it('the opener and closer come from the lists whichever seed picks them', () => {
+    const esc = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const asRegex = (o) => new RegExp('^' + o.split('{need}').map(esc).join('.+') + '$')
+    const openers = [...OPENERS.young, ...OPENERS.older].map(asRegex)
+    for (let seed = 1; seed <= 24; seed++) {
+      const plan = buildPlan(team({ needs: ['grounders'] }), { minutes: 60, coaches: 1, focus: ['bunting'], seed })
+      expect(openers.some((r) => r.test(plan.opener))).toBe(true)
+      expect(plan.opener).toContain('bunting')
+      expect(plan.closer.length).toBeGreaterThan(10)
+    }
   })
 
   it('uses station rotations when there are several coaches', () => {

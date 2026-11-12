@@ -1,6 +1,14 @@
-export const VERSION = '1.25.0'
+export const VERSION = '1.26.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.26.0',
+    date: '2026-11-12',
+    items: [
+      'After you tap "Save backup" on Today, the card now tells you where the file went (the same note as in Settings) instead of just disappearing.',
+      'Cutoffs and relays: the pitcher, catcher, runner, shortstop, third baseman, second baseman and batter no longer stand on top of each other during the play. The play is the same: "Cut! Two!" and the out at second.',
+    ],
+  },
   {
     version: '1.25.0',
     date: '2026-11-11',
