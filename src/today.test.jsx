@@ -110,9 +110,14 @@ describe('the Today tab', () => {
     const card = (await screen.findByText('Next practice')).closest('section')
     expect(within(card).getByText(/Today, 75 minutes/)).toBeTruthy()
     expect(within(card).getByText(/Focus: /)).toBeTruthy()
-    // It comes before the build form.
-    const all = [...document.querySelectorAll('main section')]
-    expect(all.indexOf(card)).toBeLessThan(all.findIndex((x) => x.getAttribute('aria-labelledby') === 'build-title'))
+    // The build form folds into one button after it (Stage 11D), and opens on a tap.
+    expect(document.querySelector('[aria-labelledby="build-title"]')).toBe(null)
+    const more = screen.getByRole('button', { name: 'Plan another practice' })
+    expect(card.compareDocumentPosition(more) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    await user.click(more)
+    const form = document.querySelector('[aria-labelledby="build-title"]')
+    expect(within(form).getByRole('heading', { name: 'Plan another practice' })).toBeTruthy()
+    expect(card.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     await user.click(within(card).getByRole('button', { name: 'Start practice' }))
     expect(window.location.hash).toBe('#/run/p1')
   })
@@ -199,7 +204,7 @@ describe('the plan page', () => {
   it('leads with the summary, keeps the date behind a tap, and puts Delete last and quiet', async () => {
     const user = userEvent.setup()
     await openPlan()
-    expect(screen.getByText(/90 min, Full field, 12 kids/)).toBeTruthy()
+    expect(document.querySelector('.plan-line').textContent).toMatch(/ · 90 min · Full field · 12 kids$/)
     const details = document.querySelector('details.plan-details')
     expect(details.open).toBe(false)
     expect(within(details).getByLabelText('Practice date')).toBeTruthy()

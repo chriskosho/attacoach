@@ -1,6 +1,16 @@
-export const VERSION = '1.29.0'
+export const VERSION = '1.30.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.30.0',
+    date: '2026-11-12',
+    items: [
+      'The plan page leads with the plan. The top is one line ("Tomorrow · 60 min · Cage · 12 kids") with the focus folded to "Making contact +4". The adult count is one tap that opens Change of plans, and the opening talk is one line that opens to the full talk and huddle points. The first drill now shows without scrolling, even on small phones.',
+      'Tap a block to see what to say, the steps and a link to the full drill. Its buttons (Lock, minutes, Swap, Move, Add break after, Favorite, Don\'t suggest this, Remove) are behind one Edit button.',
+      'Print is now inside Share, and "Build a new one" is a quiet link above Delete plan. It still asks first.',
+      'On Today, once a practice is planned, planning another one is a single button, so Start practice stays at the top. The pitch-count reminder now sits right under the plan\'s blocks.',
+    ],
+  },
   {
     version: '1.29.0',
     date: '2026-11-12',

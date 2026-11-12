@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, saveDebrief, deleteDebrief } from '../lib/db.js'
-import { go } from '../lib/route.js'
+import { go, store } from '../lib/route.js'
 import { localDate, totalMinutes } from '../lib/plan.js'
 import { DRILLS } from '../data/drills.js'
 import { needLabel, needsForDivision } from '../data/constants.js'
@@ -136,7 +136,14 @@ export default function Log({ team }) {
           <section className="card" aria-labelledby="next-title">
             <h3 id="next-title">Work on next</h3>
             <SuggestionList suggestion={suggestion} />
-            <button className="btn ghost" onClick={() => go('today')}>
+            <button
+              className="btn ghost"
+              onClick={() => {
+                // Land on Today with the planning form open, where this suggestion shows.
+                store.set('openPlanForm', true)
+                go('today')
+              }}
+            >
               Plan next practice
             </button>
           </section>

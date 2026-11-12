@@ -260,6 +260,7 @@ describe('on screen', () => {
     expect(await screen.findByRole('button', { name: 'Build a new one' })).toBeTruthy()
     const items = within(screen.getByRole('list', { name: 'Practice blocks' })).getAllByRole('listitem')
     await user.click(within(items[1]).getAllByRole('button')[0])
+    await user.click(within(items[1]).getByRole('button', { name: 'Edit' }))
     await user.click(within(items[1]).getByRole('button', { name: 'Lock' }))
     expect(await screen.findByRole('button', { name: 'Rebuild the rest' })).toBeTruthy()
     expect(within(items[1]).getByText('Locked')).toBeTruthy()

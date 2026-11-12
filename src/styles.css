@@ -721,6 +721,7 @@ a.btn { text-decoration: none; }
 .plan-details { margin-top: 6px; }
 .plan-details summary { cursor: pointer; color: var(--ink-2); }
 .quiet-delete { align-self: center; color: var(--warn); font-weight: 600; margin-top: 18px; min-height: 44px; padding: 10px 16px; }
+.quiet-delete.quiet-rebuild { color: var(--ink); margin-top: 8px; margin-bottom: -18px; }
 
 /* Safety cards, restore list and the error screen */
 .safety-card { gap: 8px; }
@@ -811,4 +812,38 @@ textarea { font: inherit; width: 100%; border: 1.5px solid var(--line); border-r
   .run-quiet { margin-top: 6px; }
   .run-controls button { min-height: 52px; font-size: 20px; }
   .run-cue { margin-top: 8px; }
+}
+
+/* Plan page: one-line header, adult count, folded opener, short drill view, edit behind one button. */
+.plan-line { font-size: 16px; }
+.focus-fold summary { cursor: pointer; list-style: none; min-height: 32px; }
+.focus-fold summary::-webkit-details-marker { display: none; }
+.focus-fold summary::after { content: ' ›'; }
+.focus-fold[open] summary::after { content: ' ▾'; }
+.focus-list { margin: 0 0 4px; padding-left: 22px; }
+.link-row { background: none; border: 0; padding: 0 2px; min-height: 44px; font: inherit; font-size: 15px; color: var(--ink); text-align: left; cursor: pointer; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 4px; align-self: flex-start; }
+.talk-fold { padding: 10px 14px; }
+.talk-fold summary { cursor: pointer; list-style: none; display: flex; gap: 6px; align-items: baseline; min-height: 28px; }
+.talk-fold summary::-webkit-details-marker { display: none; }
+.talk-fold summary .who { margin: 0; flex: none; }
+.talk-fold .talk-line { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.talk-fold summary::after { content: '›'; color: var(--pole); flex: none; font-weight: 700; }
+.talk-fold[open] .talk-line { white-space: normal; }
+.talk-fold[open] summary::after { content: '▾'; }
+.short-steps { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 4px; }
+.edit-toggle { align-self: flex-start; }
+.print-only { display: none; }
+@media print { .print-only { display: block; } }
+
+.plan-head { display: flex; flex-direction: column; gap: 2px; }
+.plan-top { display: flex; align-items: baseline; gap: 10px; }
+.plan-top .plan-line { flex: 1; min-width: 0; }
+.plan-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 0 18px; }
+.plan-sub > details[open] { flex-basis: 100%; }
+.plan-sub summary { min-height: 44px; display: flex; align-items: center; }
+.start-row { display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px; align-items: stretch; }
+.start-row .btn { min-height: 56px; padding-left: 10px; padding-right: 10px; }
+@media (max-width: 359px) {
+  .plan-line { font-size: 15px; }
+  .start-row .btn { min-height: 52px; font-size: 17px; }
 }

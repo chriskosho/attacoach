@@ -216,11 +216,15 @@ describe('practice setup in the app', () => {
     expect(plan).toMatchObject({ practiceName: 'Cage day', minutes: 60, adults: 3, kids: 13, spaces: ['cage', 'open'], athletic: true, coachRole: 'float' })
     expect(plan.equipment).toEqual(['tee', 'machine'])
 
-    // A helper cancels: drop to two adults right on the plan.
-    await user.click(screen.getByRole('button', { name: 'Fewer: Adults today' }))
+    // A helper cancels: the adult count line on the plan opens Change of plans (Stage 11D moved the stepper there).
+    await user.click(screen.getByRole('button', { name: /^3 adults · You float and manage/ }))
+    const sheet = await screen.findByRole('dialog', { name: 'Change of plans' })
+    await user.click(within(sheet).getByRole('button', { name: 'Fewer: Adults today' }))
+    await user.click(within(sheet).getByRole('button', { name: 'Apply changes' }))
     await waitFor(async () => expect((await db.plans.get(plan.id)).adults).toBe(2))
     expect((await db.plans.get(plan.id)).coachRole).toBe('run')
-    expect(await screen.findByText('Reworked for 2 adults.')).toBeTruthy()
+    expect(await screen.findByRole('button', { name: /^2 adults · You run a station/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeTruthy()
   })
 
   it('edits how the team practices from the Team tab', async () => {

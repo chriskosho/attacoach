@@ -17,7 +17,7 @@ import { drillFor, sportOf, sportCopy } from '../lib/sport.js'
 
 // A drill in the team's sport's wording.
 const drillIn = (team) => (id) => drillFor(drillById(id), team)
-import { categoryLabel, focusSummary, coachTitle, spaceLabel, lengthsFor, SPACES } from '../data/constants.js'
+import { categoryLabel, focusSummary, coachTitle, spaceLabel, lengthsFor, needLabel, SPACES } from '../data/constants.js'
 import { describeChanges } from '../lib/changes.js'
 import SkillChips from './SkillChips.jsx'
 import { blockTitle, planText, shareText } from '../lib/share.js'
@@ -70,10 +70,79 @@ function DrillBody({ drill, experienced, sport }) {
   )
 }
 
+// The open block on the plan page: what to say, the steps, and a way to the full drill page.
+// The full write-up (setup, coaching points, variations, equipment) is one tap away there.
+function DrillShort({ drill, sport }) {
+  const [cue] = sportCopy(cuesFor(drill), sport)
+  return (
+    <>
+      {cue && <SayThis cue={cue} />}
+      <ol className="short-steps">
+        {drill.steps.map((s, i) => (
+          <li key={i}>{s}</li>
+        ))}
+      </ol>
+      {!drill.deleted && (
+        <button className="link-btn small" style={{ alignSelf: 'flex-start' }} onClick={() => go(`drill/${drill.id}`)}>
+          Full drill: setup, coaching points and picture ›
+        </button>
+      )}
+    </>
+  )
+}
+
+// "2 adults · You run a station": who is there and what the coach does. Opens Change of plans.
+export function adultsLine(plan) {
+  const n = plan.adults ?? plan.coaches ?? 1
+  return `${n} ${n === 1 ? 'adult' : 'adults'} · ${n === 1 ? 'Just you' : plan.coachRole === 'float' ? 'You float and manage' : 'You run a station'}`
+}
+
+// One line for the top of the plan: "Tomorrow · 60 min · Cage · 12 kids".
+export function planLine(plan) {
+  const place = plan.practiceName ? plan.practiceName.replace(/\s+practice$/i, '') : (plan.spaces ?? ['field']).map(spaceLabel).join(' + ')
+  return [`${plan.minutes} min`, place, plan.kids ? `${plan.kids} kids` : null].filter(Boolean)
+}
+
+// "Focus: Making contact +4", with the whole list one tap away.
+function FocusLine({ focus = [] }) {
+  if (!focus.length) return null
+  const first = needLabel(focus[0])
+  if (focus.length === 1) return <div className="small muted">Focus: {first}</div>
+  return (
+    <details className="focus-fold">
+      <summary className="small muted" title={`Focus: ${focusSummary(focus)}`}>
+        Focus: {first} +{focus.length - 1}
+      </summary>
+      <ol className="small focus-list">
+        {focus.map((n) => (
+          <li key={n}>{needLabel(n)}</li>
+        ))}
+      </ol>
+    </details>
+  )
+}
+
+function ShareSheet({ onText, onPrint, onClose }) {
+  return (
+    <Sheet title="Share this plan" onClose={onClose}>
+      <p className="muted small">Send it to your helpers, or print it for the clipboard.</p>
+      <button className="btn" onClick={onText}>
+        Send or copy the plan
+      </button>
+      <button className="btn quiet" onClick={onPrint}>
+        Print
+      </button>
+    </Sheet>
+  )
+}
+
 export default function PlanView({ planId, team, coach = '' }) {
   const drillOf = drillIn(team)
   const plan = useLiveQuery(() => db.plans.get(planId), [planId])
   const [open, setOpen] = useState(() => new Set())
+  // Blocks whose edit buttons are showing. Kept by block id, so it survives the plan saving and redrawing.
+  const [editing, setEditing] = useState(() => new Set())
+  const [sharing, setSharing] = useState(false)
   const [swap, setSwap] = useState(null)
   const [adding, setAdding] = useState(false)
   const [printing, setPrinting] = useState(false)
@@ -124,6 +193,13 @@ export default function PlanView({ planId, team, coach = '' }) {
       return n
     })
   const isOpen = (key) => printing || open.has(key)
+  const toggleEdit = (key) =>
+    setEditing((cur) => {
+      const n = new Set(cur)
+      n.has(key) ? n.delete(key) : n.add(key)
+      return n
+    })
+  const isEditing = (key) => !printing && editing.has(key)
   const experienced = team.experience === 'experienced'
   // A coach who said they're unsure about a skill gets the full explanation for those drills.
   const unsureAbout = (d) => (team.unsure ?? []).some((n) => d.needs.includes(n))
@@ -133,6 +209,7 @@ export default function PlanView({ planId, team, coach = '' }) {
   const rows = schedule(plan)
 
   const share = async () => {
+    setSharing(false)
     const result = await shareText(`${team.name} practice plan`, planText(plan, team, coach))
     if (result === 'copied') setToast('Plan copied. Paste it into a text or email.')
     else if (result === 'failed') setToast('Sharing isn\'t available on this browser.')
@@ -160,13 +237,6 @@ export default function PlanView({ planId, team, coach = '' }) {
     setNaming(false)
     await saveTemplate(plan, name)
     setToast(`Saved "${name.trim()}". Start from it on the Today tab.`)
-  }
-
-  // Helpers cancel and parents show up. Rebuild for the adults actually there, keeping most drills.
-  const changeAdults = (n) => {
-    const before = plan
-    savePlan(rebuildPlan(team, plan, { adults: n }))
-    setToast(`Reworked for ${n} ${n === 1 ? 'adult' : 'adults'}.`, () => savePlan(before))
   }
 
   const applyChange = async (changes) => {
@@ -249,16 +319,18 @@ export default function PlanView({ planId, team, coach = '' }) {
             </span>
           </div>
         )}
-        <div className="row wrap">
-          <div className="spacer">
-            <div>
+        <div className="plan-head">
+          <div className="plan-top">
+            <div className="plan-line">
               <strong>{planDate(plan)}</strong>
-              <span className="muted small">
-                {' '}
-                {[`${plan.minutes} min`, plan.practiceName, (plan.spaces ?? ['field']).map(spaceLabel).join(' + '), plan.kids ? `${plan.kids} kids` : null].filter(Boolean).join(', ')}. Focus: {focusSummary(plan.focus)}
-              </span>
+              {` · ${planLine(plan).join(' · ')}`}
             </div>
-            {coach && <div className="small muted">Prepared by {coachTitle(coach)}</div>}
+            <span className={`time-total${diff > 0 ? ' over' : ''}`} aria-live="polite">
+              {total} of {plan.minutes} min
+            </span>
+          </div>
+          <div className="plan-sub">
+            <FocusLine focus={plan.focus} />
             <details className="plan-details no-print">
               <summary className="small">Date and template</summary>
               <label className="field">
@@ -274,10 +346,11 @@ export default function PlanView({ planId, team, coach = '' }) {
                 Save as a template
               </button>
             </details>
+            <button className="link-row no-print" onClick={() => setChanging(true)}>
+              {adultsLine(plan)} ›
+            </button>
           </div>
-          <span className={`time-total${diff > 0 ? ' over' : ''}`} aria-live="polite">
-            {total} of {plan.minutes} min
-          </span>
+          {coach && <div className="small muted print-only">Prepared by {coachTitle(coach)}</div>}
         </div>
         {diff !== 0 && (
           <p className="note">
@@ -285,23 +358,14 @@ export default function PlanView({ planId, team, coach = '' }) {
           </p>
         )}
 
-        <div className="row no-print">
-          <span className="small spacer">
-            <strong>Adults today</strong>
-            <span className="muted">
-              {' '}
-              {(plan.adults ?? plan.coaches) === 1 ? 'Just you.' : plan.coachRole === 'float' ? 'You float and manage.' : 'You run a station.'}
-            </span>
-          </span>
-          <CountStepper label="Adults today" value={plan.adults ?? plan.coaches ?? 1} onChange={changeAdults} min={1} max={10} />
+        <div className="start-row no-print">
+          <button className="btn big" onClick={() => go(`run/${plan.id}`)}>
+            Start practice
+          </button>
+          <button className="btn quiet" onClick={() => setChanging(true)}>
+            Change of plans
+          </button>
         </div>
-
-        <button className="btn big no-print" onClick={() => go(`run/${plan.id}`)}>
-          Start practice
-        </button>
-        <button className="btn quiet no-print" onClick={() => setChanging(true)}>
-          Change of plans
-        </button>
 
         {changed && (
           <div className="suggest no-print" role="status">
@@ -319,16 +383,24 @@ export default function PlanView({ planId, team, coach = '' }) {
           </div>
         )}
 
-        <div className="talk">
-          <div className="who">Open practice with</div>
-          {plan.opener}
-          <details className="talk-more">
-            <summary>Huddle talking points</summary>
+        {printing ? (
+          <div className="talk">
+            <div className="who">Open practice with</div>
+            {plan.opener}
+            <HuddlePoints kind="practiceOpen" team={team} focus={plan.focus} seed={plan.date ?? plan.id} />
+          </div>
+        ) : (
+          <details className="talk talk-fold">
+            <summary>
+              <span className="who">Open with:</span> <span className="talk-line">{plan.opener}</span>
+            </summary>
+            <div className="who" style={{ marginTop: 10 }}>
+              Huddle talking points
+            </div>
             <HuddlePoints kind="practiceOpen" team={team} focus={plan.focus} seed={plan.date ?? plan.id} />
           </details>
-        </div>
+        )}
 
-        {pitchNote(plan, team) && <p className="note">{pitchNote(plan, team)}</p>}
 
         <ol className="card flat lineup" aria-label="Practice blocks">
           {rows.map(({ block: b, start, end }, i) => {
@@ -373,7 +445,7 @@ export default function PlanView({ planId, team, coach = '' }) {
                 {isOpen(key) && (
                   <div className="slot-body">
                     {drill && <StationNotes drill={drill} plan={plan} groupSize={null} />}
-                    {drill && <DrillBody drill={drill} sport={sportOf(team)} experienced={experienced && !unsureAbout(drill)} />}
+                    {drill && (printing ? <DrillBody drill={drill} sport={sportOf(team)} experienced={experienced && !unsureAbout(drill)} /> : <DrillShort drill={drill} sport={sportOf(team)} />)}
                     {b.kind === 'drill' && !drill && <p className="muted">This drill is no longer in the library. Swap it for another.</p>}
                     {b.kind === 'break' && <p className="muted">Water for everyone. On hot days, add more breaks and find shade.</p>}
                     {b.kind === 'huddle' && (
@@ -390,10 +462,10 @@ export default function PlanView({ planId, team, coach = '' }) {
                         <p>
                           Split the team into {b.stations.length} groups{b.groups ? ` (${b.groups.join(', ')} kids)` : ''}. Every {b.stationMinutes} minutes, groups rotate to the next station until each group has done every one.
                         </p>
-                        <div className="row no-print">
+                        {isEditing(key) && <div className="row no-print">
                           <span className="small muted spacer">Minutes at each station</span>
                           <Stepper label="Minutes at each station" value={b.stationMinutes} onChange={(m) => update(setBlockMinutes(plan, b.id, m))} />
-                        </div>
+                        </div>}
                         {b.stations.map((id, si) => {
                           const sd = drillOf(id)
                           const skey = `${b.id}:${si}`
@@ -421,8 +493,8 @@ export default function PlanView({ planId, team, coach = '' }) {
                               {isOpen(skey) && (
                                 <div className="slot-body">
                                   <StationNotes drill={sd} plan={plan} groupSize={b.groups ? Math.max(...b.groups) : null} />
-                                  {sd && <DrillBody drill={sd} sport={sportOf(team)} experienced={experienced && !unsureAbout(sd)} />}
-                                  <div className="edit-bar no-print">
+                                  {sd && (printing ? <DrillBody drill={sd} sport={sportOf(team)} experienced={experienced && !unsureAbout(sd)} /> : <DrillShort drill={sd} sport={sportOf(team)} />)}
+                                  {isEditing(key) && <div className="edit-bar no-print">
                                     <button className="btn quiet small" onClick={() => setSwap({ blockId: b.id, stationIndex: si, drillId: id })}>
                                       Swap
                                     </button>
@@ -430,7 +502,7 @@ export default function PlanView({ planId, team, coach = '' }) {
                                     <button className="btn danger small" onClick={() => removeWithUndo(removeBlock(plan, b.id, si, team.division), 'the station')}>
                                       Remove station
                                     </button>
-                                  </div>
+                                  </div>}
                                 </div>
                               )}
                             </div>
@@ -438,34 +510,46 @@ export default function PlanView({ planId, team, coach = '' }) {
                         })}
                       </>
                     )}
-                    {blockControls(b, i)}
+                    <button className="btn quiet small no-print edit-toggle" onClick={() => toggleEdit(key)} aria-expanded={isEditing(key)}>
+                      {isEditing(key) ? 'Done editing' : 'Edit'}
+                    </button>
+                    {isEditing(key) && blockControls(b, i)}
                   </div>
                 )}
               </li>
             )
           })}
         </ol>
+        {/* The pitch-count reminder sits right under the blocks, so the first drill stays on the first screen. */}
+        {pitchNote(plan, team) && <p className="note">{pitchNote(plan, team)}</p>}
 
         <div className="action-row no-print">
           <button className="btn quiet" onClick={() => setAdding(true)}>
             Add a drill
           </button>
-          <button className="btn quiet" onClick={share}>
+          <button className="btn quiet" onClick={() => setSharing(true)}>
             Share
-          </button>
-          <button className="btn quiet" onClick={() => setPrinting(true)}>
-            Print
-          </button>
-          <button className="btn quiet" onClick={rebuild}>
-            {locked ? 'Rebuild the rest' : 'Build a new one'}
           </button>
         </div>
         <PlanFeedback team={team} plan={plan} />
+        <button className="link-btn quiet-delete quiet-rebuild no-print" onClick={rebuild}>
+          {locked ? 'Rebuild the rest' : 'Build a new one'}
+        </button>
         <button className="link-btn quiet-delete no-print" onClick={remove}>
           Delete plan
         </button>
       </main>
 
+      {sharing && (
+        <ShareSheet
+          onText={share}
+          onPrint={() => {
+            setSharing(false)
+            setPrinting(true)
+          }}
+          onClose={() => setSharing(false)}
+        />
+      )}
       {naming && <TemplateNameSheet initial={plan.practiceName ? `${plan.practiceName} template` : 'My practice'} onSave={saveAsTemplate} onClose={() => setNaming(false)} />}
       {changing && <ChangeSheet team={team} plan={plan} onApply={applyChange} onClose={() => setChanging(false)} />}
       {swap && <SwapSheet team={team} plan={plan} swap={swap} onPick={pickSwap} onClose={() => setSwap(null)} />}
@@ -548,7 +632,7 @@ function ChangeSheet({ team, plan, onApply, onClose }) {
       </div>
       <div className="row">
         <strong className="small spacer">Adults today</strong>
-        <CountStepper label="Adults today in the sheet" value={adults} onChange={setAdults} min={1} max={10} />
+        <CountStepper label="Adults today" value={adults} onChange={setAdults} min={1} max={10} />
       </div>
       <div className="stack">
         <strong className="small">Minutes</strong>

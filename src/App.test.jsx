@@ -176,7 +176,7 @@ describe('planning', () => {
     const items = within(list).getAllByRole('listitem')
     expect(items[items.length - 1].textContent).toContain('Team huddle')
     expect(list.textContent).toContain('Stations')
-    expect(screen.getByText(/Open practice with/)).toBeTruthy()
+    expect(screen.getByText('Open with:')).toBeTruthy()
     expect(window.location.hash).toMatch(/^#\/plan\//)
   })
 
@@ -190,7 +190,9 @@ describe('planning', () => {
     const list = screen.getByRole('list', { name: 'Practice blocks' })
     const first = within(list).getAllByRole('listitem')[0]
     await user.click(within(first).getAllByRole('button')[0])
-    expect(within(first).getByText('Coaching points')).toBeTruthy()
+    // The open block shows the drill; its edit buttons are behind Edit (Stage 11D).
+    expect(within(first).getByRole('button', { name: /^Full drill/ })).toBeTruthy()
+    await user.click(within(first).getByRole('button', { name: 'Edit' }))
     await user.click(within(first).getByRole('button', { name: 'One minute more' }))
     expect(await screen.findByText('61 of 60 min')).toBeTruthy()
     expect(screen.getByText(/1 minutes over/)).toBeTruthy()
@@ -205,6 +207,7 @@ describe('planning', () => {
     const list = screen.getByRole('list', { name: 'Practice blocks' })
     const first = within(list).getAllByRole('listitem')[0]
     await user.click(within(first).getAllByRole('button')[0])
+    await user.click(within(first).getByRole('button', { name: 'Edit' }))
     await user.click(within(first).getByRole('button', { name: 'Swap' }))
     const dialog = await screen.findByRole('dialog')
     const option = within(dialog).getAllByRole('button').find((b) => b.className.includes('drill-row'))
@@ -223,6 +226,7 @@ describe('planning', () => {
     const count = list.children.length
     const first = list.children[0]
     await user.click(within(first).getAllByRole('button')[0])
+    await user.click(within(first).getByRole('button', { name: 'Edit' }))
     await user.click(within(first).getByRole('button', { name: 'Remove' }))
     await waitFor(() => expect(list.children.length).toBe(count - 1))
     await user.click(await screen.findByRole('button', { name: 'Undo' }))

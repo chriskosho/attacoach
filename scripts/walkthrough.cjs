@@ -146,7 +146,9 @@ const AUTH_ON = process.env.VITE_AUTH_REQUIRED === "true"
       const items = page.getByRole('list', { name: 'Practice blocks' }).getByRole('listitem')
       await items.nth(3).locator('.slot-head').first().click()
       await shot('07-plan-open')
-      // Make it theirs: lock a block, save a template, and see it on Today.
+      // Make it theirs: lock a block (its buttons sit behind Edit), save a template, and see it on Today.
+      await items.nth(3).getByRole('button', { name: 'Edit', exact: true }).click()
+      await shot('07-plan-edit')
       await items.nth(3).getByRole('button', { name: 'Lock' }).click()
       await page.getByRole('button', { name: 'Rebuild the rest' }).waitFor()
       await shot('07a-plan-locked')
@@ -159,6 +161,10 @@ const AUTH_ON = process.env.VITE_AUTH_REQUIRED === "true"
       await page.getByText(/Saved "Cage day basics"/).waitFor()
       await shot('07b-plan-template')
       await page.getByRole('button', { name: 'Today', exact: true }).click()
+      // With a practice planned, the planning form is one tap away.
+      await page.getByText(/^Plan (another|a) practice$/).first().waitFor()
+      const another = page.getByRole('button', { name: 'Plan another practice' })
+      if (await another.count()) await another.click()
       await page.getByLabel('Start from a template').waitFor()
       await shot('07c-today-template')
       await page.goBack()
@@ -238,7 +244,7 @@ const AUTH_ON = process.env.VITE_AUTH_REQUIRED === "true"
       await page.getByRole('button', { name: 'Save', exact: true }).click()
       await page.getByRole('heading', { name: 'Work on next' }).waitFor()
       await shot('12c-log')
-      await page.getByRole('button', { name: 'Today', exact: true }).click()
+      await page.getByRole('button', { name: 'Plan next practice' }).click()
       await page.getByRole('region', { name: 'Suggested focus' }).waitFor()
       await shot('12d-today-suggestion')
       await page.getByRole('button', { name: 'Team', exact: true }).click()

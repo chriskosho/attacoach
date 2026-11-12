@@ -55,6 +55,13 @@ export default function Today({ team, coach = '', players = [] }) {
   const teamFocus = team.needs?.length ? team.needs : starterNeeds(team.division)
   const [focus, setFocus] = useState(teamFocus)
   const [building, setBuilding] = useState(false)
+  // With a practice already planned, the planning form folds into one button. Open by default without one.
+  const [showForm, setShowForm] = useState(() => {
+    // "Plan next practice" on the Log asks for the form open.
+    const asked = store.get('openPlanForm', false)
+    if (asked) store.set('openPlanForm', null)
+    return !!asked
+  })
   const templates = useLiveQuery(() => db.templates.where('teamId').equals(team.id).toArray(), [team.id])
   const [templateId, setTemplateId] = useState('')
   const template = templates?.find((t) => t.id === templateId) ?? null
@@ -138,8 +145,15 @@ export default function Today({ team, coach = '', players = [] }) {
           </section>
         )}
 
-        {plans && <SafetyCards players={players.length} plans={plans.length} />}
+        {plans && !upcoming && <SafetyCards players={players.length} plans={plans.length} />}
 
+        {upcoming && !showForm && (
+          <button className="btn quiet" onClick={() => setShowForm(true)}>
+            Plan another practice
+          </button>
+        )}
+
+        {(!upcoming || showForm) && (
         <section className="card" aria-labelledby="build-title">
           <h2 id="build-title">{upcoming ? 'Plan another practice' : 'Plan a practice'}</h2>
 
@@ -269,6 +283,9 @@ export default function Today({ team, coach = '', players = [] }) {
             </div>
           </details>
         </section>
+        )}
+
+        {plans && upcoming && <SafetyCards players={players.length} plans={plans.length} />}
 
         {latest && !upcoming && (
           <>
