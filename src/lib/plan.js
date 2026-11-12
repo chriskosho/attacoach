@@ -231,6 +231,7 @@ export function buildPlan(team, options = {}) {
   const olderUse = {}
   for (const p of history.slice(2)) for (const id of p.drills) olderUse[id] = (olderUse[id] ?? 0) + 1
   const repeats = (d) => !isStaple(d) && lastIds.has(d.id)
+  const twoBack = (d) => !isStaple(d) && prevIds.has(d.id)
   const historyPenalty = (d) => (isStaple(d) ? 0 : lastIds.has(d.id) ? 40 : prevIds.has(d.id) ? 28 : (olderUse[d.id] ?? 0) * 16)
   // Make the most of what today offers: a cage day leans to hitting, and gear the team listed gets used.
   const featureBonus = (d) =>
@@ -250,12 +251,18 @@ export function buildPlan(team, options = {}) {
   }
   for (const id of options.exclude ?? []) holdGroup(id, 1)
   const sameSkillTaken = (d) => (groupsTaken.get(sameSkillGroup(d.id)) ?? 0) > 0
+  let sharedLast = 0
+  let sharedTwo = 0
   const take = (drill) => {
+    if (repeats(drill)) sharedLast++
+    if (twoBack(drill)) sharedTwo++
     used.add(drill.id)
     holdGroup(drill.id, 1)
     return drill
   }
   const giveBack = (drill) => {
+    if (repeats(drill)) sharedLast--
+    if (twoBack(drill)) sharedTwo--
     used.delete(drill.id)
     holdGroup(drill.id, -1)
   }
@@ -386,11 +393,25 @@ export function buildPlan(team, options = {}) {
     if (i >= 0) served[i]--
   }
 
+  // Young teams have small drill pools, so avoiding only last practice's drills makes every other
+  // practice the same. A drill neither of the last two practices used comes first. When none is
+  // left, the repeat comes from whichever of those two practices today shares less with, so today
+  // differs from both of them.
+  const youngPick = (list) => {
+    const newer = list.find((d) => !repeats(d) && !twoBack(d))
+    if (newer || !list.length) return newer ?? null
+    const fromLast = list.find((d) => repeats(d) && !twoBack(d))
+    const fromTwo = list.find((d) => twoBack(d) && !repeats(d))
+    const first = sharedLast <= sharedTwo ? fromLast ?? fromTwo : fromTwo ?? fromLast
+    return first ?? list[0]
+  }
+
   // Best drill for a need. A drill from last practice is used again only when nothing new fits.
   const bestFor = (need, filter, extra) => {
     const preferred = need ? ranked((d) => filter(d) && d.needs.includes(need) && !overused(d), [need, ...focus], extra) : []
     const general = ranked((d) => filter(d) && !overused(d), focus, extra)
     const any = ranked(filter, focus, extra)
+    if (young) return youngPick(preferred) ?? youngPick(general) ?? youngPick(any)
     const fresh = (list) => list.find((d) => !repeats(d))
     return fresh(preferred) ?? fresh(general) ?? fresh(any) ?? preferred[0] ?? general[0] ?? any[0]
   }
@@ -399,7 +420,7 @@ export function buildPlan(team, options = {}) {
   // winning every other practice.
   const mustPick = (must, filter, extra = () => 0) => {
     const list = ranked((d) => filter(d) && must(d), focus, (d) => extra(d) - needScore(d, focus) * 5)
-    const d = list.find((x) => !repeats(x)) ?? list[0]
+    const d = young ? youngPick(list) : list.find((x) => !repeats(x)) ?? list[0]
     if (d) {
       const i = dayFocus.findIndex((n) => d.needs.includes(n))
       if (i >= 0) served[i]++

@@ -1,6 +1,13 @@
-export const VERSION = '1.26.0'
+export const VERSION = '1.27.0'
 
 export const CHANGELOG = [
+  {
+    version: '1.27.0',
+    date: '2026-11-12',
+    items: [
+      'More variety for 4U and 6U teams: practices no longer flip back to the same drills every other week. Each new plan now differs from both of your last two practices, and still works on your team\'s needs and includes hitting.',
+    ],
+  },
   {
     version: '1.26.0',
     date: '2026-11-12',

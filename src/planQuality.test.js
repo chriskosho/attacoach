@@ -206,6 +206,13 @@ describe('every division, sport and length', () => {
     }
   })
 
+  // 4U and 6U pools are small, so the planner spreads repeats between the last two practices instead
+  // of bouncing back to the same plan every other week.
+  const young = offered.filter((r) => divIndex(r.team.division) <= divIndex('6U'))
+  test.each(young.map((r) => [mlabel(r), r]))('%s: a young team\'s practice shares at most half its drills with the one two back', (_, r) => {
+    for (let i = 2; i < r.plans.length; i++) expect(overlap(r.plans[i - 2], r.plans[i])).toBeLessThanOrEqual(0.5)
+  })
+
   test('a coach can still add a second drill from the same group by hand', () => {
     const r = MATRIX.find((x) => x.team.id === 'bb-12U-pitch' && x.minutes === 90)
     const plan = r.plans[0]
